@@ -30,7 +30,7 @@ For replicating the `experiments`:
 
 Clone the development version from GitHub:
 
-    git clone https://github.com/tbortolotti/conformal-label-noise-marginal.git
+    git clone https://github.com/tbortolotti/marginal-noise-adaptive-conformal.git
 
 ## Reproducibility Instructions
 
