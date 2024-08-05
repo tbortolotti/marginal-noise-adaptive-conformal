@@ -2,9 +2,8 @@
 
 This repository provides the software implementation of methods from the paper:
 
->  "Marginal Adaptive Conformal Classification with Noisy Labels"  
->  Matteo Sesia, Y. X. Rachel Wang, Xin Tong  
->  [arXiv preprint](https://arxiv.org/abs/2309.05092)
+>  Paper Title
+>  Authors
 
 ## Abstract
 
