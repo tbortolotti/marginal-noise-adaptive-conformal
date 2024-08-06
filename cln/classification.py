@@ -8,17 +8,23 @@ from arc.classification import ProbabilityAccumulator as ProbAccum
 
 import sys
 import pdb
-import optimization
+#import cln.optimization
+from cln.optimization import estimate_c_const
+from cln.optimization import eval_delta_marg
+from cln.optimization import eval_delta_marg_opt
+
 
 class MarginalLabelNoiseConformal:
-    def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, T=None, epsilon, rho_tilde=None,
-                 allow_empty=False, asymptotic=False, improved=False, optimized=True, verbose=False, pre_trained=False, random_state=2023):
+    def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, epsilon=0.1, T=None, rho_tilde=None,
+                 allow_empty=False, improved=False, optimized=True, asymptotic=False, verbose=False,
+                 pre_trained=False, random_state=2023):
 
         self.K = K
         self.allow_empty = allow_empty
-        self.optimistic = asymptotic
-        self.black_box = copy.deepcopy(black_box)
         self.improved = improved
+        self.optimized = optimized
+        self.asymptotic = asymptotic
+        self.black_box = copy.deepcopy(black_box)
         
         if T is not None:
             # Use provided label noise model
@@ -83,12 +89,16 @@ class MarginalLabelNoiseConformal:
         scores_sorted = np.concatenate([scores[(k,k)] for k in range(self.K)])
         scores_sorted = np.sort(scores_sorted)
 
+        F_hat_marg = ECDF(scores_sorted)
+
         # Evaluate the Delta-hat function
-        Delta_hat = self.compute_Delta_hat_marginal(F_hat, scores_sorted)
+        Delta_hat = self.compute_Delta_hat_marginal(F_hat, F_hat_marg, scores_sorted)
             
         # Evaluate the delta constants
         if self.improved:
             delta = self.compute_delta_const_marginal_improved(n_cal)
+            if not np.isscalar(delta):
+                raise ValueError(f"Expected a scalar, but got {type(delta)} with value {delta}")
         else:
             delta = self.compute_delta_const_marginal(n_cal, n_min)
 
@@ -106,7 +116,6 @@ class MarginalLabelNoiseConformal:
         else:
             tau_hat = 1
         tau_hat = tau_hat * np.ones((K,))
-
 
         self.tau_hat = tau_hat
 
@@ -128,38 +137,25 @@ class MarginalLabelNoiseConformal:
                     # Calculate conformity scores using place-holder labels
                     scores[(l,k)] = 1.0 - grey_box.calibrate_scores(Y_k, epsilon=random_noise)[idx_l]
                     F_hat[(l,k)] = ECDF(scores[(l,k)])
+
         return F_hat, scores
 
 
-    def compute_Delta_hat(self, F_hat, scores_sorted):
-        if self.known_noise is False:
-            raise ValueError("The model must be known at this stage.")
-
+    def compute_Delta_hat_marginal(self, F_hat, F_hat_marg, scores_sorted):
         K = self.K
-        Delta_hat = dict()
-        for k in range(K):
-            Delta_hat[k] = (self.V[k,k] - 1) * F_hat[(k,k)](scores_sorted[k])
-            for l in range(K):
-                if l!=k:
-                    Delta_hat[k] += self.V[k,l] * F_hat[(l,k)](scores_sorted[k])
-        return Delta_hat
-
-    def compute_Delta_hat_marginal(self, F_hat, scores_sorted):
-        K = self.K
+        W = self.W
         n = len(scores_sorted)
         rho_tilde = self.rho_tilde
-        rho = np.dot(self.M.T, rho_tilde)
         Delta_hat = np.zeros((n,))
         for k in range(K):
-            Delta_hat += (rho[k] * self.V[k,k] - rho_tilde[k]) * F_hat[(k,k)](scores_sorted)
             for l in range(K):
-                if l!=k:
-                    Delta_hat += rho[k] * self.V[k,l] * F_hat[(l,k)](scores_sorted)
+                Delta_hat += (W[k,l] * rho_tilde[l]) * F_hat[(k,l)](scores_sorted) - F_hat_marg(scores_sorted)
+
         return Delta_hat
 
     def compute_delta_const_marginal(self, n, n_min):
         K = self.K
-        c_n = optimization.estimate_c_const(n)
+        c_n = estimate_c_const(n)
         tmp = np.zeros((K,))
         for k in range(K):
             for l in range(K):
@@ -179,9 +175,9 @@ class MarginalLabelNoiseConformal:
             K = self.K
             beta_0 = 1/(1-epsilon)
             betas = np.ones((K,)) * (-epsilon/(1-epsilon))
-            delta_n = optimization.eval_delta_marg(beta_0, betas, W, n)
+            delta_n = eval_delta_marg(beta_0, betas, W, n)
         else:
-            delta_n = optimization.eval_delta_marg_opt(W, n)
+            delta_n = eval_delta_marg_opt(W, n)
         return delta_n
 
     def predict(self, X, random_state=2023):

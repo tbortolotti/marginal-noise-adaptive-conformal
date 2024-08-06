@@ -82,7 +82,7 @@ def solve_optim_problem_a(W, n):
     optim_value = problem.value
     optim_beta_0 = beta_0.value
     optim_betas = betas.value
-    return optim_value, optim_beta_0, optim_betas
+    return optim_value
     
 def solve_optim_problem_b(W, n):
     K = W.shape[0]
@@ -100,7 +100,7 @@ def solve_optim_problem_b(W, n):
     optim_value = problem.value
     optim_beta_0 = beta_0.value
     optim_betas = betas.value
-    return optim_value, optim_beta_0, optim_betas
+    return optim_value
 
 def eval_delta_marg_opt(W, n):
     value_a = solve_optim_problem_a(W, n)
