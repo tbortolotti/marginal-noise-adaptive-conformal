@@ -15,7 +15,7 @@ from cln.optimization import eval_delta_marg_opt
 
 
 class MarginalLabelNoiseConformal:
-    def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, epsilon=0.1, T=None, rho_tilde=None,
+    def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, epsilon=0.1, T=None, M=None, rho_tilde=None,
                  allow_empty=False, improved=False, optimized=True, asymptotic=False, verbose=False,
                  pre_trained=False, random_state=2023):
 
@@ -25,6 +25,10 @@ class MarginalLabelNoiseConformal:
         self.optimized = optimized
         self.asymptotic = asymptotic
         self.black_box = copy.deepcopy(black_box)
+
+        if M is not None:
+            self.M = M
+            self.V = np.linalg.inv(M)
         
         if T is not None:
             # Use provided label noise model
@@ -92,6 +96,7 @@ class MarginalLabelNoiseConformal:
         F_hat_marg = ECDF(scores_sorted)
 
         # Evaluate the Delta-hat function
+        #Delta_hat = self.compute_Delta_hat_marginal(F_hat, scores_sorted)
         Delta_hat = self.compute_Delta_hat_marginal(F_hat, F_hat_marg, scores_sorted)
             
         # Evaluate the delta constants
@@ -140,17 +145,17 @@ class MarginalLabelNoiseConformal:
 
         return F_hat, scores
 
-
     def compute_Delta_hat_marginal(self, F_hat, F_hat_marg, scores_sorted):
         K = self.K
         W = self.W
         n = len(scores_sorted)
         rho_tilde = self.rho_tilde
+        partial_sum = np.zeros((n,))
         Delta_hat = np.zeros((n,))
         for k in range(K):
             for l in range(K):
-                Delta_hat += (W[k,l] * rho_tilde[l]) * F_hat[(k,l)](scores_sorted) - F_hat_marg(scores_sorted)
-
+                partial_sum += (W[k,l] * rho_tilde[l]) * F_hat[(l,k)](scores_sorted)
+        Delta_hat = partial_sum - F_hat_marg(scores_sorted)
         return Delta_hat
 
     def compute_delta_const_marginal(self, n, n_min):

@@ -1,0 +1,341 @@
+data,num_var,K,signal,n_train,n_cal,epsilon,nu,contamination,model_name,estimate,seed,Coverage,Size,Label,Method,Guarantee,Alpha,random_state
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95450,10.70150,marginal,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96124,10.82946,0,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95349,10.55039,1,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96875,10.59375,2,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97656,10.45312,3,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94262,11.00000,4,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95536,10.70536,5,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,10.54688,6,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97581,10.42742,7,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90000,10.75000,8,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97561,10.42276,9,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.99167,10.59167,10,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93182,10.68939,11,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93798,11.00775,12,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89922,10.83721,13,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96094,11.05469,14,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94118,10.75630,15,Standard,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,marginal,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,0,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,1,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,2,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,3,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,4,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,5,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,6,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,7,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,8,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,9,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,10,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,11,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,12,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,13,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,14,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,15,Adaptive,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93350,9.36550,marginal,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94574,9.46512,0,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94574,9.27907,1,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93750,9.29688,2,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96094,9.03906,3,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90164,9.81148,4,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93750,9.27679,5,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98438,9.11719,6,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97581,8.99194,7,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85000,9.35833,8,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96748,9.00813,9,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96667,9.37500,10,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90909,9.34091,11,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92248,9.76744,12,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.86822,9.34109,13,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92969,9.84375,14,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93277,9.52941,15,Adaptive optimized,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93850,9.63600,marginal,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94574,9.73643,0,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94574,9.58915,1,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96094,9.50781,2,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96875,9.28125,3,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90984,10.00000,4,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93750,9.60714,5,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.99219,9.42969,6,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97581,9.23387,7,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85833,9.67500,8,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97561,9.30894,9,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97500,9.63333,10,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91667,9.62879,11,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92248,10.00000,12,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.86822,9.68992,13,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92969,10.10156,14,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93277,9.74790,15,Adaptive simplified,marginal,0.10000,1
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95800,11.07350,marginal,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97436,11.17949,0,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91791,11.17910,1,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98450,11.12403,2,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98333,10.98333,3,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96032,10.84921,4,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96124,10.94574,5,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,10.92308,6,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94545,11.10000,7,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95588,11.19853,8,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95833,11.12500,9,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96748,11.13821,10,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93443,11.15574,11,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97500,11.02500,12,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96875,11.15625,13,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89231,11.05385,14,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95652,11.00870,15,Standard,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,marginal,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,0,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,1,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,2,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,3,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,4,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,5,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,6,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,7,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,8,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,9,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,10,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,11,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,12,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,13,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,14,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,15,Adaptive,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93300,9.04950,marginal,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96581,9.16239,0,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87313,9.37313,1,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96899,8.98450,2,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98333,9.00833,3,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93651,8.67460,4,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91473,8.75194,5,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.99145,8.79487,6,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92727,8.99091,7,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94118,9.35294,8,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93750,9.18750,9,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95935,9.13821,10,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90164,9.19672,11,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90000,9.01667,12,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95312,8.98438,13,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85385,9.19231,14,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93043,8.89565,15,Adaptive optimized,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93300,9.04950,marginal,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96581,9.16239,0,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87313,9.37313,1,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96899,8.98450,2,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98333,9.00833,3,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93651,8.67460,4,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91473,8.75194,5,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.99145,8.79487,6,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92727,8.99091,7,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94118,9.35294,8,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93750,9.18750,9,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95935,9.13821,10,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90164,9.19672,11,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90000,9.01667,12,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95312,8.98438,13,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85385,9.19231,14,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93043,8.89565,15,Adaptive simplified,marginal,0.10000,2
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95300,9.72250,marginal,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92969,10.08594,0,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96800,10.08000,1,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,9.52672,2,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91270,9.69048,3,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96364,10.11818,4,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98540,9.77372,5,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97778,9.88889,6,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94444,10.12037,7,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94488,9.53543,8,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96522,9.82609,9,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98425,9.45669,10,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.93130,9.13740,11,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94915,9.36441,12,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89781,9.74453,13,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94309,9.63415,14,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95082,9.68033,15,Standard,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,marginal,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,0,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,1,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,2,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,3,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,4,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,5,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,6,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,7,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,8,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,9,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,10,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,11,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,12,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,13,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,14,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,15,Adaptive,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.86800,5.48800,marginal,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85938,5.91406,0,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87200,5.98400,1,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96947,5.44275,2,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.78571,5.51587,3,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87273,5.70000,4,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88321,5.55474,5,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92593,5.60741,6,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89815,6.04630,7,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91339,5.36220,8,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.81739,5.66087,9,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90551,5.22047,10,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85496,4.60305,11,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.86441,4.77966,12,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.78832,5.69343,13,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.86179,5.38211,14,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.81148,5.41803,15,Adaptive optimized,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.86800,5.48800,marginal,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85938,5.91406,0,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87200,5.98400,1,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96947,5.44275,2,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.78571,5.51587,3,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87273,5.70000,4,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88321,5.55474,5,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92593,5.60741,6,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89815,6.04630,7,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91339,5.36220,8,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.81739,5.66087,9,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.90551,5.22047,10,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85496,4.60305,11,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.86441,4.77966,12,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.78832,5.69343,13,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.86179,5.38211,14,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.81148,5.41803,15,Adaptive simplified,marginal,0.10000,3
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94450,10.20400,marginal,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98361,10.47541,0,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98305,9.72881,1,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.99194,10.36290,2,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94737,10.21805,3,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97674,10.50388,4,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87943,9.88652,5,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91667,10.02273,6,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96899,10.10853,7,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92683,10.38211,8,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94574,10.13178,9,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96610,10.41525,10,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92000,10.26400,11,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92562,10.33058,12,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88525,9.95082,13,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97521,10.19008,14,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92920,10.34513,15,Standard,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,marginal,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,0,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,1,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,2,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,3,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,4,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,5,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,6,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,7,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,8,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,9,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,10,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,11,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,12,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,13,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,14,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,15,Adaptive,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89000,6.73000,marginal,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91803,7.12295,0,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94068,5.81356,1,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95161,6.92742,2,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87970,6.82707,3,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91473,7.21705,4,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.79433,6.12057,5,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.84848,6.39394,6,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88372,6.62016,7,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89431,6.96748,8,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88372,6.58140,9,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92373,7.18644,10,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88800,6.92800,11,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87603,7.08264,12,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.83607,6.44262,13,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94215,6.61983,14,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88496,6.92035,15,Adaptive optimized,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89000,6.73500,marginal,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91803,7.12295,0,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94068,5.81356,1,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95161,6.94355,2,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87970,6.84211,3,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91473,7.21705,4,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.79433,6.12766,5,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.84848,6.39394,6,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88372,6.62791,7,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89431,6.96748,8,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88372,6.58915,9,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92373,7.18644,10,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88800,6.92800,11,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.87603,7.09917,12,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.83607,6.44262,13,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94215,6.62810,14,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88496,6.92035,15,Adaptive simplified,marginal,0.10000,4
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96400,10.83950,marginal,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96212,10.83333,0,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98113,10.82075,1,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97479,10.96639,2,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.97521,10.85124,3,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95968,10.70161,4,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.99187,10.93496,5,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96183,10.77863,6,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.98438,10.94531,7,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96947,10.73282,8,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91729,10.99248,9,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95105,10.74126,10,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96774,10.89516,11,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96800,10.82400,12,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.94783,10.87826,13,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95041,10.97521,14,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96774,10.58065,15,Standard,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,marginal,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,0,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,1,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,2,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,3,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,4,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,5,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,6,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,7,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,8,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,9,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,10,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,11,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,12,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,13,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,14,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,1.00000,16.00000,15,Adaptive,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91300,7.56550,marginal,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91667,7.51515,0,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96226,7.65094,1,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95798,7.65546,2,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91736,7.67769,3,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89516,7.16935,4,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95935,7.57724,5,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92366,7.59542,6,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96094,7.64844,7,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91603,7.15267,8,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85714,7.93233,9,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89510,7.60140,10,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91129,7.78226,11,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.83200,7.56000,12,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91304,7.74783,13,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88430,7.89256,14,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91935,6.91935,15,Adaptive optimized,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91350,7.63950,marginal,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91667,7.58333,0,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96226,7.71698,1,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95798,7.72269,2,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91736,7.77686,3,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89516,7.20968,4,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.95935,7.62602,5,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.92366,7.65649,6,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.96094,7.75781,7,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91603,7.20611,8,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.85714,8.00000,9,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.89510,7.67832,10,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91935,7.85484,11,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.83200,7.65600,12,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91304,7.81739,13,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.88430,7.96694,14,Adaptive simplified,marginal,0.10000,5
+synthetic1,10,16,1,1000,500,0.20000,none,uniform,RFC,none,1,0.91935,7.03226,15,Adaptive simplified,marginal,0.10000,5
