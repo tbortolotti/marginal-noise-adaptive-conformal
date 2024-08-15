@@ -13,8 +13,8 @@ if [[ $CONF == 1 ]]; then
   EPSILON_LIST=(0.1 0.2)
   NU_LIST=(0.)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(100 200 500 1000 2000 5000 10000 20000 50000 100000)
+  N_TRAIN_LIST=(1000)
+  N_CAL_LIST=(100 200 500 1000 2000 5000 10000 20000)
   ESTIMATE_LIST=("none")
   SEED_LIST=$(seq 1 1)
 
@@ -52,7 +52,7 @@ fi
 
 
 # Slurm parameters
-MEMO=1G                             # Memory required (1 GB)
+MEMO=5G                             # Memory required (1 GB)
 TIME=00-00:20:00                    # Time required (20 m)
 CORE=1                              # Cores required (1)
 
@@ -104,9 +104,9 @@ for SEED in $SEED_LIST; do
                               # Print order
                               echo $ORD
                               # Submit order
-                              #$ORD
+#                              $ORD
                               # Run command now
-                              ./$SCRIPT
+                              #./$SCRIPT
 			  fi
 		      
 		      done

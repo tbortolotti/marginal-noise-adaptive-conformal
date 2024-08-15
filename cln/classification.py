@@ -16,16 +16,19 @@ from cln.optimization import eval_delta_marg_opt
 from cln.asymptotic import richardson_extrapolation, simulate_supremum, cov_empirical_process
 
 class MarginalLabelNoiseConformal:
-    def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, epsilon=0.1, h_start=0.0025, T=None, M=None, rho_tilde=None,
-                 allow_empty=False, method="old", optimized=True,
+    def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, epsilon=0.1, T=None, M=None, rho_tilde=None,
+                 allow_empty=False, method="old", optimized=True, optimistic=False, 
+                 asymptotic_h_start=0.0025, asymptotic_MC_samples=10000,
                  verbose=False, pre_trained=False, random_state=2023):
 
         self.K = K
         self.allow_empty = allow_empty
         self.method = method
         self.optimized = optimized
+        self.optimistic = optimistic
         self.black_box = copy.deepcopy(black_box)
-        self.h_start = h_start
+        self.asymptotic_h_start = asymptotic_h_start
+        self.asymptotic_MC_samples = asymptotic_MC_samples
 
         if M is not None:
             self.M = M
@@ -111,7 +114,10 @@ class MarginalLabelNoiseConformal:
         else:
             raise ValueError("Unknown method for retrieving finite sample correction.")
 
-        I_hat_values = np.arange(1,n_cal+1)/n_cal - (1.0-alpha) + Delta_hat - delta
+        if self.optimistic:
+            I_hat_values = np.arange(1,n_cal+1)/n_cal - (1.0-alpha) + np.maximum(-(1-alpha)/n_cal, Delta_hat - delta)
+        else:
+            I_hat_values = np.arange(1,n_cal+1)/n_cal - (1.0-alpha) + Delta_hat - delta
         I_hat = np.where(I_hat_values>=0)[0]
 
         # Calibrate the tau-hat value
@@ -190,10 +196,11 @@ class MarginalLabelNoiseConformal:
 
         # Set parameters for Richardson extrapolation
         grid_type = "centered"
-        h_start = self.h_start
+        h_start = self.asymptotic_h_start
+        num_samples = self.asymptotic_MC_samples
         r=1
 
-        func = lambda h: simulate_supremum(cov_function, h=h, num_samples=10000, grid_type=grid_type,
+        func = lambda h: simulate_supremum(cov_function, h=h, num_samples=asymptotic_MC_samples, grid_type=grid_type,
                                            n_cal=n, scores=scores, W=W, F_hat=F_hat)
         
         exp_sup_estimate = richardson_extrapolation(h_start, func, r)

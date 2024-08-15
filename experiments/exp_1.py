@@ -67,6 +67,7 @@ n_test = 2000
 batch_size = 5
 allow_empty = True
 h_start = 1/400
+optimistic = False
 
 # Initialize the data distribution
 if data_name == "synthetic1":
@@ -200,12 +201,13 @@ def run_experiment(random_state):
             print("Done.")
             sys.stdout.flush()
 
-
             # Apply old adaptive method to corrupted labels
             print("Applying adaptive method...", end=' ')
             sys.stdout.flush()
-            method_ln = MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal, epsilon=epsilon, h_start=0, T=T, M=M, rho_tilde=rho_tilde_hat,
-                                            allow_empty=allow_empty, method="old", verbose=False, pre_trained=True, random_state=random_state)
+            method_ln = MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal, epsilon=epsilon, h_start=0, 
+                                                    T=T, M=M, rho_tilde=rho_tilde_hat,
+                                                    allow_empty=allow_empty, method="old", optimistic=optimistic, verbose=False, 
+                                                    pre_trained=True, random_state=random_state)
             S_ln = method_ln.predict(X_test)
             print("Done.")
             sys.stdout.flush()
@@ -213,8 +215,10 @@ def run_experiment(random_state):
             # Apply optimized adaptive method to corrupted labels
             print("Applying optimized adaptive method...", end=' ')
             sys.stdout.flush()
-            method_ln_imp = MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal, epsilon=epsilon, h_start=0, T=T, rho_tilde=rho_tilde_hat,
-                                            allow_empty=allow_empty, method="improved", optimized=True, verbose=False, pre_trained=True, random_state=random_state)
+            method_ln_imp = MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal, epsilon=epsilon, h_start=0, 
+                                                        T=T, rho_tilde=rho_tilde_hat,
+                                                        allow_empty=allow_empty, method="improved", optimized=True, optimistic=optimistic, 
+                                                        verbose=False, pre_trained=True, random_state=random_state)
             S_ln_imp = method_ln_imp.predict(X_test)
             print("Done.")
             sys.stdout.flush()
@@ -222,8 +226,10 @@ def run_experiment(random_state):
             # Apply simplified adaptive method to corrupted labels
             print("Applying simplified adaptive method...", end=' ')
             sys.stdout.flush()
-            method_ln_imp_simpl = MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal, epsilon=epsilon, h_start=0, T=T, rho_tilde=rho_tilde_hat,
-                                            allow_empty=allow_empty, method="improved", optimized=False, verbose=False, pre_trained=True, random_state=random_state)
+            method_ln_imp_simpl = MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal, epsilon=epsilon, h_start=0, 
+                                                              T=T, rho_tilde=rho_tilde_hat,
+                                                              allow_empty=allow_empty, method="improved", optimized=False, optimistic=optimistic, 
+                                                              verbose=False, pre_trained=True, random_state=random_state)
             S_ln_imp_simpl = method_ln_imp_simpl.predict(X_test)
             print("Done.")
             sys.stdout.flush()
@@ -231,8 +237,10 @@ def run_experiment(random_state):
             # Apply asymptotic adaptive method to corrupted labels
             print("Applying asymptotic adaptive method...", end=' ')
             sys.stdout.flush()
-            method_ln_asy = MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal, epsilon=epsilon, h_start=h_start, T=T, rho_tilde=rho_tilde_hat,
-                                            allow_empty=allow_empty, method="asymptotic", verbose=False, pre_trained=True, random_state=random_state)
+            method_ln_asy = MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal, epsilon=epsilon, h_start=h_start, 
+                                                        T=T, rho_tilde=rho_tilde_hat,
+                                                        allow_empty=allow_empty, method="asymptotic", optimistic=optimistic, verbose=False, 
+                                                        pre_trained=True, random_state=random_state)
             S_ln_asy = method_ln_asy.predict(X_test)
             print("Done.")
             sys.stdout.flush()
