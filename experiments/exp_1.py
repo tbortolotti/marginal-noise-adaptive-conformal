@@ -64,7 +64,7 @@ if True:
 
 # Define other constant parameters
 n_test = 2000
-batch_size = 5
+batch_size = 20
 allow_empty = True
 asymptotic_h_start = 1/400
 optimistic = False
