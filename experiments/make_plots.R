@@ -764,7 +764,7 @@ make_figure_1 <- function(plot.alpha=0.1, plot.guarantee="marginal", save_plots=
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
   
   if(save_plots) {
-    plot.file <- sprintf("figures/synthetic1_ntrain%d_eps%f_nu%s_%s_%s.pdf", 10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
+    plot.file <- sprintf("figures/exp%d/synthetic1_ntrain%d_eps%f_nu%s_%s_%s.pdf", exp.num, 10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
     ggsave(file=plot.file, height=3, width=7, units="in")
     return(NULL)
   } else{
@@ -862,7 +862,7 @@ make_figure_2 <- function(plot.alpha=0.1, plot.guarantee="marginal", save_plots=
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
   
   if(save_plots) {
-    plot.file <- sprintf("figures/synthetic1_ntrain%d_eps%f_nu%s_%s_%s.pdf", 10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
+    plot.file <- sprintf("figures/exp%d/synthetic1_ntrain%d_eps%f_nu%s_%s_%s.pdf",exp.num, 10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
     ggsave(file=plot.file, height=3, width=7, units="in")
     return(NULL)
   } else{
@@ -961,7 +961,7 @@ make_figure_3 <- function(plot.alpha=0.1, plot.guarantee="marginal", save_plots=
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
   
   if(save_plots) {
-    plot.file <- sprintf("figures/synthetic1_ntrain%d_eps%f_nu%f_%s_%s.pdf", 10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
+    plot.file <- sprintf("figures/exp%d/synthetic1_ntrain%d_eps%f_nu%f_%s_%s.pdf", exp.num, 10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
     ggsave(file=plot.file, height=3, width=7, units="in")
     return(NULL)
   } else{
@@ -976,6 +976,303 @@ plot.contamination <- "RRB"
 
 make_figure_3(plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=FALSE)
+
+### Experiment 2: UNIFORM -------------------------------------------------------
+load_data <- function(exp.num) {
+  idir <- sprintf("results/exp%d", exp.num)
+  ifile.list <- list.files(idir, recursive = FALSE)
+  
+  # Filtra i file per escludere quelli nella sottocartella simplified_methods
+  ifile.list <- ifile.list[!grepl("simplified_methods", ifile.list)]
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))
+  
+  
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, estimate, n_train, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))
+  
+  return(summary)
+}
+
+exp.num <- 2
+summary <- load_data(exp.num)
+
+# method.values = c("Standard", "Adaptive", "Adaptive optimized", "Adaptive simplified")
+# method.labels = c("Standard", "Adaptive(Old)", "Adaptive-opt", "Adaptive-simpl")
+method.values = c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
+method.labels = c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
+label.values = c("4 classes", "8 classes", "16 classes")
+label.labels = c("4 classes", "8 classes", "16 classes")
+cbPalette <- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+df.dummy <- tibble(key="Coverage", value=0.95)
+df.dummy2 <- tibble(key="Coverage", value=0.5)
+# color.scale <- cbPalette[c(1,8,3,7)]
+# shape.scale <- c(1,3,2,0)
+# linetype.scale <- c(1,1,1,1)
+color.scale <- cbPalette[c(1,3,7,4)]
+shape.scale <- c(1,2,0,3)
+linetype.scale <- c(1,1,1,1)
+
+#' --------------------------------------------------
+#' Plot marginal coverage (for marginal calibration) as a function of the calibration set size,
+#' for different number of classes
+
+make_figure_4 <- function(plot.alpha=0.1, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+                          plot.contamination="uniform",
+                          plot.epsilon=0.1, plot.nu=0.2) {
+  if(reload) {
+    summary <- load_data(1)
+  }
+  
+  df <- summary %>%
+    filter(data=="synthetic1", num_var==10, n_train==1000, signal==1, Guarantee==plot.guarantee,
+           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon, nu==plot.nu) %>%
+    filter(n_cal >= 100)
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(K_lab = sprintf("%d classes", K)) %>%
+    mutate(K_lab = factor(K_lab, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
+    facet_grid(Key~K_lab, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d/synthetic1_ntrain%d_eps%f_nu%s_%s_%s.pdf", exp.num, 10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
+    ggsave(file=plot.file, height=3, width=7, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.nu <- "none"
+plot.contamination <- "uniform"
+
+make_figure_4(plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=FALSE)
+
+### Experiment 2: Block randomized response model -------------------------------------------------------
+load_data <- function(exp.num) {
+  idir <- sprintf("results/exp%d", exp.num)
+  ifile.list <- list.files(idir, recursive = FALSE)
+  
+  # Filtra i file per escludere quelli nella sottocartella simplified_methods
+  ifile.list <- ifile.list[!grepl("simplified_methods", ifile.list)]
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))
+  
+  
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, estimate, n_train, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))
+  
+  return(summary)
+}
+
+exp.num <- 2
+summary <- load_data(exp.num)
+
+# method.values = c("Standard", "Adaptive", "Adaptive optimized", "Adaptive simplified")
+# method.labels = c("Standard", "Adaptive(Old)", "Adaptive-opt", "Adaptive-simpl")
+method.values = c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
+method.labels = c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
+label.values = c("4 classes", "8 classes", "16 classes")
+label.labels = c("4 classes", "8 classes", "16 classes")
+cbPalette <- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+df.dummy <- tibble(key="Coverage", value=0.95)
+df.dummy2 <- tibble(key="Coverage", value=0.5)
+# color.scale <- cbPalette[c(1,8,3,7)]
+# shape.scale <- c(1,3,2,0)
+# linetype.scale <- c(1,1,1,1)
+color.scale <- cbPalette[c(1,3,7,4)]
+shape.scale <- c(1,2,0,3)
+linetype.scale <- c(1,1,1,1)
+
+#' --------------------------------------------------
+#' Plot marginal coverage (for marginal calibration) as a function of the calibration set size,
+#' for different number of classes
+
+make_figure_5 <- function(plot.alpha=0.1, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+                          plot.contamination="uniform",
+                          plot.epsilon=0.1, plot.nu=0.2) {
+  if(reload) {
+    summary <- load_data(1)
+  }
+  
+  df <- summary %>%
+    filter(data=="synthetic1", num_var==10, n_train==1000, signal==1, Guarantee==plot.guarantee,
+           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon, nu==plot.nu) %>%
+    filter(n_cal >= 100)
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(K_lab = sprintf("%d classes", K)) %>%
+    mutate(K_lab = factor(K_lab, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
+    facet_grid(Key~K_lab, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d/synthetic1_ntrain%d_eps%f_nu%s_%s_%s.pdf", exp.num, 10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
+    ggsave(file=plot.file, height=3, width=7, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.nu <- "none"
+plot.contamination <- "block"
+
+make_figure_5(plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=FALSE)
+
+
+### Experiment 2: 2 level RRB ------------------------------------------------------------
+
+load_data <- function(exp.num) {
+  idir <- sprintf("results/exp%d", exp.num)
+  ifile.list <- list.files(idir, recursive = FALSE)
+  
+  # Filtra i file per escludere quelli nella sottocartella simplified_methods
+  ifile.list <- ifile.list[!grepl("simplified_methods", ifile.list)]
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))
+  
+  
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, estimate, n_train, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))
+  
+  return(summary)
+}
+
+exp.num <- 2
+summary <- load_data(exp.num)
+
+# method.values = c("Standard", "Adaptive", "Adaptive optimized", "Adaptive simplified")
+# method.labels = c("Standard", "Adaptive(Old)", "Adaptive-opt", "Adaptive-simpl")
+method.values = c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
+method.labels = c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
+label.values = c("4 classes", "8 classes", "16 classes")
+label.labels = c("4 classes", "8 classes", "16 classes")
+cbPalette <- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+df.dummy <- tibble(key="Coverage", value=0.95)
+df.dummy2 <- tibble(key="Coverage", value=0.5)
+# color.scale <- cbPalette[c(1,8,3,7)]
+# shape.scale <- c(1,3,2,0)
+# linetype.scale <- c(1,1,1,1)
+color.scale <- cbPalette[c(1,3,7,4)]
+shape.scale <- c(1,2,0,3)
+linetype.scale <- c(1,1,1,1)
+
+#' --------------------------------------------------
+#' Plot marginal coverage (for marginal calibration) as a function of the calibration set
+#' size, for different number of classes
+
+make_figure_6 <- function(plot.alpha=0.1, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+                          plot.contamination="uniform",
+                          plot.epsilon=0.1, plot.nu=0.2) {
+  if(reload) {
+    summary <- load_data(1)
+  }
+  
+  df <- summary %>%
+    filter(data=="synthetic1", num_var==10, n_train==1000, signal==1, Guarantee==plot.guarantee,
+           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+           contamination==plot.contamination, Method %in% method.values,
+           epsilon==plot.epsilon, nu==plot.nu) %>%
+    filter(n_cal >= 100 & n_cal <=5000)
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(K_lab = sprintf("%d classes", K)) %>%
+    mutate(K_lab = factor(K_lab, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
+    facet_grid(Key~K_lab, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d/synthetic1_ntrain%d_eps%f_nu%f_%s_%s.pdf", exp.num, 10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
+    ggsave(file=plot.file, height=3, width=7, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.nu <- 0.2
+plot.contamination <- "RRB"
+
+make_figure_6(plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=FALSE)
+
+
 
 
 

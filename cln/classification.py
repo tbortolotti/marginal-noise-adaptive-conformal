@@ -13,17 +13,17 @@ from cln.optimization import estimate_c_const
 from cln.optimization import eval_delta_marg
 from cln.optimization import eval_delta_marg_opt
 
+from cln.asymptotic import richardson_extrapolation, simulate_supremum, cov_empirical_process
 
 class MarginalLabelNoiseConformal:
     def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, epsilon=0.1, T=None, M=None, rho_tilde=None,
-                 allow_empty=False, improved=False, optimized=True, asymptotic=False, verbose=False,
-                 pre_trained=False, random_state=2023):
+                 allow_empty=False, method="old", optimized=True,
+                 verbose=False, pre_trained=False, random_state=2023):
 
         self.K = K
         self.allow_empty = allow_empty
-        self.improved = improved
+        self.method = method
         self.optimized = optimized
-        self.asymptotic = asymptotic
         self.black_box = copy.deepcopy(black_box)
 
         if M is not None:
@@ -40,9 +40,8 @@ class MarginalLabelNoiseConformal:
         else:
             raise ValueError("The model must be known at this stage.")
 
-        # We must know rho_tilde to get marginal coverage
-        assert rho_tilde is not None
-        self.rho_tilde = rho_tilde
+        if rho_tilde is not None:
+            self.rho_tilde = rho_tilde
 
         # Split data into training/calibration sets
         if n_cal >=0:
@@ -87,7 +86,7 @@ class MarginalLabelNoiseConformal:
         F_hat, scores = self.compute_F_hat_scores(grey_box, Y_calib, random_noise)
         cal_sizes = np.array([len(scores[k,0]) for k in range(self.K)])
         n_min = np.min(cal_sizes)
-
+        rho_tilde_hat = np.divide(cal_sizes,n_cal)
         
         # Sort the conformity scores
         scores_sorted = np.concatenate([scores[(k,k)] for k in range(self.K)])
@@ -97,21 +96,21 @@ class MarginalLabelNoiseConformal:
 
         # Evaluate the Delta-hat function
         #Delta_hat = self.compute_Delta_hat_marginal(F_hat, scores_sorted)
-        Delta_hat = self.compute_Delta_hat_marginal(F_hat, F_hat_marg, scores_sorted)
+        Delta_hat = self.compute_Delta_hat_marginal(F_hat, F_hat_marg, scores_sorted, rho_tilde_hat)
             
         # Evaluate the delta constants
-        if self.improved:
+        if self.method=="improved":
             delta = self.compute_delta_const_marginal_improved(n_cal)
             if not np.isscalar(delta):
                 raise ValueError(f"Expected a scalar, but got {type(delta)} with value {delta}")
-        else:
+        elif self.method=="asymptotic":
+            delta = self.compute_delta_const_marginal_asymptotic(n_cal, scores, F_hat)
+        elif self.method=="old":
             delta = self.compute_delta_const_marginal(n_cal, n_min)
-
-        # Construct the I-hat set
-        if self.asymptotic:
-            raise ValueError("Asymptotic method is not ready yet.")
         else:
-            I_hat_values = np.arange(1,n_cal+1)/n_cal - (1.0-alpha) + Delta_hat - delta
+            raise ValueError("Unknown method for retrieving finite sample correction.")
+
+        I_hat_values = np.arange(1,n_cal+1)/n_cal - (1.0-alpha) + Delta_hat - delta
         I_hat = np.where(I_hat_values>=0)[0]
 
         # Calibrate the tau-hat value
@@ -145,16 +144,15 @@ class MarginalLabelNoiseConformal:
 
         return F_hat, scores
 
-    def compute_Delta_hat_marginal(self, F_hat, F_hat_marg, scores_sorted):
+    def compute_Delta_hat_marginal(self, F_hat, F_hat_marg, scores_sorted, rho_tilde_hat):
         K = self.K
         W = self.W
         n = len(scores_sorted)
-        rho_tilde = self.rho_tilde
         partial_sum = np.zeros((n,))
         Delta_hat = np.zeros((n,))
         for k in range(K):
             for l in range(K):
-                partial_sum += (W[k,l] * rho_tilde[l]) * F_hat[(l,k)](scores_sorted)
+                partial_sum += (W[k,l] * rho_tilde_hat[l]) * F_hat[(l,k)](scores_sorted)
         Delta_hat = partial_sum - F_hat_marg(scores_sorted)
         return Delta_hat
 
@@ -183,6 +181,24 @@ class MarginalLabelNoiseConformal:
             delta_n = eval_delta_marg(beta_0, betas, W, n)
         else:
             delta_n = eval_delta_marg_opt(W, n)
+        return delta_n
+    
+    def compute_delta_const_marginal_asymptotic(self, n, scores, F_hat):
+        W = self.W
+        cov_function = cov_empirical_process
+
+        # Set parameters for Richardson extrapolation
+        grid_type = "centered"
+        h_start = 1/200
+        r=1
+
+        func = lambda h: simulate_supremum(cov_function, h=h, num_samples=10000, grid_type=grid_type,
+                                           n_cal=n, scores=scores, W=W, F_hat=F_hat)
+        
+        exp_sup_estimate = richardson_extrapolation(h_start, func, r)
+
+        delta_n = exp_sup_estimate/np.sqrt(n)
+
         return delta_n
 
     def predict(self, X, random_state=2023):
