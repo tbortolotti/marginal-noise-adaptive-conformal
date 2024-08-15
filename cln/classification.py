@@ -16,7 +16,7 @@ from cln.optimization import eval_delta_marg_opt
 from cln.asymptotic import richardson_extrapolation, simulate_supremum, cov_empirical_process
 
 class MarginalLabelNoiseConformal:
-    def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, epsilon=0.1, T=None, M=None, rho_tilde=None,
+    def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, epsilon=0.1, h_start=0.0025, T=None, M=None, rho_tilde=None,
                  allow_empty=False, method="old", optimized=True,
                  verbose=False, pre_trained=False, random_state=2023):
 
@@ -25,6 +25,7 @@ class MarginalLabelNoiseConformal:
         self.method = method
         self.optimized = optimized
         self.black_box = copy.deepcopy(black_box)
+        self.h_start = h_start
 
         if M is not None:
             self.M = M
@@ -189,7 +190,7 @@ class MarginalLabelNoiseConformal:
 
         # Set parameters for Richardson extrapolation
         grid_type = "centered"
-        h_start = 1/200
+        h_start = self.h_start
         r=1
 
         func = lambda h: simulate_supremum(cov_function, h=h, num_samples=10000, grid_type=grid_type,
