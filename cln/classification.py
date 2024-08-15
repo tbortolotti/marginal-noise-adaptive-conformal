@@ -197,7 +197,7 @@ class MarginalLabelNoiseConformal:
         grid_type = "centered"
         h_start = self.asymptotic_h_start
         num_samples = self.asymptotic_MC_samples
-        r=1
+        r = 1
 
         func = lambda h: simulate_supremum(h=h, num_samples=num_samples, grid_type=grid_type,
                                            n_cal=n, scores=scores, W=W, F_hat=F_hat)

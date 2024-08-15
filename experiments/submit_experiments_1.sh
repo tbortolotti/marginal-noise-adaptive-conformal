@@ -10,7 +10,8 @@ if [[ $CONF == 1 ]]; then
   K_LIST=(4 8 16)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.1 0.2)
+#  EPSILON_LIST=(0.1 0.2)
+  EPSILON_LIST=(0.1)
   NU_LIST=(0.)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(1000)
@@ -104,7 +105,7 @@ for SEED in $SEED_LIST; do
                               # Print order
                               echo $ORD
                               # Submit order
-                              $ORD
+#                              $ORD
                               # Run command now
                               #./$SCRIPT
 			  fi
