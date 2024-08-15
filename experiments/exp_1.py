@@ -18,7 +18,7 @@ from cln import data
 from cln import contamination
 from cln.utils import evaluate_predictions, estimate_rho
 
-from cln.classification import LabelNoiseConformal
+from cln.classification import MarginalLabelNoiseConformal
 
 from third_party import arc
 
@@ -31,7 +31,7 @@ K = 4
 signal = 1
 model_name = 'RFC'
 epsilon = 0.1
-nu = "None"
+nu = 0
 contamination_model = "uniform"
 n_train = 1000
 n_cal = 5000
@@ -42,7 +42,7 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 13:
+    if len(sys.argv) != 14:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -54,11 +54,12 @@ if True:
     signal = float(sys.argv[5])
     model_name = sys.argv[6]
     epsilon = float(sys.argv[7])
-    contamination_model = sys.argv[8]
-    n_train = int(sys.argv[9])
-    n_cal = int(sys.argv[10])
-    estimate = sys.argv[11]
-    seed = int(sys.argv[12])
+    nu = float(sys.argv[8])
+    contamination_model = sys.argv[9]
+    n_train = int(sys.argv[10])
+    n_cal = int(sys.argv[11])
+    estimate = sys.argv[12]
+    seed = int(sys.argv[13])
 
 
 # Define other constant parameters
@@ -249,7 +250,7 @@ def run_experiment(random_state):
             res_ln_imp_simpl['Method'] = "Adaptive simplified"
             res_ln_asy['Method'] = "Asymptotic"
             
-            res_new = pd.concat([res_sc, res_ln_pes, res_ln_opt])
+            res_new = pd.concat([res_sc, res_ln, res_ln_imp, res_ln_imp_simpl, res_ln_asy])
             
             res_new['Guarantee'] = guarantee
             res_new['Alpha'] = alpha
