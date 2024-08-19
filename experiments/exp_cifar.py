@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import torch
 import torch.nn.functional as F
-from torchvision import transforms
+#from torchvision import transforms
 
 from sklearn.metrics import accuracy_score, confusion_matrix
 
@@ -63,6 +63,8 @@ num_exp = 5
 allow_empty = True
 epsilon_max = 0.1
 gamma = 0.1
+asymptotic_h_start = 1/400
+asymptotic_MC_samples = 10000
 
 # Pre-process parameters
 n_cal = batch_size - n_test
@@ -184,86 +186,102 @@ def run_experiment(random_state):
 
     res = pd.DataFrame({})
     for alpha in [0.1]:
-        for guarantee in ['marginal', 'lab-cond']:
+        for guarantee in ['marginal']:
 
             print("\nSeeking {:s} coverage at level {:.2f}.".format(guarantee, 1-alpha))
 
-            if guarantee=='lab-cond':
-                label_conditional = True
-            else:
-                label_conditional = False
-
-            # Apply standard method to corrupted labels
-            print("Applying standard method using {:d} contaminated calibration samples...".format(len(Yt)), end=' ')
-            sys.stdout.flush()
-            method_sc = arc.methods.SplitConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                   label_conditional=label_conditional,
-                                                   calibration_conditional=False, gamma=gamma,
-                                                   allow_empty=allow_empty, pre_trained=True, random_state=random_state)
-            S_sc = method_sc.predict(X_test)
-            print("Done.")
-            sys.stdout.flush()
-
-            # Apply standard method (with theoretical correction) to corrupted labels
-            print("Applying standard method with theoretical correction using {:d} contaminated calibration samples...".format(len(Yt)), end=' ')
-            sys.stdout.flush()
+            label_conditional = False
             alpha_theory = alpha * (1 - epsilon * (1-1/K))
-            method_sc_th = arc.methods.SplitConformal(X, Yt, black_box, K, alpha_theory, n_cal=-1,
-                                                   label_conditional=label_conditional,
-                                                   calibration_conditional=False, gamma=gamma,
-                                                   allow_empty=allow_empty, pre_trained=True, random_state=random_state)
-            S_sc_th = method_sc_th.predict(X_test)
-            print("Done.")
-            sys.stdout.flush()
 
-            # Apply label-noise method to corrupted labels (pessimistic)
-            print("Applying adaptive method using {:d} contaminated calibration samples...".format(len(Yt)), end=' ')
-            sys.stdout.flush()
-            method_ln_pes = MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                rho_tilde=rho_tilde_hat,
-                                                M=M_hat, label_conditional=label_conditional,
-                                                calibration_conditional=False, gamma=gamma,
-                                                optimistic=False, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
-            S_ln_pes = method_ln_pes.predict(X_test)
-            print("Done.")
-            sys.stdout.flush()
+            # Define a dictionary of methods with their names and corresponding initialization parameters
+            methods = {
+                "Standard": lambda: arc.methods.SplitConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                               label_conditional=label_conditional, allow_empty=allow_empty,
+                                                               pre_trained=True, random_state=random_state),
+
+                "Standard (theory)": lambda: arc.methods.SplitConformal(X, Yt, black_box, K, alpha_theory, n_cal=-1,
+                                                               label_conditional=label_conditional, allow_empty=allow_empty,
+                                                               pre_trained=True, random_state=random_state),
+
+                "Adaptive": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                epsilon=epsilon, T=T_hat, M=M_hat, rho_tilde=rho_tilde_hat,
+                                                                allow_empty=allow_empty, method="old", optimistic=False,
+                                                                verbose=False, pre_trained=True, random_state=random_state),
+
+                "Adaptive+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                epsilon=epsilon, T=T_hat, M=M_hat, rho_tilde=rho_tilde_hat,
+                                                                allow_empty=allow_empty, method="old", optimistic=True,
+                                                                verbose=False, pre_trained=True, random_state=random_state),
+
+                "Adaptive optimized": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                          epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
+                                                                          allow_empty=allow_empty, method="improved",
+                                                                          optimized=True, optimistic=False, verbose=False,
+                                                                          pre_trained=True, random_state=random_state),
+
+                "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                          epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
+                                                                          allow_empty=allow_empty, method="improved",
+                                                                          optimized=True, optimistic=True, verbose=False,
+                                                                          pre_trained=True, random_state=random_state),
+
+                "Adaptive simplified": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                           epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
+                                                                           allow_empty=allow_empty, method="improved",
+                                                                           optimized=False, optimistic=False, verbose=False,
+                                                                           pre_trained=True, random_state=random_state),
+
+                "Adaptive simplified+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                           epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
+                                                                           allow_empty=allow_empty, method="improved",
+                                                                           optimized=False, optimistic=True, verbose=False,
+                                                                           pre_trained=True, random_state=random_state),
+
+                "Asymptotic": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                  epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
+                                                                  asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
+                                                                  rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
+                                                                  method="asymptotic", optimistic=False, verbose=False,
+                                                                  pre_trained=True, random_state=random_state),
+
+                "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                   epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
+                                                                   asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
+                                                                   rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
+                                                                   method="asymptotic", optimistic=True, verbose=False,
+                                                                   pre_trained=True, random_state=random_state)
+
+            }
 
 
-            # Apply label-noise method to corrupted labels (optimistic)
-            print("Applying adaptive (optimistic) method using {:d} contaminated calibration samples...".format(len(Yt)), end=' ')
-            sys.stdout.flush()
-            method_ln_opt = MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                rho_tilde=rho_tilde_hat,
-                                                M=M_hat, label_conditional=label_conditional,
-                                                calibration_conditional=False, gamma=gamma,
-                                                optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
-            S_ln_opt = method_ln_opt.predict(X_test)
-            print("Done.")
-            sys.stdout.flush()
+            # Initialize an empty list to store the evaluation results
+            res_list = []
 
-            # Evaluate methods
-            res_sc = evaluate_predictions(S_sc, X_test, Y_test, K, verbose=False)
-            res_sc_th = evaluate_predictions(S_sc_th, X_test, Y_test, K, verbose=False)
-            res_ln_pes = evaluate_predictions(S_ln_pes, X_test, Y_test, K, verbose=False)
-            res_ln_opt = evaluate_predictions(S_ln_opt, X_test, Y_test, K, verbose=False)
+            # Loop through the methods, apply them, and evaluate the results
+            for method_name, method_func in methods.items():
+                print(f"Applying {method_name} method...", end=' ')
+                sys.stdout.flush()
 
-            # Combine results
-            res_sc['Method'] = "Standard"
-            res_sc_th['Method'] = "Standard (theory)"
-            res_ln_pes['Method'] = "Adaptive (pessimistic)"
-            res_ln_opt['Method'] = "Adaptive (optimistic)"
-            res_new = pd.concat([res_sc, res_sc_th, res_ln_pes, res_ln_opt])
-            res_new['Guarantee'] = guarantee
-            res_new['Alpha'] = alpha
-            res_new['random_state'] = random_state
-            res_new['epsilon_hat'] = epsilon_hat
-            if epsilon_ci is None:
-                res_new['epsilon_low'] = np.nan
-                res_new['epsilon_upp'] = np.nan
-            else:
-                res_new['epsilon_low'] = epsilon_ci[0]
-                res_new['epsilon_upp'] = epsilon_ci[1]
-            res = pd.concat([res, res_new])
+                # Initialize and apply the method
+                method = method_func()
+                predictions = method.predict(X_test)
+
+                print("Done.")
+                sys.stdout.flush()
+
+                # Evaluate the method
+                res_new = evaluate_predictions(predictions, X_test, Y_test, K, verbose=False)
+                res_new['Method'] = method_name
+                res_new['Guarantee'] = guarantee
+                res_new['Alpha'] = alpha
+                res_new['random_state'] = random_state
+                res_new['epsilon_hat'] = epsilon_hat
+
+                # Append the result to the results list
+                res_list.append(res_new)
+
+            # Combine all results into a single DataFrame
+            res = pd.concat(res_list)
 
     print(res)
 
