@@ -834,11 +834,11 @@ make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 
 init_settings <- function(plot.optimistic = FALSE) {
   if(plot.optimistic) {
-    method.values <<- c("Standard", "Adaptive+", "Asymptotic+")
-    method.labels <<- c("Standard", "Adaptive+", "Asymptotic+")
+    method.values <<- c("Standard", "Adaptive optimized+", "Adaptive simplified+", "Asymptotic+")
+    method.labels <<- c("Standard", "Adaptive-o+", "Adaptive-s+", "Asymptotic+")
   } else {
-    method.values <<- c("Standard", "Adaptive", "Asymptotic")
-    method.labels <<- c("Standard", "Adaptive", "Asymptotic")
+    method.values <<- c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
+    method.labels <<- c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
   }
   label.values <<- c("4 classes", "8 classes", "16 classes")
   label.labels <<- c("4 classes", "8 classes", "16 classes")
@@ -849,6 +849,24 @@ init_settings <- function(plot.optimistic = FALSE) {
   shape.scale <<- c(1,2,0,3)
   linetype.scale <<- c(1,1,1,1)
 }
+
+# init_settings <- function(plot.optimistic = FALSE) {
+#   if(plot.optimistic) {
+#     method.values <<- c("Standard", "Adaptive+", "Asymptotic+")
+#     method.labels <<- c("Standard", "Finite sample+", "Asymptotic+")
+#   } else {
+#     method.values <<- c("Standard", "Adaptive", "Asymptotic")
+#     method.labels <<- c("Standard", "Finite sample", "Asymptotic")
+#   }
+#   label.values <<- c("4 classes", "8 classes", "16 classes")
+#   label.labels <<- c("4 classes", "8 classes", "16 classes")
+#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+#   df.dummy <<- tibble(key="Coverage", value=0.95)
+#   df.dummy2 <<- tibble(key="Coverage", value=0.5)
+#   color.scale <<- cbPalette[c(1,3,7,4)]
+#   shape.scale <<- c(1,2,0,3)
+#   linetype.scale <<- c(1,1,1,1)
+# }
 
 #' Figure 1
 #' Plot marginal coverage and size as function of the number of calibration samples.
@@ -897,7 +915,7 @@ make_figure_2 <- function(exp.num=4, plot.alpha=0.1, plot.K=4, plot.guarantee="m
     if(save_plots) {
       plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_K%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
                            exp.num, 10000, plot.K, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3, width=7, units="in")
+      ggsave(file=plot.file, height=2.5, width=7, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1391,6 +1409,7 @@ make_figure_5(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guaran
 #' Plot marginal coverage as function of the deviation from the randomized response model,
 #' increasing the number of calibration samples
 #' 
+
 make_figure_6 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                           plot.contamination="RRB",
                           plot.ncal, plot.epsilon=0.1,
@@ -1513,10 +1532,6 @@ make_figure_6(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guaran
               plot.ncal=plot.ncal, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
 make_figure_6(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
               plot.ncal=plot.ncal, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
-make_figure_6(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.ncal=plot.ncal, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=TRUE)
-make_figure_6(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.ncal=plot.ncal, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=TRUE)
 
 plot.epsilon <- 0.2
 make_figure_6(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
