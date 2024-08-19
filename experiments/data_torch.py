@@ -10,7 +10,7 @@ from torchvision import transforms as T
 from torchvision.datasets import CIFAR10
 
 import sys
-sys.path.append("../third_party/pytorch-cifar10/")
+sys.path.append("/project/sesia_1123/cifar-10/pytorch-cifar10/")
 # https://github.com/huyvnphan/PyTorch_CIFAR10
 from cifar10_models.resnet import resnet18
 

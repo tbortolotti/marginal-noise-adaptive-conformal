@@ -22,7 +22,7 @@ from cln import data
 from cln import contamination
 from cln import estimation
 from cln.utils import evaluate_predictions, estimate_rho
-from cln.classification import LabelNoiseConformal
+from cln.classification import MarginalLabelNoiseConformal
 
 from data_torch import Cifar10DataSet, draw_images, ResNet18
 
@@ -68,8 +68,8 @@ gamma = 0.1
 n_cal = batch_size - n_test
 
 
-data_dir = "cifar-10h/cifar-10-python"
-noisy_data_dir = "cifar-10h/data"
+data_dir = "/project/sesia_1123/cifar-10/cifar-10h/cifar-10-python"
+noisy_data_dir = "/project/sesia_1123/cifar-10/cifar-10h/data"
 dataset = Cifar10DataSet(data_dir, noisy_data_dir, normalize=True, random_state=2023)
 
 from torch.utils.data import DataLoader
@@ -219,7 +219,7 @@ def run_experiment(random_state):
             # Apply label-noise method to corrupted labels (pessimistic)
             print("Applying adaptive method using {:d} contaminated calibration samples...".format(len(Yt)), end=' ')
             sys.stdout.flush()
-            method_ln_pes = LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+            method_ln_pes = MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
                                                 rho_tilde=rho_tilde_hat,
                                                 M=M_hat, label_conditional=label_conditional,
                                                 calibration_conditional=False, gamma=gamma,
@@ -232,7 +232,7 @@ def run_experiment(random_state):
             # Apply label-noise method to corrupted labels (optimistic)
             print("Applying adaptive (optimistic) method using {:d} contaminated calibration samples...".format(len(Yt)), end=' ')
             sys.stdout.flush()
-            method_ln_opt = LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+            method_ln_opt = MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
                                                 rho_tilde=rho_tilde_hat,
                                                 M=M_hat, label_conditional=label_conditional,
                                                 calibration_conditional=False, gamma=gamma,

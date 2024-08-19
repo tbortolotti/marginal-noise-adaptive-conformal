@@ -70,7 +70,7 @@ for SEED in $SEED_LIST; do
             # Submit order
 #            $ORD
             # Run command now
-            ./$SCRIPT
+#            ./$SCRIPT
           fi
 
         done
