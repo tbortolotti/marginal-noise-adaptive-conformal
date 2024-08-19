@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import pandas as pd
-import seaborn as sns
 import pdb
 from functools import lru_cache
 import sys
@@ -44,41 +43,17 @@ def compute_joint_F_hat(scores, t_values):
 
     return joint_F_hat_vals
 
-# def cov_empirical_process(t1, t2, n_cal, scores, W, F_hat, joint_F_hat_vals):
-#     K = max(key[0] for key in scores.keys()) + 1
-
-#     # Evlauate the sum
-#     total_sum = 0
-#     exp1 = 0
-#     exp2 = 0
-#     for l in range(K):
-#         n_l = len(scores[(l,0)])
-#         for k in range(K):
-#             exp1 += W[k,l] * n_l/n_cal * F_hat[(l,k)](t1)
-#             exp2 += W[k,l] * n_l/n_cal * F_hat[(l,k)](t2)
-#             for k_prime in range(K):
-#                 # Joint ecdf
-#                 joint_F_hat = joint_F_hat_vals[(t1, t2)][(l, k, k_prime)]
-
-#                 # Update sum
-#                 total_sum += W[k,l] * W[k_prime,l] * n_l/n_cal * joint_F_hat
-
-#     cov = total_sum - exp1 * exp2
-#     return cov
-
 def cov_empirical_process(grid, W, scores, F_hat, n_cal):
     K = max(key[0] for key in scores.keys()) + 1
     n_grid = len(grid)
 
     Sigma = np.zeros((n_grid, n_grid))
     exp1 = np.zeros((n_grid,))
-#    exp2 = np.zeros((n_grid,))
 
     for l in range(K):
         n_l = len(scores[(l,0)])
         for k in range(K):
             exp1 += W[k,l] * n_l/n_cal * F_hat[(l,k)](grid)
- #           exp2 += W[k,l] * n_l/n_cal * F_hat[(l,k)](grid)
             for k_prime in range(K):
                 # Joint ecdf
                 scores_x = scores[(l,k)]
@@ -98,10 +73,6 @@ def simulate_gaussian_process(grid, num_samples, n_cal, scores, W, F_hat):
     n_grid = len(grid)
 
     Sigma = cov_empirical_process(grid, W, scores, F_hat, n_cal)
-    # Sigma = np.zeros((n_grid, n_grid))
-    # for i in range(n_grid):
-    #     for j in range(n_grid):
-    #         Sigma[i, j] = cov_function(grid[i], grid[j], n_cal, scores, W, F_hat, joint_F_hat_vals)
 
     # Add a small value to the diagonal for numerical stability
     Sigma += 1e-6 * np.eye(n_grid)
@@ -119,7 +90,6 @@ def simulate_supremum(h, num_samples, grid_type, n_cal, scores, W, F_hat):
     grid = construct_grid(num_steps, grid_type)
 
     samples = simulate_gaussian_process(grid, num_samples, n_cal, scores, W, F_hat)
-    ##suprema = np.max(np.abs(samples),1) # Note: this is wrong. We just need a one-sided bound
     suprema = np.max(samples,1)
 
     expected_supremum = np.mean(suprema)

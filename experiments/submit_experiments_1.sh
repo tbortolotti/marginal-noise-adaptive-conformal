@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Parameters
-CONF=1
+CONF=5
 
 if [[ $CONF == 1 ]]; then
-  # Figure marginal classification 1
+  # Figure marginal classification A2
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4 8 16)
@@ -14,13 +14,13 @@ if [[ $CONF == 1 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0.)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN_LIST=(1000)
-  N_CAL_LIST=(100 200 500 1000 2000 5000 10000 20000)
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(100 200 500 1000 2000 5000 10000 20000 50000 100000)
   ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 1)
+  SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 2 ]]; then
-  # Figure marginal classification 2
+  # Figure marginal classification A3
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4 8 16)
@@ -32,10 +32,10 @@ elif [[ $CONF == 2 ]]; then
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(100 200 500 1000 2000 5000 10000 20000 50000 100000)
   ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 1)
+  SEED_LIST=$(seq 1 5)
 
-  elif [[ $CONF == 3 ]]; then
-  # Figure marginal classification 3
+ elif [[ $CONF == 3 ]]; then
+  # Figure marginal classification A4
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4 8 16)
@@ -47,7 +47,82 @@ elif [[ $CONF == 2 ]]; then
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(100 200 500 1000 2000 5000 10000 20000 50000 100000)
   ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 1)
+  SEED_LIST=$(seq 1 5)
+
+ elif [[ $CONF == 4 ]]; then
+  # Figure marginal classification 1, 2 and A1
+  DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0. 0.01 0.02 0.05 0.1 0.2)
+  NU_LIST=(0.)
+  CONTAMINATION_LIST=("uniform")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(100 200 500 1000 2000 5000 10000 20000 50000 100000)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=$(seq 1 5)
+
+ elif [[ $CONF == 5 ]]; then
+  # Figure marginal classification 3
+  DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0.1 0.2)
+  NU_LIST=(0 0.25 0.5 0.75  1)
+  CONTAMINATION_LIST=("RRB")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(100 200 500 1000 2000 5000 10000 20000 50000 100000)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=$(seq 1 5)
+
+ elif [[ $CONF == 6 ]]; then
+  # Figure marginal classification A5
+  DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC' 'SVC' 'NN')
+  EPSILON_LIST=(0.1)
+  NU_LIST=(0.)
+  CONTAMINATION_LIST=("uniform")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(100 200 500 1000 2000 5000 10000 20000 50000 100000)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=$(seq 1 5)
+
+ elif [[ $CONF == 7 ]]; then
+  # Figure class A6 and A7
+  DATA_LIST=("synthetic2" "synthetic3")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0.0 0.05 0.1 0.2)
+  NU_LIST=(0.)
+  CONTAMINATION_LIST=("uniform")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=$(seq 1 5)
+  
+ elif [[ $CONF == 8 ]]; then
+  # Figure marginal classification A8--A10
+  DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4 8 16)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0. 0.01 0.02 0.05 0.1 0.2)
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform" "block" "RRB")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(10000)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=$(seq 1 5) 
 
 fi
 
@@ -105,7 +180,7 @@ for SEED in $SEED_LIST; do
                               # Print order
                               echo $ORD
                               # Submit order
-#                              $ORD
+                              $ORD
                               # Run command now
                               #./$SCRIPT
 			  fi
