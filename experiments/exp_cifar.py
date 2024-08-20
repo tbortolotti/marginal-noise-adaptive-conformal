@@ -154,7 +154,7 @@ def run_experiment(random_state):
         rho_hat = rho
         rho_tilde_hat = rho_tilde
         T_hat = contamination.construct_T_matrix_simple(K, epsilon)
-        M_hat = contamination.convert_T_to_M(T_hat, rho)
+        M_hat = contamination.convert_T_to_M(T_hat, rho_hat)
         epsilon_ci = None
         epsilon_hat = np.nan
     elif estimate=="rho":
