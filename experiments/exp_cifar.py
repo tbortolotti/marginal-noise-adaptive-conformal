@@ -36,6 +36,7 @@ epsilon_n_corr = 0.1
 estimate = "none"
 seed = 1
 
+
 # Parse input parameters
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
@@ -62,12 +63,12 @@ n_test = 500
 num_exp = 5
 allow_empty = True
 epsilon_max = 0.1
-gamma = 0.1
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
 # Pre-process parameters
 n_cal = batch_size - n_test
+
 
 
 data_dir = "/project/sesia_1123/cifar-10/cifar-10h/cifar-10-python"
@@ -78,7 +79,7 @@ from torch.utils.data import DataLoader
 loader = DataLoader(dataset,
                     batch_size=batch_size,
                     shuffle=True,
-                    num_workers=1)
+                    num_workers=0)
 
 if False:
     # Note: should not use normalization before drawing
@@ -125,6 +126,7 @@ print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
 
+
 # Describe the experiment
 def run_experiment(random_state):
     print("\nRunning experiment in batch {:d}...".format(random_state))
@@ -134,6 +136,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     X_batch, Y_batch, Y_lab_batch, Yt_batch, Yt_lab_batch, idx_batch = next(iter(loader))
+    
     Y_batch = Y_batch.detach().numpy()
     Yt_batch = Yt_batch.detach().numpy()
     print("Done.")
@@ -150,7 +153,8 @@ def run_experiment(random_state):
     if estimate=="none":
         rho_hat = rho
         rho_tilde_hat = rho_tilde
-        M_hat = contamination.construct_M_matrix_simple(K, epsilon)
+        T_hat = contamination.construct_T_matrix_simple(K, epsilon)
+        M_hat = contamination.convert_T_to_M(T_hat, rho)
         epsilon_ci = None
         epsilon_hat = np.nan
     elif estimate=="rho":
@@ -198,7 +202,7 @@ def run_experiment(random_state):
                 "Standard": lambda: arc.methods.SplitConformal(X, Yt, black_box, K, alpha, n_cal=-1,
                                                                label_conditional=label_conditional, allow_empty=allow_empty,
                                                                pre_trained=True, random_state=random_state),
-
+                
                 "Standard (theory)": lambda: arc.methods.SplitConformal(X, Yt, black_box, K, alpha_theory, n_cal=-1,
                                                                label_conditional=label_conditional, allow_empty=allow_empty,
                                                                pre_trained=True, random_state=random_state),
@@ -252,7 +256,6 @@ def run_experiment(random_state):
                                                                    pre_trained=True, random_state=random_state)
 
             }
-
 
             # Initialize an empty list to store the evaluation results
             res_list = []
