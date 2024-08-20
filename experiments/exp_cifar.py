@@ -79,7 +79,7 @@ from torch.utils.data import DataLoader
 loader = DataLoader(dataset,
                     batch_size=batch_size,
                     shuffle=True,
-                    num_workers=0)
+                    num_workers=1)
 
 if False:
     # Note: should not use normalization before drawing
