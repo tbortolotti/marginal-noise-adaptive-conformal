@@ -60,7 +60,7 @@ epsilon = 0.051
 K = 10
 epsilon_n = epsilon_n_clean + epsilon_n_corr
 n_test = 500
-num_exp = 5
+num_exp = 20
 allow_empty = True
 epsilon_max = 0.1
 asymptotic_h_start = 1/400
@@ -278,7 +278,6 @@ def run_experiment(random_state):
                 res_new['Guarantee'] = guarantee
                 res_new['Alpha'] = alpha
                 res_new['random_state'] = random_state
-                res_new['epsilon_hat'] = epsilon_hat
 
                 # Append the result to the results list
                 res_list.append(res_new)
