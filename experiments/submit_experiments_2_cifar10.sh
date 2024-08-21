@@ -16,7 +16,7 @@ if [[ $CONF == 101 ]]; then
   EPSILON_N_CLEAN_LIST=(0.1)
   EPSILON_N_CORR_LIST=(0.1)
 # ESTIMATE_LIST=("rho-epsilon-point")
-  ESTIMATE_LIST=("none")
+  ESTIMATE_LIST=("rho")
   SEED_LIST=$(seq 1 10)
 
 fi
