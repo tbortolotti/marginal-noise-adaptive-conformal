@@ -1838,9 +1838,10 @@ load_data <- function(exp.num) {
   return(summary)
 }
 
-make_figure_10 <- function(exp.num, plot.alpha=0.1, plot.K, plot.guarantee="marginal",
-                          plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE,
-                          slides=FALSE) {
+make_figure_10 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-epsilon-point",
+                           plot.guarantee="marginal",
+                           plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE,
+                           slides=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
   }
@@ -1850,7 +1851,7 @@ make_figure_10 <- function(exp.num, plot.alpha=0.1, plot.K, plot.guarantee="marg
   if(!slides){
     
     df <- summary %>%
-      filter(Alpha==plot.alpha, K==plot.K, Guarantee==plot.guarantee, Label=="marginal",
+      filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
              Method %in% method.values, n_cal %in% c(500,1500,4500,9500))  %>%
       mutate(Method = factor(Method, method.values, method.labels))
     
@@ -1875,7 +1876,7 @@ make_figure_10 <- function(exp.num, plot.alpha=0.1, plot.K, plot.guarantee="marg
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
     
     if(save_plots) {
-      plot.file <- sprintf("figures/cifar10_%s_optimistic%s.pdf", plot.guarantee, plot.optimistic)
+      plot.file <- sprintf("figures/cifar10_%s_optimistic%s_%s.pdf", plot.guarantee, plot.optimistic, plot.estimate)
       ggsave(file=plot.file, height=2.25, width=6.5, units="in")
       return(NULL)
     } else{
@@ -1883,7 +1884,7 @@ make_figure_10 <- function(exp.num, plot.alpha=0.1, plot.K, plot.guarantee="marg
     }
   } else {
     df_filt <- summary %>%
-      filter(Alpha==plot.alpha, K==plot.K, Guarantee==plot.guarantee, Label=="marginal",
+      filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
              Method %in% method.values, n_cal %in% c(500,1500,4500,9500))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
@@ -1928,8 +1929,8 @@ make_figure_10 <- function(exp.num, plot.alpha=0.1, plot.K, plot.guarantee="marg
               legend.position = "bottom",
               legend.direction = "horizontal")
       
-      plot.file <- sprintf("figures/slides/cifar10_%s_optimistic%s_%d.pdf",
-                           plot.guarantee, plot.optimistic, i)
+      plot.file <- sprintf("figures/slides/cifar10_%s_optimistic%s_%s_%d.pdf",
+                           plot.guarantee, plot.optimistic, plot.estimate, i)
       ggsave(file = plot.file, plot = pp, height = 3.5, width = 7, units = "in")
     }
   }
@@ -1941,12 +1942,20 @@ make_figure_10 <- function(exp.num, plot.alpha=0.1, plot.K, plot.guarantee="marg
 exp.num <- 101
 plot.alpha <- 0.1
 plot.K <- 10
-make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal",
-              plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE)
-make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal",
+
+make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="rho-epsilon-point", plot.guarantee="marginal",
                plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
-make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal",
-               plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE, slides=TRUE)
-make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal",
-               plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, slides=TRUE)
+
+make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="rho", plot.guarantee="marginal",
+               plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
+
+
+## make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal",
+##               plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE)
+## make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal",
+##                plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
+## make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal",
+##                plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE, slides=TRUE)
+## make_figure_10(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal",
+##                plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, slides=TRUE)
 
