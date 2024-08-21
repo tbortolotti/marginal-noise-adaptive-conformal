@@ -251,19 +251,19 @@ def run_experiment(random_state):
                                                                            optimized=False, optimistic=True, verbose=False,
                                                                            pre_trained=True, random_state=random_state),
 
-                # "Asymptotic": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                #                                                   epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
-                #                                                   asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
-                #                                                   rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
-                #                                                   method="asymptotic", optimistic=False, verbose=False,
-                #                                                   pre_trained=True, random_state=random_state),
+                "Asymptotic": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                  epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
+                                                                  asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
+                                                                  rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
+                                                                  method="asymptotic", optimistic=False, verbose=False,
+                                                                  pre_trained=True, random_state=random_state),
 
-                # "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                #                                                    epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
-                #                                                    asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
-                #                                                    rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
-                #                                                    method="asymptotic", optimistic=True, verbose=False,
-                #                                                    pre_trained=True, random_state=random_state)
+                "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                   epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
+                                                                   asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
+                                                                   rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
+                                                                   method="asymptotic", optimistic=True, verbose=False,
+                                                                   pre_trained=True, random_state=random_state)
 
             }
 
