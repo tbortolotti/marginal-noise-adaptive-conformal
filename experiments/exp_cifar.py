@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 import pdb
 
-import sys
+import sys, os
 sys.path.append("..")
 sys.path.append("../third_party")
 
@@ -69,17 +69,27 @@ asymptotic_MC_samples = 10000
 # Pre-process parameters
 n_cal = batch_size - n_test
 
-
-
+# Set default directories
 data_dir = "/project/sesia_1123/cifar-10/cifar-10h/cifar-10-python"
 noisy_data_dir = "/project/sesia_1123/cifar-10/cifar-10h/data"
+
+# Check if the directories exist, if not, ask for alternate paths
+if not os.path.exists(data_dir):
+    data_dir = "/media/msesia/Samsung1/data/cifar-10h/cifar-10-python"
+
+if not os.path.exists(noisy_data_dir):
+    noisy_data_dir = "/media/msesia/Samsung1/data/cifar-10h/data"
+
+print(f"Data Directory: {data_dir}")
+print(f"Noisy Data Directory: {noisy_data_dir}")
+
 dataset = Cifar10DataSet(data_dir, noisy_data_dir, normalize=True, random_state=2023)
 
 from torch.utils.data import DataLoader
 loader = DataLoader(dataset,
                     batch_size=batch_size,
                     shuffle=True,
-                    num_workers=0)
+                    num_workers=1)
 
 if False:
     # Note: should not use normalization before drawing
@@ -158,9 +168,9 @@ def run_experiment(random_state):
         epsilon_ci = None
         epsilon_hat = np.nan
     elif estimate=="rho":
-        rho_tilde_hat = estimate_rho(K, Yt)
-        T = contamination.construct_T_matrix_simple(K, epsilon)  
-        M_hat = contamination.convert_T_to_M(T,rho)
+        rho_tilde_hat = estimate_rho(Yt, K)
+        T_hat = contamination.construct_T_matrix_simple(K, epsilon)  
+        M_hat = contamination.convert_T_to_M(T_hat,rho)
         rho_hat = np.dot(M_hat.T, rho_tilde_hat)
         epsilon_ci = None
         epsilon_hat = np.nan
@@ -282,9 +292,10 @@ def run_experiment(random_state):
                 # Append the result to the results list
                 res_list.append(res_new)
 
+
             # Combine all results into a single DataFrame
             res = pd.concat(res_list)
-
+                
     print(res)
 
     return res
