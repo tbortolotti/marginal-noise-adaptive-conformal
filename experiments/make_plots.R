@@ -1791,11 +1791,15 @@ make_figure_9(exp.num=exp.num,
 
 init_settings <- function(plot.optimistic = FALSE) {
   if(plot.optimistic) {
-    method.values <<- c("Standard", "Adaptive optimized+", "Adaptive simplified+", "Asymptotic+")
-    method.labels <<- c("Standard", "Adaptive-o+", "Adaptive-s+", "Asymptotic+")
+    # method.values <<- c("Standard", "Adaptive optimized+", "Adaptive simplified+", "Asymptotic+")
+    # method.labels <<- c("Standard", "Adaptive-o+", "Adaptive-s+", "Asymptotic+")
+    method.values <<- c("Standard", "Adaptive+", "Adaptive optimized+", "Asymptotic+")
+    method.labels <<- c("Standard", "Adaptive+", "Adaptive-o+", "Asymptotic+")
   } else {
-    method.values <<- c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
-    method.labels <<- c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
+    # method.values <<- c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
+    # method.labels <<- c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
+    method.values <<- c("Standard", "Adaptive", "Adaptive optimized", "Asymptotic")
+    method.labels <<- c("Standard", "Adaptive", "Adaptive-o", "Asymptotic")
   }
   label.values <<- c("4 classes", "8 classes", "16 classes")
   label.labels <<- c("4 classes", "8 classes", "16 classes")
