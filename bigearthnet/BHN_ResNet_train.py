@@ -31,6 +31,7 @@ test_size = len(test_dataset)
 K = df['v1-labels'].nunique()
 epochs = 20
 seed = 1
+batch_size = 16
 
 torch.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
@@ -40,8 +41,8 @@ np.random.seed(seed)
 #test_size = 20000
 #train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
 
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 #pdb.set_trace()
 
@@ -100,6 +101,7 @@ torch.save(model.state_dict(), model_save_path)
 # Store relevant parameters
 info_save = {
     'num_epochs': epochs,
+    'batch_size': batch_size,
     'K': K,
     'seed': seed,
     'accuracy': accuracy
