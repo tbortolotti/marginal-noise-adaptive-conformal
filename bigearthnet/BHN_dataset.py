@@ -3,7 +3,6 @@ import random
 from PIL import Image
 import numpy as np
 import pandas as pd
-import cv2
 import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
@@ -76,10 +75,10 @@ class BigEarthNet(Dataset):
             for b, band_file in enumerate(band_files):
                 band = tar.extractfile(band_file)
                 image = Image.open(band)
+                image = image.resize((128, 128), Image.CUBIC)
                 image_arr = np.array(image)
                 image_arr = normalize(image_arr, mean=bands_stats['mean'][self.bands[b]], std=bands_stats['std'][self.bands[b]])
-                image_arr = cv2.resize(image_arr, dsize=(128, 128), interpolation=cv2.INTER_CUBIC)
-                bands.append(np.array(image_arr))
+                bands.append(image_arr)
 
             # Combine the channels in a single image
             image = np.stack(bands, axis=-1)

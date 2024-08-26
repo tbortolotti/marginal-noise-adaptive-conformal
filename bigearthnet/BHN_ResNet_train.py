@@ -16,11 +16,11 @@ tar_path = os.path.expanduser('~/data/BigEarthNet/BigEarthNet-S2-v1.0.tar.gz')
 df = pd.read_csv('BHN_labels.csv')
 
 df_train = df[df['split']=='train'].copy()
-train_dataset = BigEarthNet(df_train, tar_path, transform=True)
+train_dataset = BigEarthNet(df_train, tar_path, transform_flag=True)
 train_size = len(train_dataset)
 
 df_test = df[df['split']=='test'].copy()
-test_dataset = BigEarthNet(df_test, tar_path, transform=True)
+test_dataset = BigEarthNet(df_test, tar_path, transform_flag=True)
 test_size = len(test_dataset)
 
 K = df['v1-labels'].nunique()
