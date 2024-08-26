@@ -91,7 +91,7 @@ class BigEarthNet(Dataset):
                 transforms.CenterCrop(112),
                 transforms.ToTensor()
                 ])
-            image = self.transform(image)
+            image = transform(image)
         
         label = self.df.loc[self.df['patch_id']==patch_id, 'v1-label'].values[0]
 
