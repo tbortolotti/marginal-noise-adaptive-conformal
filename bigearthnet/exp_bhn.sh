@@ -4,7 +4,7 @@
 #SBATCH --error=resnet50_training_%j.err   # Error file (%j will be replaced with the job ID)
 #SBATCH --ntasks=1                        # Number of tasks (usually 1 for a single script)
 #SBATCH --cpus-per-task=4                 # Number of CPU cores per task
-#SBATCH --mem=5G                         # Increase memory allocation to 5 GB
+#SBATCH --mem=32G                         # Increase memory allocation to 32 GB
 #SBATCH --time=24:00:00                   # Increase time limit to 24 hours
 
 module purge

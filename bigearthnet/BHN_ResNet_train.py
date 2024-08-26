@@ -1,16 +1,11 @@
-import tarfile
-import random
-
 import os
 import random
-from PIL import Image
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
-import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
 from torchvision.models import resnet50
 from BHN_dataset import BigEarthNet
 
@@ -31,7 +26,7 @@ test_size = len(test_dataset)
 K = df['v1-labels'].nunique()
 epochs = 20
 seed = 1
-batch_size = 16
+batch_size = 64
 
 torch.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
