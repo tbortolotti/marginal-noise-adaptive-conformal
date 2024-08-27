@@ -1,18 +1,12 @@
 import tarfile
 import random
-
-import os
-import random
 from PIL import Image
 import numpy as np
 import pandas as pd
-import cv2
 import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
-import torchvision.transforms as transforms
-from torchvision.models import resnet50
+from torch.utils.data import Dataset
+import cv2
+
 
 bands_stats = {
     'mean': {
@@ -59,10 +53,10 @@ def normalize(img, mean, std):
     return img
 
 class BigEarthNet(Dataset):
-    def __init__(self, df, tar_path, transform_flag=False):
+    def __init__(self, df, tar_path, transform=None):
         self.df = df
         self.tar_path = tar_path
-        self.transform_flag = transform_flag
+        self.transform = transform
         self.bands = ['B01', 'B02', 'B03', 'B04', 'B05', 'B06', 'B07', 'B08', 'B8A', 'B09', 'B11', 'B12']
     
     def __len__(self):
@@ -84,19 +78,13 @@ class BigEarthNet(Dataset):
                 image_arr = np.array(image)
                 image_arr = normalize(image_arr, mean=bands_stats['mean'][self.bands[b]], std=bands_stats['std'][self.bands[b]])
                 image_arr = cv2.resize(image_arr, dsize=(128, 128), interpolation=cv2.INTER_CUBIC)
-                bands.append(np.array(image_arr))
+                bands.append(image_arr)
 
             # Combine the channels in a single image
             image = np.stack(bands, axis=-1)
 
-        if self.transform_flag:
-            transform = transforms.Compose([
-                transforms.ToPILImage(),
-                #transforms.Resize((224, 224)),
-                transforms.Resize((128, 128)),
-                transforms.CenterCrop(112),
-                transforms.ToTensor()])
-            image = transform(image)
+        if self.transform is not None:
+            image = self.transform(image)
         
         label = self.df.loc[self.df['patch_id']==patch_id, 'v1-label'].values[0]
 

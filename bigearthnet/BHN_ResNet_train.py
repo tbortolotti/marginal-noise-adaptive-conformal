@@ -1,17 +1,13 @@
-import tarfile
-import random
-
 import os
 import random
-from PIL import Image
 import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
 from torchvision.models import resnet50
+from cvtorchvision import cvtransforms
 from BHN_dataset import BigEarthNet
 
 import pdb
@@ -20,18 +16,28 @@ import pickle
 tar_path = os.path.expanduser('~/data/BigEarthNet/BigEarthNet-S2-v1.0.tar.gz')
 df = pd.read_csv('BHN_labels.csv')
 
+#transform = cvtransforms.Compose([
+#    cvtransforms.RandomResizedCrop(112),
+#    cvtransforms.RandomHorizontalFlip(),
+#    cvtransforms.ToTensor(),
+#    ])
+
+transform = cvtransforms.Compose([
+    cvtransforms.ToTensor()
+    ])
+
 df_train = df[df['split']=='train'].copy()
-train_dataset = BigEarthNet(df_train, tar_path, transform=True)
+train_dataset = BigEarthNet(df_train, tar_path, transform=transform)
 train_size = len(train_dataset)
 
 df_test = df[df['split']=='test'].copy()
-test_dataset = BigEarthNet(df_test, tar_path, transform=True)
+test_dataset = BigEarthNet(df_test, tar_path, transform=transform)
 test_size = len(test_dataset)
 
 K = df['v1-labels'].nunique()
-epochs = 20
+epochs = 10
 seed = 1
-batch_size = 60
+batch_size = 32
 
 torch.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
@@ -44,9 +50,6 @@ np.random.seed(seed)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-#pdb.set_trace()
-
-# 3. Training the net (ResNet-50 modified for 12 channels)
 model = resnet50(weights=None)
 model.conv1 = nn.Conv2d(
     in_channels=12,
@@ -101,6 +104,7 @@ torch.save(model.state_dict(), model_save_path)
 # Store relevant parameters
 info_save = {
     'num_epochs': epochs,
+    'batch_size': batch_size,
     'K': K,
     'seed': seed,
     'accuracy': accuracy
