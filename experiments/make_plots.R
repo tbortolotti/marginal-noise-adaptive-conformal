@@ -1796,8 +1796,8 @@ init_settings <- function(plot.optimistic = FALSE) {
   if(plot.optimistic) {
     method.values <<- c("Standard", "Adaptive optimized", "Adaptive optimized+")
     method.labels <<- c("Standard", "Adaptive", "Adaptive+")
-    color.scale <<- cbPalette[c(1,7,3)]
-    shape.scale <<- c(1,0,3)
+    color.scale <<- cbPalette[c(1,2,3)]
+    shape.scale <<- c(1,0,2)
     linetype.scale <<- c(1,1,1)
     # method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized",
     #                     "Adaptive simplified+", "Adaptive optimized+")
@@ -1809,7 +1809,7 @@ init_settings <- function(plot.optimistic = FALSE) {
   } else {
     method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized")
     method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive")
-    color.scale <<- cbPalette[c(1,2,7)]
+    color.scale <<- cbPalette[c(1,7,2)]
     shape.scale <<- c(1,2,0)
     linetype.scale <<- c(1,1,1)
   }
@@ -1890,15 +1890,23 @@ make_figure_10 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4
         filter(Method %in% current_methods) %>%
         mutate(Method = factor(Method, levels = current_methods, labels = current_labels)) 
       
-      {
+      if(!plot.optimistic){
         df3 = df2 = df_filtered[1:2,]
         df3$n_cal[1] = df2$n_cal[1] = min(df_filtered$n_cal)
         df3$n_cal[2] = df2$n_cal[2] = max(df_filtered$n_cal)
         df2$Mean[1] = 0.8
         df2$Mean[2] = 1.4
         df3$Mean[1] = 1
-        df3$Mean[2] = 3.5
-        }
+        df3$Mean[2] = 2.8
+      } else {
+        df3 = df2 = df_filtered[1:2,]
+        df3$n_cal[1] = df2$n_cal[1] = min(df_filtered$n_cal)
+        df3$n_cal[2] = df2$n_cal[2] = max(df_filtered$n_cal)
+        df2$Mean[1] = 0.8
+        df2$Mean[2] = 1.4
+        df3$Mean[1] = 1
+        df3$Mean[2] = 2
+      } 
       
       pp <- df_filtered %>%
         ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
@@ -1923,7 +1931,7 @@ make_figure_10 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4
       plot.file <- sprintf("figures/slides/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s_%d.pdf",
                            exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee,
                            plot.contamination, plot.optimistic, i)
-      ggsave(file = plot.file, plot = pp, height = 4.5, width = 7, units = "in")
+      ggsave(file = plot.file, plot = pp, height = 4, width = 6, units = "in")
       
     }
   }
@@ -2046,16 +2054,14 @@ make_figure_11 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4
       df_filtered <- df_filt %>%
         filter(Method %in% current_methods) %>%
         mutate(Method = factor(Method, levels = current_methods, labels = current_labels)) 
-      
-      {
-        df3 = df2 = df_filtered[1:2,]
-        df3$n_cal[1] = df2$n_cal[1] = min(df_filtered$n_cal)
-        df3$n_cal[2] = df2$n_cal[2] = max(df_filtered$n_cal)
-        df2$Mean[1] = 0.8
-        df2$Mean[2] = 1.4
-        df3$Mean[1] = 1
-        df3$Mean[2] = 3.5
-        }
+        
+      df3 = df2 = df_filtered[1:2,]
+      df3$n_cal[1] = df2$n_cal[1] = min(df_filtered$n_cal)
+      df3$n_cal[2] = df2$n_cal[2] = max(df_filtered$n_cal)
+      df2$Mean[1] = 0.8
+      df2$Mean[2] = 1.4
+      df3$Mean[1] = 1
+      df3$Mean[2] = 2
       
       pp <- df_filtered %>%
         ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
@@ -2080,7 +2086,7 @@ make_figure_11 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4
       plot.file <- sprintf("figures/slides/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s_asy_%d.pdf",
                            exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee,
                            plot.contamination, plot.optimistic, i)
-      ggsave(file = plot.file, plot = pp, height = 4.5, width = 7, units = "in")
+      ggsave(file = plot.file, plot = pp, height = 4, width = 6, units = "in")
       
     }
   }
