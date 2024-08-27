@@ -9,7 +9,7 @@ import pandas as pd
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from torchvision.models import resnet50
 from BHN_dataset import BigEarthNet
@@ -31,6 +31,7 @@ test_size = len(test_dataset)
 K = df['v1-labels'].nunique()
 epochs = 20
 seed = 1
+batch_size = 60
 
 torch.manual_seed(seed)
 torch.cuda.manual_seed_all(seed)
@@ -40,8 +41,8 @@ np.random.seed(seed)
 #test_size = 20000
 #train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
 
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 #pdb.set_trace()
 
