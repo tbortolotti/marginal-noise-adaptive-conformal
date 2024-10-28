@@ -682,24 +682,40 @@ make_figure_A14(plot.epsilon=0.1, plot.nu.vals=c(0.2, 0.8), save_plots=TRUE, rel
 
 
 # MAIN -------------------------------------------------------------------------
+#' Standard --> 1 1
+#' Adaptive simplified --> 7 3
+#' Adaptive --> 2 0
+#' Asymptotic --> 9 5
+#' 
+#' Adaptive+ simplified --> 10 6
+#' Adaptive+ --> 3 2
+#' Asymptotic+ --> 4 4
+#' 
 
-### Functions for figures in the paper
 init_settings <- function(plot.optimistic = FALSE) {
-  if(plot.optimistic) {
-    method.values <<- c("Standard", "Adaptive optimized+", "Adaptive simplified+", "Asymptotic+")
-    method.labels <<- c("Standard", "Adaptive-o+", "Adaptive-s+", "Asymptotic+")
-  } else {
-    method.values <<- c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
-    method.labels <<- c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
-  }
   label.values <<- c("4 classes", "8 classes", "16 classes")
   label.labels <<- c("4 classes", "8 classes", "16 classes")
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  color.scale <<- cbPalette[c(1,3,7,4)]
-  shape.scale <<- c(1,2,0,3)
-  linetype.scale <<- c(1,1,1,1)
+  if(plot.optimistic) {
+    method.values <<- c("Standard", "Adaptive optimized", "Adaptive optimized+")
+    method.labels <<- c("Standard", "Adaptive", "Adaptive+")
+    color.scale <<- cbPalette[c(1,2,3)]
+    shape.scale <<- c(1,0,2)
+    linetype.scale <<- c(1,1,1)
+    # method.values <<- c("Standard","Adaptive simplified+", "Adaptive optimized+", "Asymptotic+")
+    # method.labels <<- c("Standard","Adaptive+ (simplified)", "Adaptive+", "Adaptive+ (asymptotic)")
+    # color.scale <<- cbPalette[c(1,8,3,4)]
+    # shape.scale <<- c(1,6,2,4)
+    # linetype.scale <<- c(1,1,1,1)
+  } else {
+    method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized", "Asymptotic")
+    method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive", "Adaptive (asymptotic)")
+    color.scale <<- cbPalette[c(1,7,2,9)]
+    shape.scale <<- c(1,3,0,5)
+    linetype.scale <<- c(1,1,1,1)
+  }
 }
 
 load_data <- function(exp.num, from_cluster=TRUE) {
@@ -721,10 +737,6 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 }
 
 ### Experiment 1: UNIFORM -------------------------------------------------------
-
-exp.num <- 1
-summary <- load_data(exp.num)
-
 #' Figure A2
 #' Plot marginal coverage (for marginal calibration) as a function of the calibration set size,
 #' for different number of classes
@@ -770,15 +782,16 @@ make_figure_1 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", 
     theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
   
   if(save_plots) {
-    plot.file <- sprintf("figures/synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
+    plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num,
                          10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=4, width=7, units="in")
+    ggsave(file=plot.file, height=4, width=8, units="in")
     return(NULL)
   } else{
     return(pp)
   }
 }
-
+exp.num <- 1
 plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.nu <- 0
@@ -790,12 +803,11 @@ make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 ### Experiment 2: Block randomized response model -------------------------------------------------------
-exp.num <- 2
-summary <- load_data(exp.num)
-
 #' Figure A3
 #' Plot marginal coverage (for marginal calibration) as a function of the calibration set size,
 #' for different number of classes
+
+exp.num <- 2
 plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.nu <- 0
@@ -808,17 +820,15 @@ make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 
 
 ### Experiment 3: 2 level RRB ------------------------------------------------------------
-exp.num <- 3
-summary <- load_data(exp.num)
-
 #' Figure A4 and A4.bis
 #' Plot marginal coverage (for marginal calibration) as a function of the calibration set
 #' size, for different number of classes
+exp.num <- 3
 plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.contamination <- "RRB"
-
 plot.nu <- 0.2
+
 make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
 make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
@@ -832,41 +842,49 @@ make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 
 ### Experiment 4: Uniform, K=4 ------------------------
 
-init_settings <- function(plot.optimistic = FALSE) {
-  if(plot.optimistic) {
-    method.values <<- c("Standard", "Adaptive optimized+", "Adaptive simplified+", "Asymptotic+")
-    method.labels <<- c("Standard", "Adaptive-o+", "Adaptive-s+", "Asymptotic+")
-  } else {
-    method.values <<- c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
-    method.labels <<- c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
-  }
-  label.values <<- c("4 classes", "8 classes", "16 classes")
-  label.labels <<- c("4 classes", "8 classes", "16 classes")
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-  df.dummy <<- tibble(key="Coverage", value=0.95)
-  df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  color.scale <<- cbPalette[c(1,3,7,4)]
-  shape.scale <<- c(1,2,0,3)
-  linetype.scale <<- c(1,1,1,1)
-}
-
 # init_settings <- function(plot.optimistic = FALSE) {
 #   if(plot.optimistic) {
-#     method.values <<- c("Standard", "Adaptive+", "Asymptotic+")
-#     method.labels <<- c("Standard", "Finite sample+", "Asymptotic+")
+#     method.values <<- c("Standard", "Adaptive optimized+", "Adaptive simplified+", "Asymptotic+")
+#     method.labels <<- c("Standard", "Adaptive-o+", "Adaptive-s+", "Asymptotic+")
 #   } else {
-#     method.values <<- c("Standard", "Adaptive", "Asymptotic")
-#     method.labels <<- c("Standard", "Finite sample", "Asymptotic")
+#     method.values <<- c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
+#     method.labels <<- c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
 #   }
 #   label.values <<- c("4 classes", "8 classes", "16 classes")
 #   label.labels <<- c("4 classes", "8 classes", "16 classes")
 #   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
 #   df.dummy <<- tibble(key="Coverage", value=0.95)
 #   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-#   color.scale <<- cbPalette[c(1,3,4)]
-#   shape.scale <<- c(1,2,3)
-#   linetype.scale <<- c(1,1,1)
+#   color.scale <<- cbPalette[c(1,3,7,4)]
+#   shape.scale <<- c(1,2,0,3)
+#   linetype.scale <<- c(1,1,1,1)
 # }
+
+init_settings <- function(plot.optimistic = FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  label.values <<- c("4 classes", "8 classes", "16 classes")
+  label.labels <<- c("4 classes", "8 classes", "16 classes")
+  if(plot.optimistic) {
+    method.values <<- c("Standard", "Adaptive optimized", "Adaptive optimized+")
+    method.labels <<- c("Standard", "Adaptive", "Adaptive+")
+    color.scale <<- cbPalette[c(1,2,3)]
+    shape.scale <<- c(1,0,2)
+    linetype.scale <<- c(1,1,1)
+    # method.values <<- c("Standard","Adaptive simplified+", "Adaptive optimized+", "Asymptotic+")
+    # method.labels <<- c("Standard","Adaptive+ (simplified)", "Adaptive+", "Adaptive+ (asymptotic)")
+    # color.scale <<- cbPalette[c(1,8,3,4)]
+    # shape.scale <<- c(1,6,2,4)
+    # linetype.scale <<- c(1,1,1,1)
+  } else {
+    method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized", "Asymptotic")
+    method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive", "Adaptive (asymptotic)")
+    color.scale <<- cbPalette[c(1,7,2,9)]
+    shape.scale <<- c(1,3,0,5)
+    linetype.scale <<- c(1,1,1,1)
+  }
+}
 
 #' Figure 1
 #' Plot marginal coverage and size as function of the number of calibration samples.
@@ -1321,7 +1339,7 @@ make_figure_5 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margina
     if(save_plots) {
       plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_K%d_eps%s_%s_%s_optimistic%s.pdf",
                            exp.num, 10000, plot.K, plot.epsilon, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=7, units="in")
+      ggsave(file=plot.file, height=3.5, width=8, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1391,6 +1409,7 @@ make_figure_5 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margina
 }
 
 exp.num <- 5
+
 plot.alpha <- 0.1
 plot.nu <- c(0, 0.25, 0.75, 1)
 plot.epsilon <- 0.1
@@ -1457,7 +1476,7 @@ make_figure_6 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margina
     if(save_plots) {
       plot.file <- sprintf("figures/Aexp%d_synthetic1_ntrain%d_K%d_eps%s_%s_%s_optimistic%s.pdf",
                            exp.num, 10000, plot.K, plot.epsilon, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=7, units="in")
+      ggsave(file=plot.file, height=3.5, width=8, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1792,29 +1811,31 @@ make_figure_9(exp.num=exp.num,
 init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   if(plot.optimistic) {
     method.values <<- c("Standard", "Adaptive optimized", "Adaptive optimized+")
     method.labels <<- c("Standard", "Adaptive", "Adaptive+")
     color.scale <<- cbPalette[c(1,2,3)]
     shape.scale <<- c(1,0,2)
     linetype.scale <<- c(1,1,1)
-    # method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized",
-    #                     "Adaptive simplified+", "Adaptive optimized+")
-    # method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive",
-    #                     "Adaptive+ (simplified)", "Adaptive+")
-    # color.scale <<- cbPalette[c(1,7,2,6,3)]
-    # shape.scale <<- c(1,2,0,5,3)
-    # linetype.scale <<- c(1,1,1,1,1)
+    # method.values <<- c("Standard","Adaptive simplified+", "Adaptive optimized+", "Asymptotic+")
+    # method.labels <<- c("Standard","Adaptive+ (simplified)", "Adaptive+", "Adaptive+ (asymptotic)")
+    # color.scale <<- cbPalette[c(1,8,3,4)]
+    # shape.scale <<- c(1,6,2,4)
+    # linetype.scale <<- c(1,1,1,1)
   } else {
-    method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized")
-    method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive")
-    color.scale <<- cbPalette[c(1,7,2)]
-    shape.scale <<- c(1,2,0)
-    linetype.scale <<- c(1,1,1)
+    # method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized")
+    # method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive")
+    # color.scale <<- cbPalette[c(1,7,2)]
+    # shape.scale <<- c(1,2,0)
+    # linetype.scale <<- c(1,1,1)
+    method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized", "Asymptotic")
+    method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive", "Adaptive (asymptotic)")
+    color.scale <<- cbPalette[c(1,7,2,9)]
+    shape.scale <<- c(1,3,0,5)
+    linetype.scale <<- c(1,1,1,1)
   }
 }
-
 
 make_figure_10 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                               plot.contamination="uniform",
@@ -1863,7 +1884,7 @@ make_figure_10 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4
     if(save_plots) {
       plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
                            exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=7, units="in")
+      ggsave(file=plot.file, height=3.5, width=8, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1938,20 +1959,32 @@ make_figure_10 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4
   
 }
 
-
 exp.num <- 9
 plot.alpha <- 0.1
 plot.nu <- 0.2
 plot.epsilon <- c(0,0.05,0.1,0.2)
 plot.K <- 4
 plot.contamination <- "block"
-plot.data <- "synthetic1"
+make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+               plot.contamination=plot.contamination,
+               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
+make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+               plot.contamination=plot.contamination,
+               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
+make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+               plot.contamination=plot.contamination,
+               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=TRUE)
+make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+               plot.contamination=plot.contamination,
+               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=TRUE)
+
+plot.contamination <- "RRB"
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                   plot.contamination=plot.contamination,
-                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
+                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                   plot.contamination=plot.contamination,
-                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
+                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                   plot.contamination=plot.contamination,
                   plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=TRUE)
@@ -2028,7 +2061,7 @@ make_figure_11 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4
     if(save_plots) {
       plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s_asy.pdf",
                            exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=7, units="in")
+      ggsave(file=plot.file, height=3.5, width=8, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -2106,6 +2139,98 @@ plot.data <- "synthetic1"
 make_figure_11(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                plot.contamination=plot.contamination,
                plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=TRUE)
+
+### Experiment 10: Increasing the number of classes ------------------------------------------------------------
+#' Plot marginal coverage (for marginal calibration) as a function of the calibration set
+#' size, for different number of classes
+#' 
+#' 
+
+init_settings <- function(plot.optimistic = FALSE) {
+  label.values <<- c("10 classes", "100 classes", "1000 classes")
+  label.labels <<- c("10 classes", "100 classes", "1000 classes")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  if(plot.optimistic) {
+    method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+")
+    method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)")
+    color.scale <<- cbPalette[c(1,3,4)]
+    shape.scale <<- c(1,2,4)
+    linetype.scale <<- c(1,1,1)
+    # method.values <<- c("Standard","Adaptive simplified+", "Adaptive optimized+", "Asymptotic+")
+    # method.labels <<- c("Standard","Adaptive+ (simplified)", "Adaptive+", "Adaptive+ (asymptotic)")
+    # color.scale <<- cbPalette[c(1,8,3,4)]
+    # shape.scale <<- c(1,6,2,4)
+    # linetype.scale <<- c(1,1,1,1)
+  } else {
+    method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized", "Asymptotic")
+    method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive", "Adaptive (asymptotic)")
+    color.scale <<- cbPalette[c(1,7,2,9)]
+    shape.scale <<- c(1,3,0,5)
+    linetype.scale <<- c(1,1,1,1)
+  }
+}
+
+make_figure_12 <- function(exp.num=10, plot.alpha=0.1, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+                          plot.contamination="uniform",
+                          plot.epsilon=0.1, plot.nu=0.2,
+                          plot.optimistic = FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic = plot.optimistic)
+  
+  df <- summary %>%
+    filter(data=="synthetic1", num_var==20, n_train==100000, signal==1, Guarantee==plot.guarantee,
+           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon, nu==plot.nu) %>%
+    filter(n_cal >= 100)
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=10000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(K_lab = sprintf("%d classes", K)) %>%
+    mutate(K_lab = factor(K_lab, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
+    facet_grid(Key~K_lab, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num,
+                         10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4, width=8, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 10
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.contamination <- "RRB"
+plot.nu <- 0.2
+
+make_figure_12(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 ### Experiment 101: CIFAR-10 data ------------------------
