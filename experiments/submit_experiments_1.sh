@@ -122,7 +122,22 @@ elif [[ $CONF == 2 ]]; then
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(10000)
   ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 5) 
+  SEED_LIST=$(seq 1 5)
+
+elif [[ $CONF == 9 ]]; then
+  # Figure marginal classification (paper + slides)
+  DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0. 0.05 0.1 0.2)
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("block" "RRB")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=$(seq 1 5)
 
 fi
 
