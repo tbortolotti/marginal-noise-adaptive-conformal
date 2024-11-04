@@ -14,3 +14,7 @@ results
 results_hpc
 figures
 *.txt
+
+# Ignore dataset in bigearthnet
+third_party/datasets
+**/__init__.py
