@@ -18,4 +18,4 @@ figures
 # Ignore dataset in bigearthnet
 third_party/datasets
 **/__init__.py
-**/__pycache__
+**/__pycache__/
