@@ -1,0 +1,22 @@
+obj:
+  _target_: torchvision.transforms.Compose
+  transforms:
+    - _target_: torchvision.transforms.Normalize
+      mean:
+        - 439.32135009765625 # B02
+        - 623.2581176757812  # B03
+        - 599.888671875      # B04
+      std:
+        - 606.1390380859375 # B02
+        - 612.572998046875  # B03
+        - 702.5380249023438 # B04
+    - _target_: torchvision.transforms.Resize
+      size: 224
+    - _target_: torchvision.transforms.RandomHorizontalFlip
+      p: 0.5
+    - _target_: torchvision.transforms.RandomVerticalFlip
+      p: 0.5
+description: 
+  - "Normalize"
+  - "Resize (224, 224)"
+  - "Augment (hflip, vflip)"
