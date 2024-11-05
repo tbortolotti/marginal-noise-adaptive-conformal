@@ -181,7 +181,7 @@ def run_experiment(random_state):
     X_batch = torch.cat((X_batch_train, X_batch_val, X_batch_test), dim=0)
     Y_batch = torch.cat((Y_batch_train, Y_batch_val, Y_batch_test), dim=0)
     Y_batch = Y_batch.detach().numpy()
-    print("Done.")
+    print(f"Done. The dimension of the current batch is: {len(Y_batch)}")
     sys.stdout.flush()
 
     ## TO DO ##
