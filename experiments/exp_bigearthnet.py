@@ -58,7 +58,7 @@ contamination_model = "RRB"
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 9:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -112,7 +112,7 @@ with open('../third_party/bigearthnet/data/label_mapping.json', 'r') as f:
 # Clear any previous Hydra instances if they exist
 if GlobalHydra.instance().is_initialized():
     GlobalHydra.instance().clear()
-hydra.initialize(config_path="bigearthnet/configs", version_base="1.2")
+hydra.initialize(config_path="../third_party/bigearthnet/configs", version_base="1.2")
 
 # fetch the transforms used in the model
 cfg = hydra.compose(config_name="config")

@@ -1,10 +1,10 @@
 datamodule:
   _target_: bigearthnet.datamodules.bigearthnet_datamodule.BigEarthNetDataModule
   #dataset_dir: "${oc.env:HOME}/bigearthnet/datasets/" # root directory where to download the datasets, overwrite via hydra to change
-  dataset_dir: "/Users/teresabortolotti/Documents/VSCode/Applications-marginal-label-noise/BigEarthNet/bigearthnet/datasets/"
+  dataset_dir: "../third_party/datasets/"
   dataset_name: "bigearthnet-medium" # One of bigearthnet-mini, bigearthnet-medium, bigearthnet-full
   batch_size: 70 # Number of elements in a batch
-  num_workers: 4 # 0 is great for debugging, set it to higher if your machine has many CPUs
+  num_workers: 0 # 0 is great for debugging, set it to higher if your machine has many CPUs
   transforms: ${transforms.obj}
 
 optimizer:

@@ -57,7 +57,7 @@ for SEED in $SEED_LIST; do
 
 			  if [[ $COMPLETE -eq 0 ]]; then
 			      # Script to be run
-			      SCRIPT="exp_bigearthnet.sh $BATCH_SIZE $EPSILON_N_CLEAN $EPSILON_N_CORR $ESTIMATE $CONTAMINTAION $EPSILON $NU $SEED"
+			      SCRIPT="exp_bigearthnet.sh $BATCH_SIZE $EPSILON_N_CLEAN $EPSILON_N_CORR $ESTIMATE $CONTAMINATION $EPSILON $NU $SEED"
 			      # Define job name
 			      OUTF=$LOGS"/"$JOBN".out"
 			      ERRF=$LOGS"/"$JOBN".err"
@@ -66,9 +66,9 @@ for SEED in $SEED_LIST; do
 			      # Print order
 			      echo $ORD
 			      # Submit order
-			      #$ORD
+			      $ORD
 			      # Run command now
-			      ./$SCRIPT
+			      #./$SCRIPT
 			  fi
 		      done
 		  done
