@@ -19,3 +19,4 @@ figures
 third_party/datasets
 **/__init__.py
 **/__pycache__/
+experiments/logs/
