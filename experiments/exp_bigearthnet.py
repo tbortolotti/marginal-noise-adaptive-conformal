@@ -76,7 +76,7 @@ if True:
 # Define other constant parameters
 exp_num=201
 data_name = "bigearthnet"
-K = 2
+K = 5
 epsilon_n = epsilon_n_clean + epsilon_n_corr
 n_test = 500
 num_exp = 5
