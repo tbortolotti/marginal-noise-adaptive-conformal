@@ -51,8 +51,8 @@ seed = 1
 #epsilon = 0.017
 epsilon = 0.1
 nu = 0.4
-rho = np.array([0.15, 0.85])
-contamination_model = "RRB"
+rho = np.array([0.12, 0.02, 0.11, 0.15, 0.60])
+contamination_model = "uniform"
 
 # Parse input parameters
 if True:
