@@ -83,10 +83,16 @@ def map_labels_to_single(hub_labels, mapping_dict):
     #    return 1
     #else:
     #     return 1
-    if 0 in mapped_labels:
+    if mapped_labels == {"Water"}:
         return 0
-    else:
+    elif mapped_labels == {"Urban, construction, industries"}:
         return 1
+    elif mapped_labels == {"Agriculture"}:
+        return 2
+    elif mapped_labels == {"Natural"}:
+        return 3
+    else:
+        return 4
     
 
 
