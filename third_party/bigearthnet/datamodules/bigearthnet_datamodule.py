@@ -93,8 +93,6 @@ def map_labels_to_single(hub_labels, mapping_dict):
         return 3
     else:
         return 4
-    
-
 
 class BigEarthNetHubDataset(torch.utils.data.dataset.Dataset):
     """Dataset class used to iterate over the BigEarthNet-S2 data."""
@@ -238,7 +236,8 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         assert self.train_dataset is not None, "must call 'setup' first!"
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.train_dataset,
-            batch_size=self.batch_size,
+            #batch_size=self.batch_size,
+            batch_size=int(0.7*self.batch_size),
             shuffle=True,
             num_workers=self.num_workers,
         )
@@ -248,7 +247,8 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         assert self.valid_dataset is not None, "must call 'setup' first!"
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.valid_dataset,
-            batch_size=self.batch_size,
+            #batch_size=self.batch_size,
+            batch_size=int(0.15*self.batch_size),
             shuffle=False,
             num_workers=self.num_workers,
         )
@@ -258,7 +258,8 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         assert self.test_dataset is not None, "must call 'setup' first!"
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.test_dataset,
-            batch_size=self.batch_size,
+            #batch_size=self.batch_size,
+            batch_size=int(0.15*self.batch_size),
             shuffle=False,
             num_workers=self.num_workers,
         )

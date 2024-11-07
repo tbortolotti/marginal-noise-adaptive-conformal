@@ -51,7 +51,8 @@ seed = 1
 #epsilon = 0.017
 epsilon = 0.1
 nu = 0.4
-rho = np.array([0.12, 0.02, 0.11, 0.15, 0.60])
+rho = np.array([0.12, 0.02, 0.15, 0.11, 0.60])
+#rho = np.array([0.1, 0.2, 0.3, 0.2, 0.2])
 contamination_model = "uniform"
 
 # Parse input parameters
