@@ -16,6 +16,7 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
 )
 from torch import optim
+import torch.nn.functional as F
 
 
 log = logging.getLogger(__name__)
@@ -183,11 +184,28 @@ class BigEarthNetModule(pl.LightningModule):
         #    self.log(f"recall/{split}", metrics["recall"], on_epoch=True)
         #    self.log(f"f1_score/{split}", metrics["f1_score"], on_epoch=True)
 
-
+    """
     def predict_proba(self, features):
-        """
-        Returns the predicted probabilities for the given inputs.
-        """
         logits = self.model(features)
         probabilities = torch.softmax(logits, dim=1)  # Apply softmax to get probabilities
         return probabilities.detach()
+    """
+    
+    def predict_proba(self, features):
+        """
+        Computes the probability of each class for a given input.
+        Applies softmax to logits to produce probabilities.
+        """
+        # Set model to evaluation mode
+        self.model.eval()
+        
+        # Disable gradient calculation for inference
+        with torch.no_grad():
+            logits = self.model(features)  # Forward pass to get logits
+            probabilities = F.softmax(logits, dim=1)  # Convert logits to probabilities using softmax
+            
+            # If you want to clip the probabilities similarly to NNet
+            probabilities = torch.clamp(probabilities, self.factor / self.cfg.num_classes, 1.0)
+            probabilities = probabilities / probabilities.sum(dim=1, keepdim=True)  # Ensure normalization
+
+        return probabilities

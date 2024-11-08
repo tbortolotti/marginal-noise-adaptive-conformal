@@ -2417,6 +2417,7 @@ make_figure_101(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="rh
 #' 
 
 init_settings <- function(plot.optimistic = FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   if(plot.optimistic) {
     # method.values <<- c("Standard", "Adaptive optimized+", "Adaptive simplified+", "Asymptotic+")
     # method.labels <<- c("Standard", "Adaptive-o+", "Adaptive-s+", "Asymptotic+")
@@ -2436,29 +2437,10 @@ init_settings <- function(plot.optimistic = FALSE) {
   }
   label.values <<- c("4 classes", "8 classes", "16 classes")
   label.labels <<- c("4 classes", "8 classes", "16 classes")
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  color.scale <<- cbPalette[c(1,3,7,4)]
-  shape.scale <<- c(1,2,0,3)
-  linetype.scale <<- c(1,1,1,1)
 }
 
-# init_settings <- function(plot.optimistic=FALSE) {
-#   if(plot.optimistic) {
-#     method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+")
-#     method.labels <<- c("Standard", "Adaptive-o+", "Asymptotic+")
-#   } else {
-#     method.values <<- c("Standard", "Adaptive optimized", "Asymptotic")
-#     method.labels <<- c("Standard", "Adaptive-o", "Asymptotic")
-#   }
-#   cbPalette <- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-#   df.dummy <- tibble(key="Coverage", value=0.95)
-#   df.dummy2 <- tibble(key="Coverage", value=0.5)
-#   color.scale <- cbPalette[c(1,3,4)]
-#   shape.scale <- c(1,2,3)
-#   linetype.scale <- c(1,1,1)
-# }
 
 load_data <- function(exp.num) {
   idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -2476,7 +2458,8 @@ load_data <- function(exp.num) {
 }
 
 make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-epsilon-point",
-                            plot.guarantee="marginal",
+                            plot.guarantee="marginal", plot.contamination="uniform",
+                            plot.epsilon = 0.03,
                             plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE,
                             slides=FALSE) {
   if(reload) {
@@ -2566,8 +2549,8 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
               legend.position = "bottom",
               legend.direction = "horizontal")
       
-      plot.file <- sprintf("figures/slides/cifar10_%s_optimistic%s_%s_%d.pdf",
-                           plot.guarantee, plot.optimistic, plot.estimate, i)
+      plot.file <- sprintf("figures/slides/bigearthnet_K%d_%s_optimistic%s_%s_%d.pdf",
+                           plot.K, plot.guarantee, plot.optimistic, plot.estimate, i)
       ggsave(file = plot.file, plot = pp, height = 3.5, width = 7, units = "in")
     }
   }
@@ -2579,8 +2562,11 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
 exp.num <- 201
 plot.alpha <- 0.1
 plot.K <- 5
+plot.contamination <- "uniform"
+plot.epsilon <- 0.03
 
 make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="none", plot.guarantee="marginal",
+                plot.contamination = plot.contamination, plot.epsilon=plot.epsilon,
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
 
