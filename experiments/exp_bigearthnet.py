@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 import os
 import hydra
@@ -47,14 +48,6 @@ epsilon_n_corr = 0.1
 estimate = "none"
 seed = 1
 
-# Parameters of the contamination process
-#epsilon = 0.017
-epsilon = 0.1
-nu = 0.4
-rho = np.array([0.12, 0.02, 0.15, 0.11, 0.60])
-#rho = np.array([0.1, 0.2, 0.3, 0.2, 0.2])
-contamination_model = "uniform"
-
 # Parse input parameters
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
@@ -68,17 +61,15 @@ if True:
     epsilon_n_clean = float(sys.argv[2])
     epsilon_n_corr = float(sys.argv[3])
     estimate = sys.argv[4]
-    contamination_model = sys.argv[5]
-    epsilon = float(sys.argv[6])
-    nu = float(sys.argv[7])
-    seed = int(sys.argv[8])
+    seed = int(sys.argv[5])
 
 
 # Define other constant parameters
 exp_num=201
 data_name = "bigearthnet"
-K = 5
+K = 8
 epsilon_n = epsilon_n_clean + epsilon_n_corr
+epsilon = 0.018
 n_test = 500
 num_exp = 5
 allow_empty = True
@@ -86,23 +77,6 @@ epsilon_max = 0.1
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
-# Initialize noise contamination process
-if contamination_model == "uniform":
-    T = contamination.construct_T_matrix_simple(K, epsilon)
-    M = contamination.convert_T_to_M(T,rho)
-elif contamination_model == "block":
-    T = contamination.construct_T_matrix_block(K, epsilon)
-    M = contamination.convert_T_to_M(T,rho)
-elif contamination_model == "RRB":
-    T = contamination.construct_T_matrix_block_RR(K, epsilon, nu)
-    M = contamination.convert_T_to_M(T,rho)
-elif contamination_model == "random":
-    T = contamination.construct_T_matrix_random(K, epsilon, random_state=seed)
-    M = contamination.convert_T_to_M(T,rho)
-else:
-    print("Unknown contamination (M) model!")
-    sys.stdout.flush()
-    exit(-1)
 
 # Pre-process parameters
 n_cal = batch_size - n_test
@@ -119,6 +93,26 @@ hydra.initialize(config_path="../third_party/bigearthnet/configs", version_base=
 cfg = hydra.compose(config_name="config")
 transforms = instantiate(cfg.transforms.obj)
 
+# Load clean labels
+dataset_name = cfg.datamodule.dataset_name
+file_path_train = os.path.join(
+    '../third_party/bigearthnet/data',
+    f'train_{dataset_name}.csv'
+)
+v1v2_corresp_train = pd.read_csv(file_path_train, header=0)
+
+file_path_val = os.path.join(
+    '../third_party/bigearthnet/data',
+    f'val_{dataset_name}.csv'
+)
+v1v2_corresp_val = pd.read_csv(file_path_val, header=0)
+
+file_path_test = os.path.join(
+    '../third_party/bigearthnet/data',
+    f'test_{dataset_name}.csv'
+)
+v1v2_corresp_test = pd.read_csv(file_path_test, header=0)
+
 # Load the pre-trained model
 black_box = BigEarthNetModule(cfg)
 mod_dir = cfg.out_directory.dir
@@ -126,29 +120,17 @@ mod_name = "trained_model.pth"
 mod_path = os.path.join(mod_dir, mod_name)
 black_box.load_state_dict(torch.load(mod_path))
 
-# instantiate the datamodule
-datamodule = BigEarthNetDataModule(
-    cfg.datamodule.dataset_dir,
-    cfg.datamodule.dataset_name,
-    batch_size,
-    cfg.datamodule.num_workers,
-    transforms,
-    label_mapping
-)
-datamodule.setup()
-
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'K':[K],
                        'n_cal':[n_cal], 'n_test':[n_test],
                        'epsilon_n_clean':[epsilon_n_clean], 'epsilon_n_corr':[epsilon_n_corr],
-                       'estimate':[estimate], 'contamination':[contamination_model],
-                       'epsilon':[epsilon], 'nu':[nu], 'seed':[seed]})
+                       'estimate':[estimate],
+                       'seed':[seed]})
 
 # Output file
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_n" + str(batch_size)
 outfile_prefix += "_encl" + str(epsilon_n_clean) + "_enco" + str(epsilon_n_corr)
-outfile_prefix += "_est" + estimate + "_" + "_cont" + contamination_model
-outfile_prefix += "_eps" + str(epsilon) + "_nu" + str(nu) + "_" + str(seed)
+outfile_prefix += "_est" + estimate + "_" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
@@ -161,6 +143,18 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
 
+    # instantiate the datamodule
+    datamodule = BigEarthNetDataModule(
+    cfg.datamodule.dataset_dir,
+    cfg.datamodule.dataset_name,
+    batch_size,
+    cfg.datamodule.num_workers,
+    transforms,
+    label_mapping,
+    seed*random_state,
+    )
+    datamodule.setup()
+
     # Get reproducible random samples
     dataloader_train = datamodule.train_dataloader()
     dataloader_val = datamodule.val_dataloader()
@@ -168,34 +162,49 @@ def run_experiment(random_state):
 
     batch = next(iter(dataloader_train))
     X_batch_train = batch['data']
-    Y_batch_train = batch['labels']
+    Yt_batch_train = batch['labels']
+    generator = torch.Generator().manual_seed(datamodule.random_seed)
+    indices_df = torch.randperm(len(datamodule.train_dataset), generator=generator).tolist()
+    shuffled_csv_df = v1v2_corresp_train.iloc[indices_df].reset_index(drop=True)
+    batch_df = shuffled_csv_df.iloc[0 : int(0.7*batch_size)]
+    Y_batch_train = batch_df['v2-labels-grouped'].to_numpy()
+    valid_indices = torch.tensor(~np.isnan(Y_batch_train), dtype=torch.bool)
+    X_batch_train = X_batch_train[valid_indices]
+    Yt_batch_train = Yt_batch_train[valid_indices]
+    Y_batch_train = Y_batch_train[valid_indices].astype(int)
 
     batch = next(iter(dataloader_val))
     X_batch_val = batch['data']
-    Y_batch_val = batch['labels']
+    Yt_batch_val = batch['labels']
+    generator = torch.Generator().manual_seed(datamodule.random_seed)
+    indices_df = torch.randperm(len(datamodule.val_dataset), generator=generator).tolist()
+    shuffled_csv_df = v1v2_corresp_val.iloc[indices_df].reset_index(drop=True)
+    batch_df = shuffled_csv_df.iloc[0 : int(0.15*batch_size)]
+    Y_batch_val = batch_df['v2-labels-grouped'].to_numpy()
+    valid_indices = torch.tensor(~np.isnan(Y_batch_val), dtype=torch.bool)
+    X_batch_val = X_batch_val[valid_indices]
+    Yt_batch_val = Yt_batch_val[valid_indices]
+    Y_batch_val = Y_batch_val[valid_indices].astype(int)
 
     batch = next(iter(dataloader_test))
     X_batch_test = batch['data']
-    Y_batch_test = batch['labels']
+    Yt_batch_test = batch['labels']
+    generator = torch.Generator().manual_seed(datamodule.random_seed)
+    indices_df = torch.randperm(len(datamodule.test_dataset), generator=generator).tolist()
+    shuffled_csv_df = v1v2_corresp_test.iloc[indices_df].reset_index(drop=True)
+    batch_df = shuffled_csv_df.iloc[0 : int(0.15*batch_size)]
+    Y_batch_test = batch_df['v2-labels-grouped'].to_numpy()
+    valid_indices = torch.tensor(~np.isnan(Y_batch_test), dtype=torch.bool)
+    X_batch_test = X_batch_test[valid_indices]
+    Yt_batch_test = Yt_batch_test[valid_indices]
+    Y_batch_test = Y_batch_test[valid_indices].astype(int)
 
     # Stack all features and labels together
     X_batch = torch.cat((X_batch_train, X_batch_val, X_batch_test), dim=0)
-    Y_batch = torch.cat((Y_batch_train, Y_batch_val, Y_batch_test), dim=0)
-    Y_batch = Y_batch.detach().numpy()
-    print(f"Done. The dimension of the current batch is: {len(Y_batch)}")
-    sys.stdout.flush()
-
-    ## TO DO ##
-    #' Load Y_batch from file.... deve essere un numpy array
-    # Y_batch = load from file i clean labels, oppure aggiungi una qualche corruption di qualche tipo
-    #Y_batch = Yt_batch
-
-    # Generate the contaminated labels
-    print("Generating contaminated labels...", end=' ')
-    sys.stdout.flush()
-    contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+3)
-    Yt_batch = contamination_process.sample_labels(Y_batch)
-    print("Done.")
+    Yt_batch = torch.cat((Yt_batch_train, Yt_batch_val, Yt_batch_test), dim=0)
+    Yt_batch = Yt_batch.detach().numpy()
+    Y_batch = np.concatenate((Y_batch_train, Y_batch_val, Y_batch_test), axis=0)
+    print(f"Done. The dimension of the current batch is: {len(Yt_batch)}")
     sys.stdout.flush()
 
     # Estimate the label proportions from the whole data set

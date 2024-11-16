@@ -12,7 +12,7 @@ if [[ $CONF == 201 ]]; then
   ESTIMATE_LIST=("none")
   CONTAMINATION_MODEL_LIST=("uniform")
   #EPSILON_LIST=(0.03)
-  EPSILON_LIST=(0)
+  EPSILON_LIST=(0 0.01 0.02 0.03)
   NU_LIST=(0)
   SEED_LIST=$(seq 1 50)
   #SEED_LIST=(1)
