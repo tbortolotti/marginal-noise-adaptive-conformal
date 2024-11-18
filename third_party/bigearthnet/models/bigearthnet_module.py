@@ -29,14 +29,16 @@ class BigEarthNetModule(pl.LightningModule):
         super().__init__()
         self.cfg = cfg
         self.model = instantiate(cfg.model)
+        self.factor = 0.01  # default value if not provided
+        self.num_classes = 5 
 
         # Identify the last fully connected layer
         if hasattr(self.model, 'fc'):  # For models with an 'fc' layer (e.g., ResNet)
             last_layer_size = self.model.fc.in_features
-            self.model.fc = torch.nn.Linear(last_layer_size, 5)  # Adjust output to 5 classes
+            self.model.fc = torch.nn.Linear(last_layer_size, self.num_classes)
         elif hasattr(self.model, 'classifier'):  # For models with a 'classifier' layer
             last_layer_size = self.model.classifier.in_features
-            self.model.classifier = torch.nn.Linear(last_layer_size, 5)  # Adjust output to 5 classes
+            self.model.classifier = torch.nn.Linear(last_layer_size, self.num_classes)
         else:
             raise AttributeError("The model does not have an 'fc' or 'classifier' layer.")
         
@@ -205,7 +207,7 @@ class BigEarthNetModule(pl.LightningModule):
             probabilities = F.softmax(logits, dim=1)  # Convert logits to probabilities using softmax
             
             # If you want to clip the probabilities similarly to NNet
-            probabilities = torch.clamp(probabilities, self.factor / self.cfg.num_classes, 1.0)
+            probabilities = torch.clamp(probabilities, self.factor / self.num_classes, 1.0)
             probabilities = probabilities / probabilities.sum(dim=1, keepdim=True)  # Ensure normalization
 
         return probabilities
