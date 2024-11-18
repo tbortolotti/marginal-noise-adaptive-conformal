@@ -1,5 +1,5 @@
 _target_: bigearthnet.models.nets.baseline.Baseline
-num_classes: 5
+num_classes: 6
 hidden_dim: 30
 model_name: baseline
 pretrained: false

@@ -12,6 +12,7 @@ import torch
 import pytorch_lightning as pl
 import torch.utils.data.dataloader
 import torch.utils.data.dataset
+from torch.utils.data import SequentialSampler, SubsetRandomSampler
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +73,7 @@ def map_labels_to_single(hub_labels, mapping_dict):
             flat_labels.extend(str(lbl) for lbl in label.tolist())
         else:   
             flat_labels.append(str(label))
-    mapped_labels = {mapping_dict[label] for label in flat_labels if label in mapping_dict}
+    mapped_labels = {mapping_dict[label] for label in flat_labels if label in mapping_dict and mapping_dict[label]!="Other"}
     
     # Determine the final single label based on the contents of mapped_labels
     #if mapped_labels == {0}:  # Only 0s
@@ -83,16 +84,40 @@ def map_labels_to_single(hub_labels, mapping_dict):
     #    return 1
     #else:
     #     return 1
-    if mapped_labels == {"Water"}:
+    #if mapped_labels == {"Water"}:
+    #    return 0
+    #elif mapped_labels == {"Urban, construction, industries"}:
+    #    return 1
+    #elif mapped_labels == {"Agriculture"}:
+    #    return 2
+    #elif mapped_labels == {"Natural"}:
+    #    return 3
+    #else:
+    #    return 4
+    #if np.isin("Coast, waters and wetlands", mapped_labels).any() and len(mapped_labels)==1:
+    #    return 0
+    #elif np.isin("Arable land", mapped_labels).any() and len(mapped_labels)==1:
+    #    return 1
+    #elif np.isin("Agriculture",mapped_labels).any() and len(mapped_labels)==1:
+    #    return 2
+    #elif np.isin("Vegetation",mapped_labels).any() and len(mapped_labels)==1:
+    #    return 3
+    if mapped_labels=={"Coast, water and wetlands"}:
         return 0
-    elif mapped_labels == {"Urban, construction, industries"}:
+    elif mapped_labels=={"Arable land"}:
         return 1
-    elif mapped_labels == {"Agriculture"}:
+    elif mapped_labels=={"Agriculture"}:
         return 2
-    elif mapped_labels == {"Natural"}:
+    elif mapped_labels=={"Vegetation"}:
         return 3
+    elif len(mapped_labels)==1:
+        return 4 # Other
+    #elif len(mapped_labels)==2:
+    #    return 5 # Mix of two
+    #elif len(mapped_labels)==3:
+    #    return 6 # Mix of three
     else:
-        return 4
+        return 5 # Mix of two or more
 
 class BigEarthNetHubDataset(torch.utils.data.dataset.Dataset):
     """Dataset class used to iterate over the BigEarthNet-S2 data."""
@@ -116,7 +141,6 @@ class BigEarthNetHubDataset(torch.utils.data.dataset.Dataset):
 
     def __getitem__(self, idx: int) -> typing.Dict[str, typing.Any]:
         """Returns a single data sample loaded from the dataset.
-
         For BigEarthNet, the data sample simply consists of the patch data and its labels. The
         patch data and labels will be converted from their original types to float32 and int16,
         respectively, in order to make sure that PyTorch will be able to batch them.
@@ -125,9 +149,22 @@ class BigEarthNetHubDataset(torch.utils.data.dataset.Dataset):
         item = self.dataset[
             int(idx)
         ]  # cast in case we're using numpy ints or something similar
+        """
+        # Print available attributes and methods for inspection
+        print(dir(item))
+    
+        # Attempt to print specific attributes that may contain patch information
+        if hasattr(item, 'info'):
+            print("Info attribute:", item.info)
+        if hasattr(item, 'patch_name'):
+            print("Patch name:", item.patch_name)
+        print(self.dataset.tensors)  # Check available tensors
+        """
         assert tuple(self.tensor_names) == ("data", "labels")
 
         hub_labels = item["labels"].numpy()
+        #custom_labels = hub_labels_to_custom(hub_labels, n_labels=len(self.class_names))
+        #labels = torch.tensor(custom_labels)
         #onehot_labels = hub_labels_to_onehot(hub_labels, n_labels=len(self.class_names))
         #labels = torch.tensor(onehot_labels)
         single_label = map_labels_to_single(hub_labels, self.label_mapping)
@@ -196,7 +233,8 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         batch_size: int,
         num_workers: int = 0,
         transforms=None,
-        label_mapping: dict = None
+        label_mapping: dict = None,
+        random_seed=None
     ):
         """Validates the hyperparameter config dictionary and sets up internal attributes."""
         super().__init__()
@@ -207,6 +245,7 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         self.train_dataset, self.valid_dataset, self.test_dataset = None, None, None
         self.transforms = transforms
         self.label_mapping = label_mapping
+        self.random_seed=random_seed
 
     def setup(self, stage=None) -> None:
         """Parses and splits all samples across the train/valid/test datasets."""
@@ -231,54 +270,59 @@ class BigEarthNetDataModule(pl.LightningDataModule):
                 transforms=self.transforms,
             )
 
+    def create_sampler(self, dataset_size: int, shuffle: bool = False):
+        """Create a sampler for shuffling or deterministic sampling."""
+        indices = list(range(dataset_size))
+        if shuffle:
+            generator = torch.Generator().manual_seed(self.random_seed)
+            return SubsetRandomSampler(indices=indices, generator=generator)
+        else:
+            return SequentialSampler(indices)
+
     def train_dataloader(self) -> torch.utils.data.dataloader.DataLoader:
         """Creates the training dataloader using the training dataset."""
         assert self.train_dataset is not None, "must call 'setup' first!"
+
+        # Create the sampler to shuffle the data
+        sampler = self.create_sampler(len(self.train_dataset), shuffle=True)
+
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.train_dataset,
-            #batch_size=self.batch_size,
-            batch_size=int(0.7*self.batch_size),
-            shuffle=True,
-            num_workers=self.num_workers,
+            batch_size=self.batch_size,
+            #batch_size=int(0.7*self.batch_size),
+            #shuffle=True,
+            sampler=sampler,
+            num_workers=self.num_workers
         )
 
     def val_dataloader(self) -> torch.utils.data.dataloader.DataLoader:
         """Creates the validation dataloader using the validation data parser."""
         assert self.valid_dataset is not None, "must call 'setup' first!"
+
+        # Create the sampler to shuffle the data
+        sampler = self.create_sampler(len(self.train_dataset), shuffle=True)
+
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.valid_dataset,
             #batch_size=self.batch_size,
             batch_size=int(0.15*self.batch_size),
-            shuffle=False,
+            #shuffle=False,
+            sampler=sampler,
             num_workers=self.num_workers,
         )
 
     def test_dataloader(self) -> torch.utils.data.dataloader.DataLoader:
         """Creates the testing dataloader using the testing data dataset."""
         assert self.test_dataset is not None, "must call 'setup' first!"
+
+        # Create the sampler to shuffle the data
+        sampler = self.create_sampler(len(self.train_dataset), shuffle=True)
+
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.test_dataset,
             #batch_size=self.batch_size,
             batch_size=int(0.15*self.batch_size),
-            shuffle=False,
+            #shuffle=False,
+            sampler=sampler,
             num_workers=self.num_workers,
         )
-    
-    #def get_random_train_samples(self, num_samples: int):
-    #    return self._get_random_samples(self.train_dataset, num_samples)
-
-    #def get_random_val_samples(self, num_samples: int):
-    #    return self._get_random_samples(self.valid_dataset, num_samples)
-
-    #def get_random_test_samples(self, num_samples: int):
-    #    return self._get_random_samples(self.test_dataset, num_samples)
-
-    #def _get_random_samples(self, dataset, num_samples):
-    #    rng = random.Random(self.seed)
-    #    indices = rng.sample(range(len(dataset)), num_samples)
-    #    # Retrieve samples and check structure
-    #    samples = [dataset[i] for i in indices]
-    #    features = torch.stack([sample["data"] for sample in samples])  # Stack image data
-    #    labels = torch.stack([sample["labels"] for sample in samples])  # Stack labels
-    #    
-    #    return features, labels

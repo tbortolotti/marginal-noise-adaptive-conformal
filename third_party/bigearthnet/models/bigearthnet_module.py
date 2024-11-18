@@ -30,7 +30,7 @@ class BigEarthNetModule(pl.LightningModule):
         self.cfg = cfg
         self.model = instantiate(cfg.model)
         self.factor = 0.01  # default value if not provided
-        self.num_classes = 5 
+        self.num_classes = 6 
 
         # Identify the last fully connected layer
         if hasattr(self.model, 'fc'):  # For models with an 'fc' layer (e.g., ResNet)
