@@ -33,10 +33,10 @@ class BigEarthNetModule(pl.LightningModule):
         # Identify the last fully connected layer
         if hasattr(self.model, 'fc'):  # For models with an 'fc' layer (e.g., ResNet)
             last_layer_size = self.model.fc.in_features
-            self.model.fc = torch.nn.Linear(last_layer_size, 8)  # Adjust output to 8 classes
+            self.model.fc = torch.nn.Linear(last_layer_size, 6)  # Adjust output to 6 classes
         elif hasattr(self.model, 'classifier'):  # For models with a 'classifier' layer
             last_layer_size = self.model.classifier.in_features
-            self.model.classifier = torch.nn.Linear(last_layer_size, 8)  # Adjust output to 8 classes
+            self.model.classifier = torch.nn.Linear(last_layer_size, 6)  # Adjust output to 6 classes
         else:
             raise AttributeError("The model does not have an 'fc' or 'classifier' layer.")
         

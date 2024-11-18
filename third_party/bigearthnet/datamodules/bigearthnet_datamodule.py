@@ -112,12 +112,12 @@ def map_labels_to_single(hub_labels, mapping_dict):
         return 3
     elif len(mapped_labels)==1:
         return 4 # Other
-    elif len(mapped_labels)==2:
-        return 5 # Mix of two
-    elif len(mapped_labels)==3:
-        return 6 # Mix of three
+    #elif len(mapped_labels)==2:
+    #    return 5 # Mix of two
+    #elif len(mapped_labels)==3:
+    #    return 6 # Mix of three
     else:
-        return 7 # Mix of more than three
+        return 5 # Mix of two or more
 
 class BigEarthNetHubDataset(torch.utils.data.dataset.Dataset):
     """Dataset class used to iterate over the BigEarthNet-S2 data."""
@@ -288,8 +288,8 @@ class BigEarthNetDataModule(pl.LightningDataModule):
 
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.train_dataset,
-            #batch_size=self.batch_size,
-            batch_size=int(0.7*self.batch_size),
+            batch_size=self.batch_size,
+            #batch_size=int(0.7*self.batch_size),
             #shuffle=True,
             sampler=sampler,
             num_workers=self.num_workers

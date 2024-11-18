@@ -43,8 +43,8 @@ from third_party.bigearthnet.models.bigearthnet_module import BigEarthNetModule
 
 # Define default parameters
 batch_size = 2000
-epsilon_n_clean = 0.1
-epsilon_n_corr = 0.1
+epsilon_n_clean = 0.049
+epsilon_n_corr = 0.049
 estimate = "none"
 seed = 1
 
@@ -67,9 +67,9 @@ if True:
 # Define other constant parameters
 exp_num=201
 data_name = "bigearthnet"
-K = 8
+K = 6
 epsilon_n = epsilon_n_clean + epsilon_n_corr
-epsilon = 0.018
+epsilon = 0.049
 n_test = 500
 num_exp = 5
 allow_empty = True
@@ -157,8 +157,8 @@ def run_experiment(random_state):
 
     # Get reproducible random samples
     dataloader_train = datamodule.train_dataloader()
-    dataloader_val = datamodule.val_dataloader()
-    dataloader_test = datamodule.test_dataloader()
+    #dataloader_val = datamodule.val_dataloader()
+    #dataloader_test = datamodule.test_dataloader()
 
     batch = next(iter(dataloader_train))
     X_batch_train = batch['data']
@@ -173,6 +173,15 @@ def run_experiment(random_state):
     Yt_batch_train = Yt_batch_train[valid_indices]
     Y_batch_train = Y_batch_train[valid_indices].astype(int)
 
+    # Stack all features and labels together
+    X_batch = X_batch_train
+    Yt_batch = Yt_batch_train
+    Yt_batch = Yt_batch.detach().numpy()
+    Y_batch = Y_batch_train
+    print(f"Done. The dimension of the current batch is: {len(Yt_batch)}")
+    sys.stdout.flush()
+
+    """
     batch = next(iter(dataloader_val))
     X_batch_val = batch['data']
     Yt_batch_val = batch['labels']
@@ -206,6 +215,7 @@ def run_experiment(random_state):
     Y_batch = np.concatenate((Y_batch_train, Y_batch_val, Y_batch_test), axis=0)
     print(f"Done. The dimension of the current batch is: {len(Yt_batch)}")
     sys.stdout.flush()
+    """
 
     # Estimate the label proportions from the whole data set
     rho = estimate_rho(Y_batch, K)
