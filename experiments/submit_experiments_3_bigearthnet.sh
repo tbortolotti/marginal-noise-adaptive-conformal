@@ -5,15 +5,15 @@ CONF=201
 
 if [[ $CONF == 201 ]]; then
   # Figure class 201
-  BATCH_SIZE_LIST=(1000 2000 3000 5000)
-  #BATCH_SIZE_LIST=(1000)
+  #BATCH_SIZE_LIST=(1000 2000 3000 5000)
+  BATCH_SIZE_LIST=(1000)
   #EPSILON_N_CLEAN_LIST=(0.05)
   #EPSILON_N_CORR_LIST=(0.05)
   EPSILON_N_CLEAN_LIST=(0.005)
   EPSILON_N_CORR_LIST=(0.005)
   ESTIMATE_LIST=("rho-epsilon-point")
-  SEED_LIST=$(seq 1 50)
-  #SEED_LIST=(1)
+  #SEED_LIST=$(seq 1 50)
+  SEED_LIST=(1)
 fi
 
 
@@ -42,9 +42,6 @@ for SEED in $SEED_LIST; do
     for EPSILON_N_CLEAN in "${EPSILON_N_CLEAN_LIST[@]}"; do
       for EPSILON_N_CORR in "${EPSILON_N_CORR_LIST[@]}"; do
           for ESTIMATE in "${ESTIMATE_LIST[@]}"; do
-	      for CONTAMINATION in "${CONTAMINATION_MODEL_LIST[@]}"; do
-		  for EPSILON in "${EPSILON_LIST[@]}"; do
-		      for NU in "${NU_LIST[@]}"; do
 			  JOBN="exp"$CONF"/bigearthnet_n"$BATCH_SIZE
 			  JOBN=$JOBN"_encl"$EPSILON_N_CLEAN"_enco"$EPSILON_N_CORR
 			  JOBN=$JOBN"_est"$ESTIMATE_LIST"_"$SEED
@@ -65,13 +62,10 @@ for SEED in $SEED_LIST; do
 			      # Print order
 			      echo $ORD
 			      # Submit order
-			      $ORD
+			      #$ORD
 			      # Run command now
-			      #./$SCRIPT
+			      ./$SCRIPT
 			  fi
-		      done
-		  done
-	      done
         done
       done
     done
