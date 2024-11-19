@@ -11,7 +11,7 @@ if [[ $CONF == 201 ]]; then
   #EPSILON_N_CORR_LIST=(0.05)
   EPSILON_N_CLEAN_LIST=(0.017)
   EPSILON_N_CORR_LIST=(0.017)
-  ESTIMATE_LIST=("rho")
+  ESTIMATE_LIST=("none")
   SEED_LIST=$(seq 1 50)
   #SEED_LIST=(1)
 fi

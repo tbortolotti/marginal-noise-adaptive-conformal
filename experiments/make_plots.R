@@ -2451,16 +2451,15 @@ load_data <- function(exp.num) {
   
   summary <- results %>%
     pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, K, n_cal, n_test, epsilon_n_clean, epsilon_n_corr, epsilon, contamination,
+    group_by(data, K, n_cal, n_test, epsilon_n_clean, epsilon_n_corr,
              estimate, Guarantee, Alpha, Label, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))
   
   return(summary)
 }
 
-make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-epsilon-point",
-                            plot.guarantee="marginal", plot.contamination="uniform",
-                            plot.epsilon = 0.03,
+make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho",
+                            plot.guarantee="marginal",
                             plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE,
                             slides=FALSE) {
   if(reload) {
@@ -2473,7 +2472,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
     
     df <- summary %>%
       filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
-             epsilon==plot.epsilon, contamination==plot.contamination, Method %in% method.values, n_cal %in% c(500,1500,2500))  %>%
+             Method %in% method.values, n_cal %in% c(500,1500,2500))  %>%
       mutate(Method = factor(Method, method.values, method.labels))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
@@ -2505,7 +2504,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
     }
   } else {
     df_filt <- summary %>%
-      filter(Alpha==plot.alpha, K==plot.K, epsilon==plot.epsilon, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
+      filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
              Method %in% method.values, n_cal %in% c(500,1500,2500))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
@@ -2562,12 +2561,11 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
 
 exp.num <- 201
 plot.alpha <- 0.1
-plot.K <- 5
-plot.contamination <- "uniform"
-plot.epsilon <- 0
+plot.K <- 6
+plot.epsilon <- 0.017
 
-make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="none", plot.guarantee="marginal",
-                plot.contamination = plot.contamination, plot.epsilon=plot.epsilon,
+make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.epsilon=plot.epsilon,
+                plot.estimate="rho", plot.guarantee="marginal",
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
 

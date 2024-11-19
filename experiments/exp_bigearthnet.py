@@ -79,6 +79,12 @@ epsilon_max = 0.1
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
+# Label proportions from the whole data set
+#rho = estimate_rho(Y_batch, K)
+#rho_tilde = estimate_rho(Yt_batch, K)
+rho = [0.115, 0.032, 0.025, 0.137, 0.001, 0.690]
+rho_tilde = [0.113, 0.032, 0.024, 0.137, 0.017, 0.677]
+
 
 # Pre-process parameters
 n_cal = batch_size - n_test
@@ -218,10 +224,6 @@ def run_experiment(random_state):
     print(f"Done. The dimension of the current batch is: {len(Yt_batch)}")
     sys.stdout.flush()
     """
-
-    # Estimate the label proportions from the whole data set
-    rho = estimate_rho(Y_batch, K)
-    rho_tilde = estimate_rho(Yt_batch, K)
 
     # Separate the test set
     X, X_test, Y, Y_test, Yt, _ = train_test_split(X_batch, Y_batch, Yt_batch, test_size=n_test, random_state=random_state+2)
