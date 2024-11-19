@@ -43,8 +43,8 @@ from third_party.bigearthnet.models.bigearthnet_module import BigEarthNetModule
 
 # Define default parameters
 batch_size = 2000
-epsilon_n_clean = 0.049
-epsilon_n_corr = 0.049
+epsilon_n_clean = 0.017
+epsilon_n_corr = 0.017
 estimate = "none"
 seed = 1
 
@@ -70,12 +70,12 @@ data_name = "bigearthnet"
 K = 6
 epsilon_n = epsilon_n_clean + epsilon_n_corr
 #epsilon = 0.049
-epsilon = 0.005
+epsilon = 0.017
 n_test = 500
 num_exp = 5
 allow_empty = True
 #epsilon_max = 0.1
-epsilon_max = 0.01
+epsilon_max = 0.1
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
@@ -153,7 +153,7 @@ def run_experiment(random_state):
     cfg.datamodule.num_workers,
     transforms,
     label_mapping,
-    seed*random_state,
+    int(seed*random_state),
     )
     datamodule.setup()
 
@@ -168,10 +168,10 @@ def run_experiment(random_state):
     generator = torch.Generator().manual_seed(datamodule.random_seed)
     indices_df = torch.randperm(len(datamodule.train_dataset), generator=generator).tolist()
     shuffled_csv_df = v1v2_corresp_train.iloc[indices_df].reset_index(drop=True)
-    batch_df = shuffled_csv_df.iloc[0 : int(0.7*batch_size)]
+    batch_df = shuffled_csv_df.iloc[0 : int(batch_size)]
     Y_batch_train = batch_df['v2-labels-grouped'].to_numpy()
     valid_indices = torch.tensor(~np.isnan(Y_batch_train), dtype=torch.bool)
-    X_batch_train = X_batch_train[valid_indices]
+    X_batch_train = X_batch_train[valid_indices,:,:,:]
     Yt_batch_train = Yt_batch_train[valid_indices]
     Y_batch_train = Y_batch_train[valid_indices].astype(int)
 

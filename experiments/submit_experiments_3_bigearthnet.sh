@@ -5,15 +5,15 @@ CONF=201
 
 if [[ $CONF == 201 ]]; then
   # Figure class 201
-  #BATCH_SIZE_LIST=(1000 2000 3000 5000)
-  BATCH_SIZE_LIST=(1000)
+  BATCH_SIZE_LIST=(1000 2000 3000 5000)
+  #BATCH_SIZE_LIST=(1000)
   #EPSILON_N_CLEAN_LIST=(0.05)
   #EPSILON_N_CORR_LIST=(0.05)
-  EPSILON_N_CLEAN_LIST=(0.005)
-  EPSILON_N_CORR_LIST=(0.005)
-  ESTIMATE_LIST=("rho-epsilon-point")
-  #SEED_LIST=$(seq 1 50)
-  SEED_LIST=(1)
+  EPSILON_N_CLEAN_LIST=(0.017)
+  EPSILON_N_CORR_LIST=(0.017)
+  ESTIMATE_LIST=("rho")
+  SEED_LIST=$(seq 1 50)
+  #SEED_LIST=(1)
 fi
 
 
@@ -62,9 +62,9 @@ for SEED in $SEED_LIST; do
 			      # Print order
 			      echo $ORD
 			      # Submit order
-			      #$ORD
+			      $ORD
 			      # Run command now
-			      ./$SCRIPT
+			      #./$SCRIPT
 			  fi
         done
       done
