@@ -70,7 +70,7 @@ data_name = "bigearthnet"
 K = 6
 epsilon_n = epsilon_n_clean + epsilon_n_corr
 #epsilon = 0.049
-#epsilon = 0.017
+epsilon = 0.017
 n_test = 500
 num_exp = 5
 allow_empty = True
@@ -80,9 +80,8 @@ asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
 # Label proportions from the whole data set
-#rho = [0.115, 0.032, 0.025, 0.137, 0.001, 0.690]
-#rho_tilde = [0.113, 0.032, 0.024, 0.137, 0.017, 0.677]
-
+#rho = [0.114, 0.032, 0.026, 0.138, 0.001, 0.689]
+#rho_tilde = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
 
 # Pre-process parameters
 n_cal = batch_size - n_test
@@ -222,10 +221,9 @@ def run_experiment(random_state):
     print(f"Done. The dimension of the current batch is: {len(Yt_batch)}")
     sys.stdout.flush()
     """
-    
+
     rho = estimate_rho(Y_batch, K)
     rho_tilde = estimate_rho(Yt_batch, K)
-    epsilon = np.sum(Yt_batch != Y_batch) / len(Y_batch)
 
     # Separate the test set
     X, X_test, Y, Y_test, Yt, _ = train_test_split(X_batch, Y_batch, Yt_batch, test_size=n_test, random_state=random_state+2)
