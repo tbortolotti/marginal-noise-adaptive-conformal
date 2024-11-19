@@ -69,11 +69,13 @@ exp_num=201
 data_name = "bigearthnet"
 K = 6
 epsilon_n = epsilon_n_clean + epsilon_n_corr
-epsilon = 0.049
+#epsilon = 0.049
+epsilon = 0.005
 n_test = 500
 num_exp = 5
 allow_empty = True
-epsilon_max = 0.1
+#epsilon_max = 0.1
+epsilon_max = 0.01
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
