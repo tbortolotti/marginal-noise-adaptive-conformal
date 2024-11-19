@@ -2497,7 +2497,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho"
       scale_color_manual(values=color.scale) +
       scale_shape_manual(values=shape.scale) +
       scale_linetype_manual(values=linetype.scale) +
-      scale_x_continuous(trans='log10', limits=c(500,3000)) +
+      scale_x_continuous(trans='log10', limits=c(500,5000)) +
       xlab("Number of calibration samples") +
       ylab("") +
       theme_bw() +
@@ -2516,7 +2516,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho"
       filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate,
              epsilon_n_clean==plot.epsilon_n_clean,
              Guarantee==plot.guarantee, Label=="marginal",
-             Method %in% method.values, n_cal %in% c(500,1500,2500))
+             Method %in% method.values, n_cal %in% c(500,1500,2500,4500))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
     df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.94), n_cal=1500, Method="Standard")
@@ -2552,7 +2552,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho"
         scale_color_manual(values = color.scale[1:i]) +
         scale_shape_manual(values = shape.scale[1:i]) +
         scale_linetype_manual(values = linetype.scale[1:i]) +
-        scale_x_continuous(trans='log10', limits=c(500,3000)) +
+        scale_x_continuous(trans='log10', limits=c(500,5000)) +
         xlab("Number of calibration samples") +
         ylab("") +
         theme_bw() +
@@ -2576,7 +2576,7 @@ plot.alpha <- 0.1
 plot.K <- 6
 plot.epsilon <- 0.017
 plot.epsilon_n_clean <- 0.017
-plot.estimate = "none"
+plot.estimate = "rho"
 
 
 make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
