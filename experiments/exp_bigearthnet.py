@@ -56,16 +56,15 @@ if True:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
-
-    batch_size = int(sys.argv[1])
-    epsilon_n_clean = float(sys.argv[2])
-    epsilon_n_corr = float(sys.argv[3])
-    estimate = sys.argv[4]
-    seed = int(sys.argv[5])
+    exp_num=int(sys.argv[1])
+    batch_size = int(sys.argv[2])
+    epsilon_n_clean = float(sys.argv[3])
+    epsilon_n_corr = float(sys.argv[4])
+    estimate = sys.argv[5]
+    seed = int(sys.argv[6])
 
 
 # Define other constant parameters
-exp_num=201
 data_name = "bigearthnet"
 K = 6
 epsilon_n = epsilon_n_clean + epsilon_n_corr

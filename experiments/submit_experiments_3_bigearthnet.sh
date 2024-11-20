@@ -14,7 +14,6 @@ if [[ $CONF == 201 ]]; then
   #SEED_LIST=(1)
 
 elif [[ $CONF == 202 ]]; then
-  # Figure class 201
   BATCH_SIZE_LIST=(1000 3000 5000)
   EPSILON_N_CLEAN_LIST=(0.017)
   EPSILON_N_CORR_LIST=(0.017)
@@ -22,7 +21,6 @@ elif [[ $CONF == 202 ]]; then
   SEED_LIST=$(seq 1 50)
 
 elif [[ $CONF == 203 ]]; then
-  # Figure class 201
   BATCH_SIZE_LIST=(500 800)
   EPSILON_N_CLEAN_LIST=(0.017)
   EPSILON_N_CORR_LIST=(0.017)
@@ -67,7 +65,7 @@ for SEED in $SEED_LIST; do
 
 			  if [[ $COMPLETE -eq 0 ]]; then
 			      # Script to be run
-			      SCRIPT="exp_bigearthnet.sh $BATCH_SIZE $EPSILON_N_CLEAN $EPSILON_N_CORR $ESTIMATE_LIST $SEED"
+			      SCRIPT="exp_bigearthnet.sh $CONF $BATCH_SIZE $EPSILON_N_CLEAN $EPSILON_N_CORR $ESTIMATE_LIST $SEED"
 			      # Define job name
 			      OUTF=$LOGS"/"$JOBN".out"
 			      ERRF=$LOGS"/"$JOBN".err"

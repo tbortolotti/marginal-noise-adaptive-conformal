@@ -2576,7 +2576,7 @@ plot.alpha <- 0.1
 plot.K <- 6
 plot.epsilon <- 0.017
 plot.epsilon_n_clean <- 0.017
-plot.estimate = "rho"
+plot.estimate = "none"
 
 
 make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
