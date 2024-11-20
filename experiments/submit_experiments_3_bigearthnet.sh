@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=201
+CONF=203
 
 if [[ $CONF == 201 ]]; then
   # Figure class 201
@@ -12,6 +12,22 @@ if [[ $CONF == 201 ]]; then
   ESTIMATE_LIST=("rho")
   SEED_LIST=$(seq 1 50)
   #SEED_LIST=(1)
+
+elif [[ $CONF == 202 ]]; then
+  # Figure class 201
+  BATCH_SIZE_LIST=(1000 3000 5000)
+  EPSILON_N_CLEAN_LIST=(0.017)
+  EPSILON_N_CORR_LIST=(0.017)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=$(seq 1 50)
+
+elif [[ $CONF == 203 ]]; then
+  # Figure class 201
+  BATCH_SIZE_LIST=(500 800)
+  EPSILON_N_CLEAN_LIST=(0.017)
+  EPSILON_N_CORR_LIST=(0.017)
+  ESTIMATE_LIST=("rho")
+  SEED_LIST=$(seq 1 50)
 fi
 
 
