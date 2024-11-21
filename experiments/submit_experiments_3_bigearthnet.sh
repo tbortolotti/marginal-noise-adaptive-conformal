@@ -1,33 +1,14 @@
 #!/bin/bash
 
 # Parameters
-CONF=203
+CONF=201
 
 if [[ $CONF == 201 ]]; then
   # Figure class 201
-  BATCH_SIZE_LIST=(1000 3000 5000)
-  #BATCH_SIZE_LIST=(1000)
-  EPSILON_N_CLEAN_LIST=(0.017)
-  EPSILON_N_CORR_LIST=(0.017)
-  ESTIMATE_LIST=("rho")
-  SEED_LIST=$(seq 1 50)
-  #SEED_LIST=(1)
-
-elif [[ $CONF == 202 ]]; then
-  BATCH_SIZE_LIST=(1000 3000 5000)
-  EPSILON_N_CLEAN_LIST=(0.017)
-  EPSILON_N_CORR_LIST=(0.017)
+  BATCH_SIZE_LIST=(700 800 900 1000 3000 5000 10000)
   ESTIMATE_LIST=("none")
   SEED_LIST=$(seq 1 50)
-
-elif [[ $CONF == 203 ]]; then
-  BATCH_SIZE_LIST=(500 800)
-  EPSILON_N_CLEAN_LIST=(0.017)
-  EPSILON_N_CORR_LIST=(0.017)
-  ESTIMATE_LIST=("rho")
-  SEED_LIST=$(seq 1 50)
 fi
-
 
 # Slurm parameters
 MEMO=32G                             # Memory required (32 GB)
@@ -51,11 +32,8 @@ mkdir -p $OUT_DIR"/exp"$CONF
 # Loop over configurations
 for SEED in $SEED_LIST; do
   for BATCH_SIZE in "${BATCH_SIZE_LIST[@]}"; do
-    for EPSILON_N_CLEAN in "${EPSILON_N_CLEAN_LIST[@]}"; do
-      for EPSILON_N_CORR in "${EPSILON_N_CORR_LIST[@]}"; do
-          for ESTIMATE in "${ESTIMATE_LIST[@]}"; do
+    for ESTIMATE in "${ESTIMATE_LIST[@]}"; do
 			  JOBN="exp"$CONF"/bigearthnet_n"$BATCH_SIZE
-			  JOBN=$JOBN"_encl"$EPSILON_N_CLEAN"_enco"$EPSILON_N_CORR
 			  JOBN=$JOBN"_est"$ESTIMATE_LIST"_"$SEED
 			  OUT_FILE=$OUT_DIR"/"$JOBN".txt"
 			  COMPLETE=0
@@ -65,7 +43,7 @@ for SEED in $SEED_LIST; do
 
 			  if [[ $COMPLETE -eq 0 ]]; then
 			      # Script to be run
-			      SCRIPT="exp_bigearthnet.sh $CONF $BATCH_SIZE $EPSILON_N_CLEAN $EPSILON_N_CORR $ESTIMATE_LIST $SEED"
+			      SCRIPT="exp_bigearthnet.sh $CONF $BATCH_SIZE $ESTIMATE_LIST $SEED"
 			      # Define job name
 			      OUTF=$LOGS"/"$JOBN".out"
 			      ERRF=$LOGS"/"$JOBN".err"
@@ -78,8 +56,6 @@ for SEED in $SEED_LIST; do
 			      # Run command now
 			      #./$SCRIPT
 			  fi
-        done
-      done
     done
   done
 done

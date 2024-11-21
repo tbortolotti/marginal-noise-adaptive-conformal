@@ -7,13 +7,10 @@ import json
 import torch
 import pytorch_lightning as pl
 from hydra.utils import instantiate
-from hydra.core.hydra_config import HydraConfig
 from hydra.core.global_hydra import GlobalHydra
-from omegaconf import DictConfig, OmegaConf
 from pathlib import Path
 
 import torch.nn.functional as F
-#from torchvision import transforms
 
 from sklearn.metrics import accuracy_score, confusion_matrix
 
@@ -21,30 +18,24 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 import pandas as pd
-from matplotlib import pyplot as plt
-from tqdm import tqdm
-import pdb
+#from matplotlib import pyplot as plt
+#from tqdm import tqdm
+#import pdb
 
 import sys, os
 sys.path.append("..")
 sys.path.append("../third_party")
 
-from cln import data
-from cln import contamination
-from cln import estimation
-from cln.utils import evaluate_predictions, estimate_rho
+from cln.utils import evaluate_predictions
 from cln.classification import MarginalLabelNoiseConformal
 
 from third_party import arc
 from third_party import bigearthnet
-
 from third_party.bigearthnet.datamodules.bigearthnet_datamodule import BigEarthNetDataModule
 from third_party.bigearthnet.models.bigearthnet_module import BigEarthNetModule
 
 # Define default parameters
 batch_size = 2000
-epsilon_n_clean = 0.017
-epsilon_n_corr = 0.017
 estimate = "none"
 seed = 1
 
@@ -52,35 +43,36 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 7:
+    if len(sys.argv) != 5:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
     exp_num=int(sys.argv[1])
     batch_size = int(sys.argv[2])
-    epsilon_n_clean = float(sys.argv[3])
-    epsilon_n_corr = float(sys.argv[4])
-    estimate = sys.argv[5]
-    seed = int(sys.argv[6])
-
+    estimate = sys.argv[3]
+    seed = int(sys.argv[4])
 
 # Define other constant parameters
 data_name = "bigearthnet"
-K = 6
-epsilon_n = epsilon_n_clean + epsilon_n_corr
-#epsilon = 0.049
-epsilon = 0.017
 n_test = 500
 num_exp = 5
 allow_empty = True
-#epsilon_max = 0.1
-epsilon_max = 0.1
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
-# Label proportions from the whole data set
-#rho = [0.114, 0.032, 0.026, 0.138, 0.001, 0.689]
-#rho_tilde = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
+# Oracle parameters
+rho = [0.114, 0.032, 0.026, 0.138, 0.001, 0.689]
+rho_tilde = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
+epsilon = 0.016
+K = 6
+T = np.array([
+    [0.986, 0, 0, 0, 0, 0],
+    [0, 0.988, 0, 0, 0, 0],
+    [0, 0, 0.956, 0, 0, 0],
+    [0, 0, 0, 0.994, 0, 0.001],
+    [0.013, 0.008, 0.042, 0.006, 1, 0.017],
+    [0.001, 0.004, 0.002, 0, 0, 0.982]
+])
 
 # Pre-process parameters
 n_cal = batch_size - n_test
@@ -127,13 +119,11 @@ black_box.load_state_dict(torch.load(mod_path))
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'K':[K],
                        'n_cal':[n_cal], 'n_test':[n_test],
-                       'epsilon_n_clean':[epsilon_n_clean], 'epsilon_n_corr':[epsilon_n_corr],
                        'estimate':[estimate],
                        'seed':[seed]})
 
 # Output file
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_n" + str(batch_size)
-outfile_prefix += "_encl" + str(epsilon_n_clean) + "_enco" + str(epsilon_n_corr)
 outfile_prefix += "_est" + estimate + "_" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
@@ -161,8 +151,6 @@ def run_experiment(random_state):
 
     # Get reproducible random samples
     dataloader_train = datamodule.train_dataloader()
-    #dataloader_val = datamodule.val_dataloader()
-    #dataloader_test = datamodule.test_dataloader()
 
     batch = next(iter(dataloader_train))
     X_batch_train = batch['data']
@@ -185,86 +173,12 @@ def run_experiment(random_state):
     print(f"Done. The dimension of the current batch is: {len(Yt_batch)}")
     sys.stdout.flush()
 
-    """
-    batch = next(iter(dataloader_val))
-    X_batch_val = batch['data']
-    Yt_batch_val = batch['labels']
-    generator = torch.Generator().manual_seed(datamodule.random_seed)
-    indices_df = torch.randperm(len(datamodule.val_dataset), generator=generator).tolist()
-    shuffled_csv_df = v1v2_corresp_val.iloc[indices_df].reset_index(drop=True)
-    batch_df = shuffled_csv_df.iloc[0 : int(0.15*batch_size)]
-    Y_batch_val = batch_df['v2-labels-grouped'].to_numpy()
-    valid_indices = torch.tensor(~np.isnan(Y_batch_val), dtype=torch.bool)
-    X_batch_val = X_batch_val[valid_indices]
-    Yt_batch_val = Yt_batch_val[valid_indices]
-    Y_batch_val = Y_batch_val[valid_indices].astype(int)
-
-    batch = next(iter(dataloader_test))
-    X_batch_test = batch['data']
-    Yt_batch_test = batch['labels']
-    generator = torch.Generator().manual_seed(datamodule.random_seed)
-    indices_df = torch.randperm(len(datamodule.test_dataset), generator=generator).tolist()
-    shuffled_csv_df = v1v2_corresp_test.iloc[indices_df].reset_index(drop=True)
-    batch_df = shuffled_csv_df.iloc[0 : int(0.15*batch_size)]
-    Y_batch_test = batch_df['v2-labels-grouped'].to_numpy()
-    valid_indices = torch.tensor(~np.isnan(Y_batch_test), dtype=torch.bool)
-    X_batch_test = X_batch_test[valid_indices]
-    Yt_batch_test = Yt_batch_test[valid_indices]
-    Y_batch_test = Y_batch_test[valid_indices].astype(int)
-
-    # Stack all features and labels together
-    X_batch = torch.cat((X_batch_train, X_batch_val, X_batch_test), dim=0)
-    Yt_batch = torch.cat((Yt_batch_train, Yt_batch_val, Yt_batch_test), dim=0)
-    Yt_batch = Yt_batch.detach().numpy()
-    Y_batch = np.concatenate((Y_batch_train, Y_batch_val, Y_batch_test), axis=0)
-    print(f"Done. The dimension of the current batch is: {len(Yt_batch)}")
-    sys.stdout.flush()
-    """
-
-    rho = estimate_rho(Y_batch, K)
-    rho_tilde = estimate_rho(Yt_batch, K)
-
     # Separate the test set
     X, X_test, Y, Y_test, Yt, _ = train_test_split(X_batch, Y_batch, Yt_batch, test_size=n_test, random_state=random_state+2)
 
     # Estimate (if applicable) the label contamination model
-    if estimate=="none":
-        rho_hat = rho
-        rho_tilde_hat = rho_tilde
-        T_hat = contamination.construct_T_matrix_simple(K, epsilon)
-        M_hat = contamination.convert_T_to_M(T_hat, rho_hat)
-        epsilon_ci = None
-        epsilon_hat = np.nan
-    elif estimate=="rho":
-        rho_tilde_hat = estimate_rho(Yt, K)
-        T_hat = contamination.construct_T_matrix_simple(K, epsilon)  
-        M_hat = contamination.convert_T_to_M(T_hat,rho)
-        rho_hat = np.dot(M_hat.T, rho_tilde_hat)
-        epsilon_ci = None
-        epsilon_hat = np.nan
-    elif estimate=="rho-epsilon-point":
-        # Hold-out some data to estimate the contamination model
-        X, X_estim, Y, Y_estim, Yt, Yt_estim = train_test_split(X, Y, Yt, test_size=epsilon_n, random_state=random_state+3)
-
-        # Keep some hold-out data clean
-        X_estim_clean, X_estim_corr, Y_estim_clean, _, _, Yt_estim_corr = train_test_split(X_estim, Y_estim, Yt_estim,
-                                                                                           test_size=epsilon_n_corr/epsilon_n, random_state=random_state+4)
-
-        rho_tilde_hat = estimate_rho(Yt, K)
-        epsilon_hat, _, _, _, _ = estimation.fit_contamination_model_RR(X_estim_clean, X_estim_corr,
-                                                                        Y_estim_clean, Yt_estim_corr, black_box,
-                                                                        K, 0.01, pre_trained=True,
-                                                                        random_state=random_state+6)
-        T_hat = contamination.construct_T_matrix_simple(K, epsilon_hat)
-        rho_hat = np.dot(np.linalg.inv(T_hat), rho_tilde_hat)
-        M_hat = contamination.convert_T_to_M(T_hat,rho_hat)
-        epsilon_ci = None
-
-    else:
-        print("Unknown estimation option!")
-        sys.stdout.flush()
-        exit(-1)
-
+    rho_tilde_hat = rho_tilde
+    T_hat = T
 
     res = pd.DataFrame({})
     for alpha in [0.1]:
@@ -284,16 +198,6 @@ def run_experiment(random_state):
                 "Standard (theory)": lambda: arc.methods.SplitConformal(X, Yt, black_box, K, alpha_theory, n_cal=-1,
                                                                label_conditional=label_conditional, allow_empty=allow_empty,
                                                                pre_trained=True, random_state=random_state),
-
-                "Adaptive": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                epsilon=epsilon, T=T_hat, M=M_hat, rho_tilde=rho_tilde_hat,
-                                                                allow_empty=allow_empty, method="old", optimistic=False,
-                                                                verbose=False, pre_trained=True, random_state=random_state),
-
-                "Adaptive+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                epsilon=epsilon, T=T_hat, M=M_hat, rho_tilde=rho_tilde_hat,
-                                                                allow_empty=allow_empty, method="old", optimistic=True,
-                                                                verbose=False, pre_trained=True, random_state=random_state),
 
                 "Adaptive optimized": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
                                                                           epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,

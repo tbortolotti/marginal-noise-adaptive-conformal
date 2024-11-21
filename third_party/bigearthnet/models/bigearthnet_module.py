@@ -209,5 +209,6 @@ class BigEarthNetModule(pl.LightningModule):
             # If you want to clip the probabilities similarly to NNet
             probabilities = torch.clamp(probabilities, self.factor / self.num_classes, 1.0)
             probabilities = probabilities / probabilities.sum(dim=1, keepdim=True)  # Ensure normalization
+            probabilities = probabilities.cpu().numpy()
 
         return probabilities
