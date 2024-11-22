@@ -249,7 +249,7 @@ def run_experiment(random_state):
 
                 # Initialize and apply the method
                 method = method_func()
-                predictions = method.predict(X_test)
+                predictions = method.predict(X_test, random_state=2024)
 
                 print("Done.")
                 sys.stdout.flush()

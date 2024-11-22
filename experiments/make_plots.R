@@ -2456,16 +2456,17 @@ load_data <- function(exp.num) {
   }))
   
   summary <- results %>%
+    filter(seed %in% seq(30,50)) %>%
     pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, K, n_cal, n_test, epsilon_n_clean, epsilon_n_corr,
-             estimate, Guarantee, Alpha, Label, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))
+    group_by(data, K, n_cal, n_test, estimate,
+             Guarantee, Alpha, Label, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=sd(Value))
   
   return(summary)
 }
 
-make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho",
-                            plot.guarantee="marginal", plot.epsilon_n_clean,
+make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none",
+                            plot.guarantee="marginal",
                             plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE,
                             slides=FALSE) {
   if(reload) {
@@ -2478,13 +2479,12 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho"
     
     df <- summary %>%
       filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate,
-             epsilon_n_clean==plot.epsilon_n_clean,
              Guarantee==plot.guarantee, Label=="marginal",
-             Method %in% method.values, n_cal %in% c(300,500,1500,2500,4500))  %>%
+             Method %in% method.values, n_cal %in% c(300,400,500,2500,4500))  %>%
       mutate(Method = factor(Method, method.values, method.labels))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.94), n_cal=1500, Method="Standard")
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.94), n_cal=2500, Method="Standard")
     
     pp <- df %>%
       ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
@@ -2504,8 +2504,8 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho"
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
     
     if(save_plots) {
-      plot.file <- sprintf("figures/bigearthnet_K%d_%s_optimistic%s_%s_eps%f.pdf",
-                           plot.K, plot.guarantee, plot.optimistic, plot.estimate, plot.epsilon_n_clean)
+      plot.file <- sprintf("figures/bigearthnet_oracle_K%d_%s_optimistic%s_%s.pdf",
+                           plot.K, plot.guarantee, plot.optimistic, plot.estimate)
       ggsave(file=plot.file, height=2.25, width=6.5, units="in")
       return(NULL)
     } else{
@@ -2514,12 +2514,11 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho"
   } else {
     df_filt <- summary %>%
       filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate,
-             epsilon_n_clean==plot.epsilon_n_clean,
              Guarantee==plot.guarantee, Label=="marginal",
-             Method %in% method.values, n_cal %in% c(300,500,1500,2500,4500))
+             Method %in% method.values, n_cal %in% c(300,400,500,2500,4500))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.94), n_cal=1500, Method="Standard")
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.94), n_cal=2500, Method="Standard")
     
     for (i in 1:length(method.values)) {
       current_methods <- method.values[1:i]
@@ -2560,9 +2559,8 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho"
               legend.position = "bottom",
               legend.direction = "horizontal")
       
-      plot.file <- sprintf("figures/slides/bigearthnet_K%d_%s_optimistic%s_%s_eps%f_%d.pdf",
-                           plot.K, plot.guarantee, plot.optimistic, plot.estimate,
-                           plot.epsilon_n_clean, i)
+      plot.file <- sprintf("figures/slides/bigearthnet_oracle_K%d_%s_optimistic%s_%s_%d.pdf",
+                           plot.K, plot.guarantee, plot.optimistic, plot.estimate, i)
       ggsave(file = plot.file, plot = pp, height = 3.5, width = 7, units = "in")
     }
   }
@@ -2574,18 +2572,14 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho"
 exp.num <- 201
 plot.alpha <- 0.1
 plot.K <- 6
-plot.epsilon <- 0.017
-plot.epsilon_n_clean <- 0.017
-plot.estimate = "rho"
+plot.estimate = "none"
 
 
 make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
-                plot.epsilon_n_clean=plot.epsilon_n_clean,
                 plot.estimate=plot.estimate, plot.guarantee="marginal",
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
 make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
-                plot.epsilon_n_clean=plot.epsilon_n_clean,
                 plot.estimate=plot.estimate, plot.guarantee="marginal",
                 plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE)
 
