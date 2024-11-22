@@ -7,7 +7,7 @@ if [[ $CONF == 201 ]]; then
   # Figure class 201
   BATCH_SIZE_LIST=(700 800 900 1000 3000 5000 10000)
   ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 50)
+  SEED_LIST=$(seq 1 30)
 fi
 
 # Slurm parameters
