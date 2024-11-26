@@ -97,6 +97,7 @@ file_path_train = os.path.join(
 )
 v1v2_corresp_train = pd.read_csv(file_path_train, header=0)
 
+"""
 file_path_val = os.path.join(
     '../third_party/bigearthnet/data',
     f'val_{dataset_name}.csv'
@@ -108,6 +109,7 @@ file_path_test = os.path.join(
     f'test_{dataset_name}.csv'
 )
 v1v2_corresp_test = pd.read_csv(file_path_test, header=0)
+"""
 
 # Load the pre-trained model
 black_box = BigEarthNetModule(cfg)

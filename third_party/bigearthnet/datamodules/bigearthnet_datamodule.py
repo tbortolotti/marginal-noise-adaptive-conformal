@@ -54,12 +54,6 @@ def download_data(dataset_dir, dataset_name):
     return dataset_path
 
 
-#def hub_labels_to_onehot(hub_labels, n_labels):
-#    """Convert a multi-label from hub format to a onehot vector."""
-#    onehot_labels = np.zeros((n_labels,), dtype=np.int16)
-#    onehot_labels[[hub_labels]] = 1
-#    return onehot_labels
-
 def map_labels_to_single(hub_labels, mapping_dict):
     """Map multi-labels to a single label based on a given mapping.
     If multi_labels contains only labels that are mapped to 0, return 0.
@@ -75,33 +69,6 @@ def map_labels_to_single(hub_labels, mapping_dict):
             flat_labels.append(str(label))
     mapped_labels = {mapping_dict[label] for label in flat_labels if label in mapping_dict and mapping_dict[label]!="Other"}
     
-    # Determine the final single label based on the contents of mapped_labels
-    #if mapped_labels == {0}:  # Only 0s
-    #    return 0
-    #elif mapped_labels == {1}:  # Only 1s
-    #    return 2
-    #elif 0 in mapped_labels and 1 in mapped_labels:  # Mix of 0s and 1s
-    #    return 1
-    #else:
-    #     return 1
-    #if mapped_labels == {"Water"}:
-    #    return 0
-    #elif mapped_labels == {"Urban, construction, industries"}:
-    #    return 1
-    #elif mapped_labels == {"Agriculture"}:
-    #    return 2
-    #elif mapped_labels == {"Natural"}:
-    #    return 3
-    #else:
-    #    return 4
-    #if np.isin("Coast, waters and wetlands", mapped_labels).any() and len(mapped_labels)==1:
-    #    return 0
-    #elif np.isin("Arable land", mapped_labels).any() and len(mapped_labels)==1:
-    #    return 1
-    #elif np.isin("Agriculture",mapped_labels).any() and len(mapped_labels)==1:
-    #    return 2
-    #elif np.isin("Vegetation",mapped_labels).any() and len(mapped_labels)==1:
-    #    return 3
     if mapped_labels=={"Coast, water and wetlands"}:
         return 0
     elif mapped_labels=={"Arable land"}:
@@ -112,10 +79,6 @@ def map_labels_to_single(hub_labels, mapping_dict):
         return 3
     elif len(mapped_labels)==1:
         return 4 # Other
-    #elif len(mapped_labels)==2:
-    #    return 5 # Mix of two
-    #elif len(mapped_labels)==3:
-    #    return 6 # Mix of three
     else:
         return 5 # Mix of two or more
 
@@ -163,10 +126,6 @@ class BigEarthNetHubDataset(torch.utils.data.dataset.Dataset):
         assert tuple(self.tensor_names) == ("data", "labels")
 
         hub_labels = item["labels"].numpy()
-        #custom_labels = hub_labels_to_custom(hub_labels, n_labels=len(self.class_names))
-        #labels = torch.tensor(custom_labels)
-        #onehot_labels = hub_labels_to_onehot(hub_labels, n_labels=len(self.class_names))
-        #labels = torch.tensor(onehot_labels)
         single_label = map_labels_to_single(hub_labels, self.label_mapping)
         labels = torch.tensor(single_label)
 

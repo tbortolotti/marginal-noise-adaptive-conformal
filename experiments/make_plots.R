@@ -2456,11 +2456,10 @@ load_data <- function(exp.num) {
   }))
   
   summary <- results %>%
-    filter(seed %in% seq(30,50)) %>%
     pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
     group_by(data, K, n_cal, n_test, estimate,
              Guarantee, Alpha, Label, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=sd(Value))
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))
   
   return(summary)
 }
@@ -2480,33 +2479,48 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
     df <- summary %>%
       filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate,
              Guarantee==plot.guarantee, Label=="marginal",
-             Method %in% method.values, n_cal %in% c(300,400,500,2500,4500))  %>%
+             Method %in% method.values, n_cal %in% c(500, 1500, 2500, 4500, 9500, 14500, 19500))  %>%
       mutate(Method = factor(Method, method.values, method.labels))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.94), n_cal=2500, Method="Standard")
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.92), n_cal=2500, Method="Standard")
+    
+    {
+      df3 = df2 = df[1:2,]
+      df3$n_cal[1] = df2$n_cal[1] = min(df$n_cal)
+      df3$n_cal[2] = df2$n_cal[2] = max(df$n_cal)
+      df2$Mean[1] = 0.89
+      df2$Mean[2] = 1.3
+      df3$Mean[1] = 0.92
+      df3$Mean[2] = 1.4
+    }
+    
     
     pp <- df %>%
       ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
       geom_point() +
       geom_line() +
       geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=0.1) +
+      geom_point(data = df2, alpha = 0) +
+      geom_point(data = df3, alpha = 0) +
       facet_wrap(.~Key, scales="free") +
       geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
       geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
       scale_color_manual(values=color.scale) +
       scale_shape_manual(values=shape.scale) +
       scale_linetype_manual(values=linetype.scale) +
-      scale_x_continuous(trans='log10', limits=c(300,5000)) +
+      scale_x_continuous(trans='log10', limits=c(500,20000)) +
       xlab("Number of calibration samples") +
       ylab("") +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            legend.position = "bottom",
+            legend.direction = "horizontal") 
     
     if(save_plots) {
-      plot.file <- sprintf("figures/bigearthnet_oracle_K%d_%s_optimistic%s_%s.pdf",
+      plot.file <- sprintf("figures/bigearthnet_full_oracle_K%d_%s_optimistic%s_%s.pdf",
                            plot.K, plot.guarantee, plot.optimistic, plot.estimate)
-      ggsave(file=plot.file, height=2.25, width=6.5, units="in")
+      ggsave(file=plot.file, height=3.5, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -2515,10 +2529,10 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
     df_filt <- summary %>%
       filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate,
              Guarantee==plot.guarantee, Label=="marginal",
-             Method %in% method.values, n_cal %in% c(300,400,500,2500,4500))
+             Method %in% method.values, n_cal %in% c(500, 1500, 2500,4500, 9500, 14500,19500))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.94), n_cal=2500, Method="Standard")
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.93), n_cal=2500, Method="Standard")
     
     for (i in 1:length(method.values)) {
       current_methods <- method.values[1:i]
@@ -2533,9 +2547,9 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
         df3$n_cal[1] = df2$n_cal[1] = min(df_filtered$n_cal)
         df3$n_cal[2] = df2$n_cal[2] = max(df_filtered$n_cal)
         df2$Mean[1] = 0.88
-        df2$Mean[2] = 1.05
+        df2$Mean[2] = 1.3
         df3$Mean[1] = 0.94
-        df3$Mean[2] = 1.25
+        df3$Mean[2] = 1.4
         }
       
       pp <- df_filtered %>%
@@ -2551,7 +2565,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
         scale_color_manual(values = color.scale[1:i]) +
         scale_shape_manual(values = shape.scale[1:i]) +
         scale_linetype_manual(values = linetype.scale[1:i]) +
-        scale_x_continuous(trans='log10', limits=c(300,5000)) +
+        scale_x_continuous(trans='log10', limits=c(500,20000)) +
         xlab("Number of calibration samples") +
         ylab("") +
         theme_bw() +
@@ -2564,16 +2578,12 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
       ggsave(file = plot.file, plot = pp, height = 3.5, width = 7, units = "in")
     }
   }
-  
-  
 }
-
 
 exp.num <- 201
 plot.alpha <- 0.1
 plot.K <- 6
 plot.estimate = "none"
-
 
 make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
                 plot.estimate=plot.estimate, plot.guarantee="marginal",

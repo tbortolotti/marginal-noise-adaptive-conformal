@@ -170,28 +170,6 @@ class BigEarthNetModule(pl.LightningModule):
         if split in ["train", "val"]:
             self.log(f"accuracy/{split}", metrics["accuracy"], on_epoch=True)
             self.log(f"loss/{split}", metrics["loss"], on_epoch=True)
-
-        # log our metrics to the logs directly
-        #metrics_summary = _summarize_metrics(
-        #    metrics,
-        #    self.class_names,
-        #    split,
-        #    self.current_epoch,
-        #)
-        #log.info(metrics_summary)
-
-        # log metrics to tensorboard
-        #if split in ["train", "val"]:
-        #    self.log(f"precision/{split}", metrics["precision"], on_epoch=True)
-        #    self.log(f"recall/{split}", metrics["recall"], on_epoch=True)
-        #    self.log(f"f1_score/{split}", metrics["f1_score"], on_epoch=True)
-
-    """
-    def predict_proba(self, features):
-        logits = self.model(features)
-        probabilities = torch.softmax(logits, dim=1)  # Apply softmax to get probabilities
-        return probabilities.detach()
-    """
     
     def predict_proba(self, features):
         """
