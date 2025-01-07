@@ -23,6 +23,7 @@ from cln import contamination
 from cln import estimation
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
+from cln.classification_label_conditional import LabelNoiseConformal
 
 from data_torch import Cifar10DataSet, draw_images, ResNet18
 
@@ -263,7 +264,19 @@ def run_experiment(random_state):
                                                                    asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
                                                                    rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
                                                                    method="asymptotic", optimistic=True, verbose=False,
-                                                                   pre_trained=True, random_state=random_state)
+                                                                   pre_trained=True, random_state=random_state),
+
+                "Label conditional": lambda: LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                 rho_tilde=rho_tilde_hat,
+                                                                 M=M_hat, label_conditional=True,
+                                                                 calibration_conditional=False, gamma=None,
+                                                                 optimistic=False, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
+                
+                "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                  rho_tilde=rho_tilde_hat,
+                                                                  M=M_hat, label_conditional=True,
+                                                                  calibration_conditional=False, gamma=None,
+                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
 
             }
 

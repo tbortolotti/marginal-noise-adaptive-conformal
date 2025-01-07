@@ -779,13 +779,17 @@ make_figure_1 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", 
     xlab("Number of calibration samples") +
     ylab("") +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 11),
+          legend.title = element_text(size = 11))
   
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
                          exp.num,
                          10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=4, width=8, units="in")
+    ggsave(file=plot.file, height=4, width=6.5, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -928,12 +932,16 @@ make_figure_2 <- function(exp.num=4, plot.alpha=0.1, plot.K=4, plot.guarantee="m
       xlab("Number of calibration samples") +
       ylab("") +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.text = element_text(size = 11),
+            legend.title = element_text(size = 11))
     
     if(save_plots) {
       plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_K%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
                            exp.num, 10000, plot.K, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=2.25, width=7, units="in")
+      ggsave(file=plot.file, height=2.25, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1060,13 +1068,17 @@ make_figure_3 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
       xlab("Number of calibration samples") +
       ylab("") +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.text = element_text(size = 11),
+            legend.title = element_text(size = 11))
     
     
     if(save_plots) {
       plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
                            exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=7, units="in")
+      ggsave(file=plot.file, height=4, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1194,13 +1206,17 @@ make_figure_4 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margina
       xlab("Strength of label contamination") +
       ylab("") +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.text = element_text(size = 11),
+            legend.title = element_text(size = 11))
     
     
     if(save_plots) {
       plot.file <- sprintf("figures/Aexp%d_synthetic1_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
                            exp.num, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=7, units="in")
+      ggsave(file=plot.file, height=4, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1333,13 +1349,17 @@ make_figure_5 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margina
       xlab("Number of calibration samples") +
       ylab("") +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.text = element_text(size = 11),
+            legend.title = element_text(size = 11))
     
     
     if(save_plots) {
       plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_K%d_eps%s_%s_%s_optimistic%s.pdf",
                            exp.num, 10000, plot.K, plot.epsilon, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=8, units="in")
+      ggsave(file=plot.file, height=4, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1470,13 +1490,17 @@ make_figure_6 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margina
       xlab(TeX("$\\nu$")) +
       ylab("") +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.text = element_text(size = 11),
+            legend.title = element_text(size = 11))
     
     
     if(save_plots) {
       plot.file <- sprintf("figures/Aexp%d_synthetic1_ntrain%d_K%d_eps%s_%s_%s_optimistic%s.pdf",
                            exp.num, 10000, plot.K, plot.epsilon, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=8, units="in")
+      ggsave(file=plot.file, height=4, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1606,13 +1630,17 @@ make_figure_7 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margina
     xlab("Number of calibration samples") +
     ylab("") +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 11),
+          legend.title = element_text(size = 11))
   
   
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_K%d_eps%s_%s_%s_optimistic%s_classifiers.pdf",
                          exp.num, 10000, plot.K, plot.epsilon, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=3.5, width=7, units="in")
+    ggsave(file=plot.file, height=4, width=6.5, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -1682,13 +1710,17 @@ make_figure_8 <- function(exp.num, plot.data, plot.alpha, plot.K=4, plot.guarant
     xlab("Number of calibration samples") +
     ylab("") +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 11),
+          legend.title = element_text(size = 11))
   
   
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
                          exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=3.5, width=7, units="in")
+    ggsave(file=plot.file, height=4, width=6.5, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -1756,13 +1788,17 @@ make_figure_9 <- function(exp.num, plot.ncal=1000, plot.alpha=0.1, plot.guarante
     xlab("Strength of label contamination") +
     ylab("") +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 11),
+          legend.title = element_text(size = 11))
   
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_ncal%d_nu%s_%s_%s_optimistic%s.pdf",
                          exp.num, 10000, plot.ncal, plot.nu, plot.guarantee,
                          plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=4, width=7, units="in")
+    ggsave(file=plot.file, height=4, width=6.5, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -1878,13 +1914,17 @@ make_figure_10 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4
       xlab("Number of calibration samples") +
       ylab("") +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.text = element_text(size = 11),
+            legend.title = element_text(size = 11))
     
     
     if(save_plots) {
       plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
                            exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=8, units="in")
+      ggsave(file=plot.file, height=4, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1965,32 +2005,33 @@ plot.nu <- 0.2
 plot.epsilon <- c(0,0.05,0.1,0.2)
 plot.K <- 4
 plot.contamination <- "block"
+plot.data <- "synthetic1"
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                plot.contamination=plot.contamination,
                plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                plot.contamination=plot.contamination,
-               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
+               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=FALSE, slides=FALSE)
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                plot.contamination=plot.contamination,
-               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=TRUE)
+               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=FALSE, slides=TRUE)
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                plot.contamination=plot.contamination,
-               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=TRUE)
+               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=FALSE, slides=TRUE)
 
 plot.contamination <- "RRB"
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                   plot.contamination=plot.contamination,
-                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
+                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=FALSE, slides=FALSE)
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                   plot.contamination=plot.contamination,
-                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
+                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=FALSE, slides=FALSE)
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                   plot.contamination=plot.contamination,
-                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=TRUE)
+                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=FALSE, slides=TRUE)
 make_figure_10(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                   plot.contamination=plot.contamination,
-                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=TRUE)
+                  plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=FALSE, slides=TRUE)
 
 #'------------------- Plotting the asymptotic method --------------------
 init_settings <- function(plot.optimistic = FALSE) {
@@ -2055,13 +2096,17 @@ make_figure_11 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4
       xlab("Number of calibration samples") +
       ylab("") +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.text = element_text(size = 11),
+            legend.title = element_text(size = 11))
     
     
     if(save_plots) {
       plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s_asy.pdf",
                            exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-      ggsave(file=plot.file, height=3.5, width=8, units="in")
+      ggsave(file=plot.file, height=4, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -2210,13 +2255,17 @@ make_figure_12 <- function(exp.num=10, plot.alpha=0.1, plot.guarantee="marginal"
     xlab("Number of calibration samples") +
     ylab("") +
     theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 11),
+          legend.title = element_text(size = 11))
   
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
                          exp.num,
                          10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=4, width=8, units="in")
+    ggsave(file=plot.file, height=4, width=6.5, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -2238,42 +2287,26 @@ make_figure_12(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal"
 #' 
 
 init_settings <- function(plot.optimistic = FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   if(plot.optimistic) {
-    # method.values <<- c("Standard", "Adaptive optimized+", "Adaptive simplified+", "Asymptotic+")
-    # method.labels <<- c("Standard", "Adaptive-o+", "Adaptive-s+", "Asymptotic+")
-    method.values <<- c("Standard", "Adaptive+", "Adaptive optimized+", "Asymptotic+")
-    method.labels <<- c("Standard", "Adaptive+", "Adaptive-o+", "Asymptotic+")
+    method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+")
+    method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)")
+    color.scale <<- cbPalette[c(1,3,4)]
+    shape.scale <<- c(1,2,4)
+    linetype.scale <<- c(1,1,1)
   } else {
-    # method.values <<- c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
-    # method.labels <<- c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
-    method.values <<- c("Standard", "Adaptive", "Adaptive optimized", "Asymptotic")
-    method.labels <<- c("Standard", "Adaptive", "Adaptive-o", "Asymptotic")
+    method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized", "Asymptotic")
+    method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive", "Adaptive (asymptotic)")
+    color.scale <<- cbPalette[c(1,7,2,9)]
+    shape.scale <<- c(1,3,0,5)
+    linetype.scale <<- c(1,1,1,1)
   }
   label.values <<- c("4 classes", "8 classes", "16 classes")
   label.labels <<- c("4 classes", "8 classes", "16 classes")
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  color.scale <<- cbPalette[c(1,3,7,4)]
-  shape.scale <<- c(1,2,0,3)
-  linetype.scale <<- c(1,1,1,1)
 }
 
-# init_settings <- function(plot.optimistic=FALSE) {
-#   if(plot.optimistic) {
-#     method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+")
-#     method.labels <<- c("Standard", "Adaptive-o+", "Asymptotic+")
-#   } else {
-#     method.values <<- c("Standard", "Adaptive optimized", "Asymptotic")
-#     method.labels <<- c("Standard", "Adaptive-o", "Asymptotic")
-#   }
-#   cbPalette <- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
-#   df.dummy <- tibble(key="Coverage", value=0.95)
-#   df.dummy2 <- tibble(key="Coverage", value=0.5)
-#   color.scale <- cbPalette[c(1,3,4)]
-#   shape.scale <- c(1,2,3)
-#   linetype.scale <- c(1,1,1)
-# }
 
 load_data <- function(exp.num) {
   idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -2310,10 +2343,22 @@ make_figure_101 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
     df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.94), n_cal=1000, Method="Standard")
     
+    {
+      df3 = df2 = df[1:2,]
+      df3$n_cal[1] = df2$n_cal[1] = min(df$n_cal)
+      df3$n_cal[2] = df2$n_cal[2] = max(df$n_cal)
+      df2$Mean[1] = 0.88
+      df2$Mean[2] = 1.05
+      df3$Mean[1] = 0.94
+      df3$Mean[2] = 1.25
+    }
+    
     pp <- df %>%
       ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
       geom_point() +
       geom_line() +
+      geom_point(data = df2, alpha = 0) +
+      geom_point(data = df3, alpha = 0) +
       geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=0.1) +
       facet_wrap(.~Key, scales="free") +
       geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
@@ -2325,11 +2370,15 @@ make_figure_101 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
       xlab("Number of calibration samples") +
       ylab("") +
       theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+            legend.position = "bottom",
+            legend.direction = "horizontal",
+            legend.text = element_text(size = 11),
+            legend.title = element_text(size = 11)) 
     
     if(save_plots) {
       plot.file <- sprintf("figures/cifar10_%s_optimistic%s_%s.pdf", plot.guarantee, plot.optimistic, plot.estimate)
-      ggsave(file=plot.file, height=2.25, width=6.5, units="in")
+      ggsave(file=plot.file, height=3, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -2396,9 +2445,9 @@ plot.alpha <- 0.1
 plot.K <- 10
 
 make_figure_101(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="rho-epsilon-point", plot.guarantee="marginal",
-               plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
+               plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE)
 
-make_figure_101(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="rho", plot.guarantee="marginal",
+make_figure_101(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="rho-epsilon-point", plot.guarantee="marginal",
                plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
 
@@ -2515,12 +2564,15 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
       theme_bw() +
       theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
             legend.position = "bottom",
-            legend.direction = "horizontal") 
+            legend.direction = "horizontal",
+            legend.text = element_text(size = 11),
+            legend.title = element_text(size = 11)) 
     
     if(save_plots) {
-      plot.file <- sprintf("figures/bigearthnet_full_oracle_K%d_%s_optimistic%s_%s.pdf",
+      plot.file <- sprintf("figures/bigearthnet_oracle_K%d_%s_optimistic%s_%s.pdf",
                            plot.K, plot.guarantee, plot.optimistic, plot.estimate)
-      ggsave(file=plot.file, height=3.5, width=6.5, units="in")
+      #ggsave(file=plot.file, height=3.5, width=7, units="in")
+      ggsave(file=plot.file, height=3, width=6.5, units="in")
       return(NULL)
     } else{
       return(pp)
