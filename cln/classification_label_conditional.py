@@ -20,13 +20,12 @@ def estimate_c_const(n_k, n_mc=1000):
 class LabelNoiseConformal:
     def __init__(self, X, Y, black_box, K, alpha, n_cal=0.5, M=None, V_ci=None, V_alpha=None, Zeta_upp=None, V_max=None,
                  rho_tilde=None, calibration_conditional=False, gamma=None,
-                 allow_empty=False, optimistic=False, improved=False, verbose=False, pre_trained=False, random_state=2023):
+                 allow_empty=False, optimistic=False, verbose=False, pre_trained=False, random_state=2023):
 
         self.K = K
         self.allow_empty = allow_empty
         self.optimistic = optimistic
         self.black_box = copy.deepcopy(black_box)
-        self.improved = improved
 
         if M is not None:
             # Use provided label noise model
