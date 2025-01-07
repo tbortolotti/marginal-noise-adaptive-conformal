@@ -12,12 +12,13 @@ if [[ $CONF == 101 ]]; then
   # SEED_LIST=$(seq 1 10)
 
   # Figure class 101
-  BATCH_SIZE_LIST=(1000 2000 5000 10000)
+ # BATCH_SIZE_LIST=(1000 2000 5000 10000)
+  BATCH_SIZE_LIST=(1000)
   EPSILON_N_CLEAN_LIST=(0.1)
   EPSILON_N_CORR_LIST=(0.1)
   ESTIMATE_LIST=("rho-epsilon-point")
 #  ESTIMATE_LIST=("rho")
-  SEED_LIST=$(seq 1 50)
+  SEED_LIST=$(seq 1 1)
 
 fi
 
