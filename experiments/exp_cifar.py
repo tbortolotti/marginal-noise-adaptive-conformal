@@ -18,7 +18,6 @@ import sys, os
 sys.path.append("..")
 sys.path.append("../third_party")
 
-from cln import data
 from cln import contamination
 from cln import estimation
 from cln.utils import evaluate_predictions, estimate_rho
