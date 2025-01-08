@@ -11,7 +11,7 @@ if [[ $CONF == 101 ]]; then
   EPSILON_N_CORR_LIST=(0.1)
   ESTIMATE_LIST=("rho-epsilon-point")
 #  ESTIMATE_LIST=("rho")
-  SEED_LIST=$(seq 1 1)
+  SEED_LIST=$(seq 1 50)
 
 fi
 
@@ -62,9 +62,9 @@ for SEED in $SEED_LIST; do
             # Print order
             echo $ORD
             # Submit order
-            #$ORD
+            $ORD
             # Run command now
-            ./$SCRIPT
+            #./$SCRIPT
           fi
 
         done
