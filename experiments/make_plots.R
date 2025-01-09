@@ -2842,6 +2842,22 @@ init_settings <- function(plot.optimistic = FALSE) {
   # label.labels <<- c(paste("Label", 1:3, sep=" "), "All labels")
 }
 
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
+  ifile.list <- list.files(idir)
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))
+  
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, K, n_cal, n_test, estimate,
+             Guarantee, Alpha, Label, Method, Key) %>%
+    summarise(Mean=mean(Value, na.rm=TRUE), N=sum(!is.na(Value)), SE=2*sd(Value, na.rm=TRUE)/sqrt(N))
+  
+  return(summary)
+}
+
 make_figure_202_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none",
                                 plot.guarantee="marginal",
                                 plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE, fig.num=1) {
@@ -2853,11 +2869,11 @@ make_figure_202_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="
   
   df <- summary %>%
     filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee,
-           Method %in% method.values, n_cal %in% c(500,1500,4500,9500), Label %in% label.values) %>%
+           Method %in% method.values, n_cal %in% c(500, 1500, 2500,4500, 9500, 14500,19500), Label %in% label.values) %>%
     filter(n_cal >= 500)
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.5,1), n_cal=1000, Method="")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="")
   #df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="")
   
   pp <- df %>%
@@ -2897,7 +2913,7 @@ make_figure_202_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="
 }
 
 
-exp.num <- 202
+exp.num <- 203
 plot.alpha <- 0.1
 plot.K <- 6
 plot.estimate <- "none"
@@ -2916,3 +2932,69 @@ make_figure_202_lc2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
 #                     plot.estimate="none",
 #                     plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=2)
 
+
+make_figure_202_lc3 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none",
+                                plot.guarantee="marginal",
+                                plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic=plot.optimistic)
+  
+  df <- summary %>%
+    filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee,
+           Method %in% method.values, n_cal %in% c(2000,3000,5000,10000,15000), Label %in% label.values)
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=10000, Method="")
+  #df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="")
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Label = factor(Label, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
+    facet_grid(Key~Label, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    #geom_point(data=df.range2, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 11),
+          legend.title = element_text(size = 11))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/bigearthnet_oracle_K%d_%s_optimistic%s_%s_lc.pdf",
+                         plot.K, plot.guarantee, plot.optimistic, plot.estimate)
+    ggsave(file=plot.file, height=4, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+
+exp.num <- 202
+plot.alpha <- 0.1
+plot.K <- 6
+plot.estimate <- "none"
+
+label.values <<- 0:5
+label.labels <<- paste("Label", 1:6, sep=" ")
+
+make_figure_202_lc3(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
+                    plot.estimate=plot.estimate,
+                    plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
