@@ -53,7 +53,7 @@ if True:
 
 
 # Define other constant parameters
-exp_num=101
+exp_num=102
 data_name = "cifar10"
 epsilon = 0.051
 K = 10
