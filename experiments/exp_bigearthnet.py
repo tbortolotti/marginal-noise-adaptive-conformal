@@ -182,6 +182,7 @@ def run_experiment(random_state):
 
     # Plug-in estimate of the label contamination model
     rho_tilde_hat = rho_tilde
+    rho_hat = rho
     T_hat = T
     M_hat = contamination.convert_T_to_M(T_hat, rho_hat)
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=202
+CONF=203
 
 if [[ $CONF == 201 ]]; then
   # Figure class 201
@@ -13,11 +13,16 @@ if [[ $CONF == 201 ]]; then
   #SEED_LIST=$(seq 1 1)
 
 elif [[ $CONF == 202 ]]; then
-  #BATCH_SIZE_LIST=(700 800 900 1000 2000 3000 5000 10000 15000 20000)
-  BATCH_SIZE_LIST=(1000)
+  BATCH_SIZE_LIST=(700 800 900 1000 2000 3000 5000 10000 15000 20000)
   ESTIMATE_LIST=("none")
-  #SEED_LIST=$(seq 1 30)
-  SEED_LIST=$(seq 1 1)
+  SEED_LIST=$(seq 1 30)
+  #SEED_LIST=$(seq 1 1)
+
+elif [[ $CONF == 203 ]]; then
+  BATCH_SIZE_LIST=(2000 3000 4000 6000 11000 16000 21000)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=$(seq 1 30)
+  #SEED_LIST=$(seq 1 1)
 fi
 
 # Slurm parameters
