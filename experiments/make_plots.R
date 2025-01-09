@@ -2544,22 +2544,19 @@ make_figure_101_lc(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate=
 init_settings <- function(plot.optimistic = FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   if(plot.optimistic) {
-    method.values <<- c("Label conditional+")
-    method.labels <<- c("Adaptive+ (label-cond)")
-    color.scale <<- cbPalette[c(8,1)]
-    shape.scale <<- c(7,1)
+    method.values <<- c("Standard", "Label conditional+")
+    method.labels <<- c("Standard", "Adaptive+ (label-cond)")
+    color.scale <<- cbPalette[c(1,8)]
+    shape.scale <<- c(1,7)
     linetype.scale <<- c(1,1)
   } else {
-    method.values <<- c("Label conditional")
-    method.labels <<- c("Adaptive (label-cond)")
-    color.scale <<- cbPalette[c(10,1)]
-    shape.scale <<- c(6,1)
+    method.values <<- c("Standard", "Label conditional")
+    method.labels <<- c("Standard", "Adaptive (label-cond)")
+    color.scale <<- cbPalette[c(1,10)]
+    shape.scale <<- c(1,6)
     linetype.scale <<- c(1,1)
   }
-  # label.values <<- c(0:(plot.K-1), "marginal")
-  # label.labels <<- c(paste("Label", 1:plot.K, sep=" "), "All labels")
-  # label.values <<- c(0:2, "marginal")
-  # label.labels <<- c(paste("Label", 1:3, sep=" "), "All labels")
+
 }
 
 make_figure_101_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-epsilon-point",
@@ -2577,8 +2574,8 @@ make_figure_101_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="
     filter(n_cal >= 500)
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.95), n_cal=1000, Method="")
-  df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.95), n_cal=1000, Method="Standard")
+  df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="Standard")
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
@@ -2616,7 +2613,7 @@ make_figure_101_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="
 }
 
 
-exp.num <- 101
+exp.num <- 102
 plot.alpha <- 0.1
 plot.K <- 10
 
@@ -2824,16 +2821,16 @@ make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
 init_settings <- function(plot.optimistic = FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   if(plot.optimistic) {
-    method.values <<- c("Label conditional+")
-    method.labels <<- c("Adaptive+ (label-cond)")
-    color.scale <<- cbPalette[c(8,1)]
-    shape.scale <<- c(7,1)
+    method.values <<- c("Standard", "Label conditional+")
+    method.labels <<- c("Standard", "Adaptive+ (label-cond)")
+    color.scale <<- cbPalette[c(1,8)]
+    shape.scale <<- c(1,7)
     linetype.scale <<- c(1,1)
   } else {
-    method.values <<- c("Label conditional")
-    method.labels <<- c("Adaptive (label-cond)")
-    color.scale <<- cbPalette[c(10,1)]
-    shape.scale <<- c(6,1)
+    method.values <<- c("Standard", "Label conditional")
+    method.labels <<- c("Standard","Adaptive (label-cond)")
+    color.scale <<- cbPalette[c(1,10,1)]
+    shape.scale <<- c(1,6)
     linetype.scale <<- c(1,1)
   }
   # label.values <<- c(0:(plot.K-1), "marginal")
@@ -2841,6 +2838,8 @@ init_settings <- function(plot.optimistic = FALSE) {
   # label.values <<- c(0:2, "marginal")
   # label.labels <<- c(paste("Label", 1:3, sep=" "), "All labels")
 }
+
+
 
 load_data <- function(exp.num) {
   idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -2873,7 +2872,7 @@ make_figure_202_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="
     filter(n_cal >= 500)
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
   #df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="")
   
   pp <- df %>%
@@ -2933,6 +2932,46 @@ make_figure_202_lc2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
 #                     plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=2)
 
 
+
+init_settings <- function(plot.optimistic = FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  if(plot.optimistic) {
+    method.values <<- c("Standard", "Label conditional+")
+    method.labels <<- c("Standard", "Adaptive+ (label-cond)")
+    color.scale <<- cbPalette[c(1,8)]
+    shape.scale <<- c(1,7)
+    linetype.scale <<- c(1,1)
+  } else {
+    method.values <<- c("Standard", "Label conditional")
+    method.labels <<- c("Standard","Adaptive (label-cond)")
+    color.scale <<- cbPalette[c(1,10,1)]
+    shape.scale <<- c(1,6)
+    linetype.scale <<- c(1,1)
+  }
+  # label.values <<- c(0:(plot.K-1), "marginal")
+  # label.labels <<- c(paste("Label", 1:plot.K, sep=" "), "All labels")
+  # label.values <<- c(0:2, "marginal")
+  # label.labels <<- c(paste("Label", 1:3, sep=" "), "All labels")
+}
+
+
+
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
+  ifile.list <- list.files(idir)
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))
+  
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, K, n_cal, n_test, estimate,
+             Guarantee, Alpha, Label, Method, Key) %>%
+    summarise(Mean=mean(Value, na.rm=TRUE), N=sum(!is.na(Value)), SE=2*sd(Value, na.rm=TRUE)/sqrt(N))
+  
+  return(summary)
+}
+
 make_figure_202_lc3 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none",
                                 plot.guarantee="marginal",
                                 plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE) {
@@ -2947,7 +2986,7 @@ make_figure_202_lc3 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="
            Method %in% method.values, n_cal %in% c(2000,3000,5000,10000,15000), Label %in% label.values)
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=10000, Method="")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=10000, Method="Standard")
   #df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="")
   
   pp <- df %>%
@@ -2993,8 +3032,7 @@ plot.K <- 6
 plot.estimate <- "none"
 
 label.values <<- 0:5
-label.labels <<- paste("Label", 1:6, sep=" ")
-
+label.labels <<- c("CWW", "Arable Land", "Agriculture", "Vegetation", "Urban Fabric", "Mixed")
 make_figure_202_lc3(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
                     plot.estimate=plot.estimate,
                     plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)

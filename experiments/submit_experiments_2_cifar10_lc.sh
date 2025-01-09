@@ -53,7 +53,7 @@ for SEED in $SEED_LIST; do
 
           if [[ $COMPLETE -eq 0 ]]; then
             # Script to be run
-            SCRIPT="exp_cifar.sh $BATCH_SIZE $EPSILON_N_CLEAN $EPSILON_N_CORR $ESTIMATE $SEED"
+            SCRIPT="exp_cifar_lc.sh $BATCH_SIZE $EPSILON_N_CLEAN $EPSILON_N_CORR $ESTIMATE $SEED"
             # Define job name
             OUTF=$LOGS"/"$JOBN".out"
             ERRF=$LOGS"/"$JOBN".err"
