@@ -2541,6 +2541,27 @@ make_figure_101_lc(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate=
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
 
+init_settings <- function(plot.optimistic = FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  if(plot.optimistic) {
+    method.values <<- c("Label conditional+")
+    method.labels <<- c("Adaptive+ (label-cond)")
+    color.scale <<- cbPalette[c(8,1)]
+    shape.scale <<- c(7,1)
+    linetype.scale <<- c(1,1)
+  } else {
+    method.values <<- c("Label conditional")
+    method.labels <<- c("Adaptive (label-cond)")
+    color.scale <<- cbPalette[c(10,1)]
+    shape.scale <<- c(6,1)
+    linetype.scale <<- c(1,1)
+  }
+  # label.values <<- c(0:(plot.K-1), "marginal")
+  # label.labels <<- c(paste("Label", 1:plot.K, sep=" "), "All labels")
+  # label.values <<- c(0:2, "marginal")
+  # label.labels <<- c(paste("Label", 1:3, sep=" "), "All labels")
+}
+
 make_figure_101_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-epsilon-point",
                                plot.guarantee="marginal",
                                plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE, fig.num=1) {
@@ -2555,7 +2576,9 @@ make_figure_101_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="
            Method %in% method.values, n_cal %in% c(500,1500,4500,9500), Label %in% label.values) %>%
     filter(n_cal >= 500)
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.95), n_cal=1000, Method="")
+  df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="")
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
@@ -2567,6 +2590,7 @@ make_figure_101_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="
     facet_grid(Key~Label, scales="free") +
     geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    geom_point(data=df.range2, aes(x=n_cal, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
@@ -2795,4 +2819,100 @@ make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
                 plot.estimate=plot.estimate, plot.guarantee="marginal",
                 plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE)
 
+## Results obtained with label-conditional adaptive method
+
+init_settings <- function(plot.optimistic = FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  if(plot.optimistic) {
+    method.values <<- c("Label conditional+")
+    method.labels <<- c("Adaptive+ (label-cond)")
+    color.scale <<- cbPalette[c(8,1)]
+    shape.scale <<- c(7,1)
+    linetype.scale <<- c(1,1)
+  } else {
+    method.values <<- c("Label conditional")
+    method.labels <<- c("Adaptive (label-cond)")
+    color.scale <<- cbPalette[c(10,1)]
+    shape.scale <<- c(6,1)
+    linetype.scale <<- c(1,1)
+  }
+  # label.values <<- c(0:(plot.K-1), "marginal")
+  # label.labels <<- c(paste("Label", 1:plot.K, sep=" "), "All labels")
+  # label.values <<- c(0:2, "marginal")
+  # label.labels <<- c(paste("Label", 1:3, sep=" "), "All labels")
+}
+
+make_figure_202_lc2 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none",
+                                plot.guarantee="marginal",
+                                plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE, fig.num=1) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic=plot.optimistic)
+  
+  df <- summary %>%
+    filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee,
+           Method %in% method.values, n_cal %in% c(500,1500,4500,9500), Label %in% label.values) %>%
+    filter(n_cal >= 500)
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.5,1), n_cal=1000, Method="")
+  #df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="")
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Label = factor(Label, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
+    facet_grid(Key~Label, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    #geom_point(data=df.range2, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 11),
+          legend.title = element_text(size = 11))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/bigearthnet_oracle_K%d_%s_optimistic%s_%s_lc2_%d.pdf",
+                         plot.K, plot.guarantee, plot.optimistic, plot.estimate,fig.num)
+    ggsave(file=plot.file, height=4, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+
+exp.num <- 202
+plot.alpha <- 0.1
+plot.K <- 6
+plot.estimate <- "none"
+
+label.values <<- 0:5
+label.labels <<- paste("Label", 1:6, sep=" ")
+
+make_figure_202_lc2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
+                    plot.estimate=plot.estimate,
+                    plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=1)
+
+# label.values <<- 5:9
+# label.labels <<- paste("Label", 6:10, sep=" ")
+# 
+# make_figure_101_lc2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
+#                     plot.estimate="none",
+#                     plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=2)
 
