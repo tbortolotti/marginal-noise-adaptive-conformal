@@ -1,13 +1,18 @@
 #!/bin/bash
 
 # Parameters
-CONF=202
+CONF=203
 
 if [[ $CONF == 202 ]]; then
   BATCH_SIZE_LIST=(7000 8000 10000 15000 20000)
   ESTIMATE_LIST=("none")
   SEED_LIST=$(seq 1 30)
-  #SEED_LIST=$(seq 1 1)
+  ALLOW_EMPTY_FLAG=(1)
+elif [[ $CONF == 203 ]]; then
+  BATCH_SIZE_LIST=(7000 8000 10000 15000 20000)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=$(seq 1 30)
+  ALLOW_EMPTY_FLAG=(0)
 fi
 
 # Slurm parameters
@@ -43,7 +48,7 @@ for SEED in $SEED_LIST; do
 
 			  if [[ $COMPLETE -eq 0 ]]; then
 			      # Script to be run
-			      SCRIPT="exp_bigearthnet_lc.sh $CONF $BATCH_SIZE $ESTIMATE_LIST $SEED"
+			      SCRIPT="exp_bigearthnet_lc.sh $CONF $BATCH_SIZE $ESTIMATE_LIST $SEED $ALLOW_EMPTY_FLAG"
 			      # Define job name
 			      OUTF=$LOGS"/"$JOBN".out"
 			      ERRF=$LOGS"/"$JOBN".err"

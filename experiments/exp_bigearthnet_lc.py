@@ -44,7 +44,7 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -52,12 +52,18 @@ if True:
     batch_size = int(sys.argv[2])
     estimate = sys.argv[3]
     seed = int(sys.argv[4])
+    allow_empty_flag = int(sys.argv[5])
 
 # Define other constant parameters
 data_name = "bigearthnet"
 n_test = 5000
 num_exp = 5
-allow_empty = True
+allow_empty_flag = 1
+if allow_empty_flag == 1:
+    allow_empty = True
+else:
+    allow_empty = False
+
 
 # Oracle parameters
 rho = [0.114, 0.032, 0.026, 0.138, 0.001, 0.689]
