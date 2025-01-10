@@ -4,7 +4,7 @@
 CONF=102
 
 if [[ $CONF == 102 ]]; then
-  # Figure class 101
+  # Figure A15
   BATCH_SIZE_LIST=(1000 2000 5000 10000)
   #BATCH_SIZE_LIST=(1000)
   EPSILON_N_CLEAN_LIST=(0.1)

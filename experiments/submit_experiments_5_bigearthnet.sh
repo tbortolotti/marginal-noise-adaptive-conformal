@@ -4,6 +4,7 @@
 CONF=203
 
 if [[ $CONF == 202 ]]; then
+  # Figure A16
   BATCH_SIZE_LIST=(7000 8000 10000 15000 20000)
   ESTIMATE_LIST=("none")
   SEED_LIST=$(seq 1 30)

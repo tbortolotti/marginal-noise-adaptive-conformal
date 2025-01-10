@@ -4,7 +4,7 @@
 CONF=201
 
 if [[ $CONF == 201 ]]; then
-  # Figure class 201
+  # Figure 6
   BATCH_SIZE_LIST=(700 800 900 1000 2000 3000 5000 10000 15000 20000)
   #BATCH_SIZE_LIST=(700)
   ESTIMATE_LIST=("none")
