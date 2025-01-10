@@ -2621,8 +2621,8 @@ label.values <<- 0:4
 label.labels <<- paste("Label", 1:5, sep=" ")
 
 make_figure_101_lc2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
-                   plot.estimate="rho-epsilon-point",
-                   plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=1)
+                    plot.estimate="rho-epsilon-point",
+                    plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=1)
 
 label.values <<- 5:9
 label.labels <<- paste("Label", 6:10, sep=" ")

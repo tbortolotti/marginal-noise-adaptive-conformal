@@ -263,17 +263,7 @@ def run_experiment(random_state):
                                                                    asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
                                                                    rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
                                                                    method="asymptotic", optimistic=True, verbose=False,
-                                                                   pre_trained=True, random_state=random_state),
-
-                "Label conditional": lambda: LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                 rho_tilde=rho_tilde_hat, M=M_hat,
-                                                                 calibration_conditional=False, gamma=None,
-                                                                 optimistic=False, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
-                
-                "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                  rho_tilde=rho_tilde_hat, M=M_hat,
-                                                                  calibration_conditional=False, gamma=None,
-                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
+                                                                   pre_trained=True, random_state=random_state)
 
             }
 
