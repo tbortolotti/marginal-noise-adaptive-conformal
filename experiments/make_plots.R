@@ -638,20 +638,14 @@ init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  label.values <<- c("10 classes", "50 classes", "100 classes")
-  label.labels <<- c("10 classes", "50 classes", "100 classes")
+  label.values <<- c("10 classes", "20 classes", "50 classes")
+  label.labels <<- c("10 classes", "20 classes", "50 classes")
   if(plot.optimistic) {
-    method.values <<- c("Standard", "Adaptive optimized", "Adaptive optimized+")
-    method.labels <<- c("Standard", "Adaptive", "Adaptive+")
-    color.scale <<- cbPalette[c(1,2,3)]
-    shape.scale <<- c(1,0,2)
+    method.values <<- c("Standard", "Adaptive optimized+", "Label conditional+")
+    method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (Label-cond)")
+    color.scale <<- cbPalette[c(1,3,8)]
+    shape.scale <<- c(1,2,7)
     linetype.scale <<- c(1,1,1)
-  } else {
-    method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized", "Asymptotic")
-    method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive", "Adaptive (asymptotic)")
-    color.scale <<- cbPalette[c(1,7,2,9)]
-    shape.scale <<- c(1,3,0,5)
-    linetype.scale <<- c(1,1,1,1)
   }
 }
 
@@ -661,11 +655,8 @@ plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.contamination <- "RRB"
 
-## Figure 3
-plot.nu <- 0.2
-make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
-# Optimistic counterpart (not shown in paper)
+## Figure 5
+# Optimistic counterpart
 make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
@@ -835,7 +826,7 @@ plot.K <- 10
 # Adaptive methods without the optimistic option (Not shown in paper)
 make_figure_101(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="rho-epsilon-point", plot.guarantee="marginal",
                 plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE)
-# Figure 5
+# Adaptive methods for marginal coverage with the optimistic option (Not shown in paper) 
 make_figure_101(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="rho-epsilon-point", plot.guarantee="marginal",
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
@@ -924,6 +915,7 @@ plot.K <- 10
 label.values <<- 0:4
 label.labels <<- paste("Label", 1:5, sep=" ")
 
+## Figure A15 a)
 make_figure_102(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
                 plot.estimate="rho-epsilon-point",
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=1)
@@ -931,7 +923,7 @@ make_figure_102(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
 label.values <<- 5:9
 label.labels <<- paste("Label", 6:10, sep=" ")
 
-## Figure A15
+## Figure A15 b)
 make_figure_102(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
                 plot.estimate="rho-epsilon-point",
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=2)
@@ -1098,10 +1090,26 @@ exp.num <- c(101,102)
 plot.alpha <- 0.1
 plot.K <- 10
 
-# Figure 5
+# Figure 6
 make_figure_103(exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.estimate="rho-epsilon-point", plot.guarantee="marginal",
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
+
+label.values <<- 0:4
+label.labels <<- paste("Label", 1:5, sep=" ")
+
+## Figure A15 a)
+make_figure_102(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
+                plot.estimate="rho-epsilon-point",
+                plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=1)
+
+label.values <<- 5:9
+label.labels <<- paste("Label", 6:10, sep=" ")
+
+## Figure A15 b)
+make_figure_102(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
+                plot.estimate="rho-epsilon-point",
+                plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE, fig.num=2)
 
 
 
@@ -1288,7 +1296,7 @@ make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
                 plot.estimate=plot.estimate, plot.guarantee="marginal",
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
-## Figure 6
+## Figure 7
 make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
                 plot.estimate=plot.estimate, plot.guarantee="marginal",
                 plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE)

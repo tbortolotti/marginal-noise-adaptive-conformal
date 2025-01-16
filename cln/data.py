@@ -116,5 +116,29 @@ class DataModel_3(DataModel):
         classes_id = np.arange(self.K)
         y = np.array([np.dot(g[i],classes_id) for i in range(X.shape[0])], dtype = int)
         return y.astype(np.int32)
+    
+class DataModel_4(DataModel):
+    def __init__(self, K, p, imbalance_ratios=None, imb=None, random_state=None):
+        """
+        Parameters:
+        - K: Number of classes.            
+        - p: Number of features.
+        - imbalance_ratios: Array of length K with relative proportions of each class.
+        - random_state: Seed for reproducibility.
+        """
+        super().__init__(K, p, random_state=random_state)
 
+        if imbalance_ratios is not None:
+            self.imbalance_ratios = np.array(imbalance_ratios)/np.sum(imbalance_ratios)
+        elif imb is not None:
+            base = np.exp(-imb * np.arange(K))
+            self.imbalance_ratios = base / np.sum(base)
+        else:
+            raise ValueError("Either imbalance_ratios or imb must be provided.")
 
+    def sample_X(self, n):
+        return self.rng.normal(0, 1, size=(n, self.p))
+
+    def sample_Y(self, X):
+        """Sample Y with the specified class imbalance."""
+        return self.rng.choice(self.K, size=X.shape[0], p=self.imbalance_ratios)
