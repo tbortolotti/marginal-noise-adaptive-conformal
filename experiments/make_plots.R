@@ -752,8 +752,8 @@ init_settings <- function(plot.optimistic = FALSE) {
 make_figure_301 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                           plot.contamination="uniform",
                           plot.epsilon, plot.nu=0,
-                          plot.optimistic=FALSE,
-                          slides=FALSE) {
+                          plot.data="synthetic4",
+                          plot.optimistic=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
   }
@@ -761,7 +761,7 @@ make_figure_301 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margi
   init_settings(plot.optimistic = plot.optimistic)
   
   df <- summary %>%
-    filter(data=="synthetic4", num_var==20, n_train==10000, K==plot.K, signal==1, Guarantee==plot.guarantee,
+    filter(data==plot.data, num_var==20, n_train==10000, K==plot.K, signal==1, Guarantee==plot.guarantee,
            Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
            Method %in% method.values,
            contamination==plot.contamination,
@@ -800,8 +800,8 @@ make_figure_301 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margi
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_K%d_eps%s_%s_%s_optimistic%s.pdf",
-                         exp.num, 10000, plot.K, plot.epsilon, plot.guarantee, plot.contamination, plot.optimistic)
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_eps%s_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, 10000, plot.K, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
     ggsave(file=plot.file, height=4, width=6.5, units="in")
     return(NULL)
   } else{
@@ -817,10 +817,23 @@ plot.epsilon <- 0.1
 plot.contamination <- "RRB"
 plot.nu <- 0.2
 plot.K <- 4
+plot.data <- "synthetic4"
 
 ## Figure 301
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+exp.num <- 302
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.contamination <- "RRB"
+plot.nu <- 0.2
+plot.K <- 4
+plot.data <- "synthetic5"
+
+## Figure 302
+make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 ### Experiment 101: CIFAR-10H data ------------------------
