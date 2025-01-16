@@ -48,23 +48,21 @@ for SEED in $SEED_LIST; do
         for SIGNAL in "${SIGNAL_LIST[@]}"; do
           for MODEL in "${MODEL_LIST[@]}"; do
             for EPSILON in "${EPSILON_LIST[@]}"; do
-	      for NU in "${NU_LIST[@]}"; do
-       		for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
+	            for NU in "${NU_LIST[@]}"; do
+       		      for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
                   for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
                     for N_CAL in "${N_CAL_LIST[@]}"; do
                       for ESTIMATE in "${ESTIMATE_LIST[@]}"; do
                         for IMB in "${IMB_LIST[@]}"; do
-
-
-			  JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_est"$ESTIMATE"_imb"$IMB"_seed"$SEED
-			  OUT_FILE=$OUT_DIR"/"$JOBN".txt"
-			  COMPLETE=0
-			  #                    ls $OUT_FILE
-			  if [[ -f $OUT_FILE ]]; then
+                          JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_est"$ESTIMATE"_imb"$IMB"_seed"$SEED
+                          OUT_FILE=$OUT_DIR"/"$JOBN".txt"
+                          COMPLETE=0
+                          #                    ls $OUT_FILE
+                          if [[ -f $OUT_FILE ]]; then
                               COMPLETE=1
-			  fi
+			                    fi
 
-			  if [[ $COMPLETE -eq 0 ]]; then
+			                    if [[ $COMPLETE -eq 0 ]]; then
                               # Script to be run
                               SCRIPT="exp_classimbalance.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CAL $ESTIMATE $IMB $SEED"
                               # Define job name
@@ -78,10 +76,10 @@ for SEED in $SEED_LIST; do
                               $ORD
                               # Run command now
                               #./$SCRIPT
-			  fi
+			                    fi
 		      
-		                        done
-                        done
+		                    done
+                      done
                     done
                   done
                 done

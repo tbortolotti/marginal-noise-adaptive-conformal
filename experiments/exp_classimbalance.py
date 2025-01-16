@@ -126,13 +126,13 @@ else:
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
                        'signal':[signal], 'n_train':[n_train], 'n_cal':[n_cal],
                        'epsilon':[epsilon], 'nu':[nu], 'contamination':[contamination_model],
-                       'model_name':[model_name], 'estimate':[estimate], 'seed':[seed]})
+                       'model_name':[model_name], 'estimate':[estimate], 'imb':[imb], 'seed':[seed]})
 
 # Output file
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
 outfile_prefix += "_K" + str(K) + "_signal" + str(signal) + "_" + model_name
 outfile_prefix += "_eps" + str(epsilon) + "_nu" + str(nu) + "_" + contamination_model
-outfile_prefix += "_nt" + str(n_train) + "_nc" + str(n_cal) + "_est" + estimate + "_seed" + str(seed)
+outfile_prefix += "_nt" + str(n_train) + "_nc" + str(n_cal) + "_est" + estimate + "_imb" + imb +  "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
