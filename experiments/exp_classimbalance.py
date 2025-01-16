@@ -132,7 +132,7 @@ header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
 outfile_prefix += "_K" + str(K) + "_signal" + str(signal) + "_" + model_name
 outfile_prefix += "_eps" + str(epsilon) + "_nu" + str(nu) + "_" + contamination_model
-outfile_prefix += "_nt" + str(n_train) + "_nc" + str(n_cal) + "_est" + estimate + "_imb" + imb +  "_seed" + str(seed)
+outfile_prefix += "_nt" + str(n_train) + "_nc" + str(n_cal) + "_est" + estimate + "_imb" + str(imb) +  "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
