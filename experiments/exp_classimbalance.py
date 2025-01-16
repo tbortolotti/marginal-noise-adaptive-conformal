@@ -80,6 +80,8 @@ elif data_name == "synthetic3":
     data_distribution = data.DataModel_3(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic4":
     data_distribution = data.DataModel_4(K, num_var, imb=imb, random_state=seed)
+elif data_name == "synthetic5":
+    data_distribution = data.DataModel_5(K, num_var, imb=imb, random_state=seed)
 else:
     print("Unknown data distribution!")
     sys.stdout.flush()

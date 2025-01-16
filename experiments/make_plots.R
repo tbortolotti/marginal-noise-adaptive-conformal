@@ -718,12 +718,28 @@ make_figure_5(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 
 ### Experiment 301: RBB, Increase in the class-imbalance -------------------
 
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, imb, estimate, n_train, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
 init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  label.values <<- c("imb", "20 classes", "50 classes")
-  label.labels <<- c("10 classes", "20 classes", "50 classes")
   if(plot.optimistic) {
     method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+")
     method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)")
@@ -733,10 +749,11 @@ init_settings <- function(plot.optimistic = FALSE) {
   }
 }
 
-make_figure_301 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+make_figure_301 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                           plot.contamination="uniform",
-                          plot.epsilon=0.1, plot.nu=0.2,
-                          plot.optimistic = FALSE) {
+                          plot.epsilon, plot.nu=0,
+                          plot.optimistic=FALSE,
+                          slides=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
   }
@@ -744,23 +761,27 @@ make_figure_301 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal"
   init_settings(plot.optimistic = plot.optimistic)
   
   df <- summary %>%
-    filter(data=="synthetic1", num_var==20, n_train==10000, signal==1, Guarantee==plot.guarantee,
+    filter(data=="synthetic4", num_var==20, n_train==10000, K==plot.K, signal==1, Guarantee==plot.guarantee,
            Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
            Method %in% method.values,
            contamination==plot.contamination,
-           epsilon==plot.epsilon, nu==plot.nu, K=plot.K) %>%
-    filter(n_cal >= 100)
+           epsilon==plot.epsilon, nu %in% plot.nu) %>%
+    filter(n_cal >= 500)
+  
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  
+  appender <- function(string) TeX(paste("$\\mu : $", string))  
+  
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(K_lab = sprintf("%d classes", K)) %>%
-    mutate(K_lab = factor(K_lab, label.values, label.labels)) %>%
+    mutate(Nu = sprintf("%.2f", imb)) %>%
+    #        mutate(Label = factor(Label, label.values, label.labels)) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
-    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
-    facet_grid(Key~K_lab, scales="free") +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Nu, scales="free", labeller = labeller(.default=label_parsed,Nu=appender)) +
     geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
@@ -777,16 +798,18 @@ make_figure_301 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal"
           legend.text = element_text(size = 11),
           legend.title = element_text(size = 11))
   
+  
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
-                         exp.num,
-                         10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=3.5, width=7, units="in")
+    plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_K%d_eps%s_%s_%s_optimistic%s.pdf",
+                         exp.num, 10000, plot.K, plot.epsilon, plot.guarantee, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4, width=6.5, units="in")
     return(NULL)
   } else{
     return(pp)
   }
+  
 }
+
 
 exp.num <- 301
 plot.alpha <- 0.1
@@ -796,9 +819,8 @@ plot.nu <- 0.2
 plot.K <- 4
 
 ## Figure 301
-# Optimistic counterpart
-make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
 
 
 ### Experiment 101: CIFAR-10H data ------------------------

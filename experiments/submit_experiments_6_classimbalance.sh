@@ -1,11 +1,25 @@
 #!/bin/bash
 
 # Parameters
-CONF=301
+CONF=302
 
 if [[ $CONF == 301 ]]; then
-  # Figure 1, Figure A9 and Figure A10
   DATA_LIST=("synthetic4")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0.1)
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("RRB")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  ESTIMATE_LIST=("none")
+  IMB_LIST=(0 1 2)
+  SEED_LIST=$(seq 1 5)
+
+elif [[ $CONF == 302 ]]; then
+  DATA_LIST=("synthetic5")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
