@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=1
+CONF=5
 
 if [[ $CONF == 1 ]]; then
   # Figure 1, Figure A9 and Figure A10
@@ -67,7 +67,7 @@ elif [[ $CONF == 5 ]]; then
   # Impact of an increase in the number of classes
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
-  K_LIST=(10 50 100)
+  K_LIST=(10 20 50)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
   EPSILON_LIST=(0.1)
@@ -82,7 +82,7 @@ fi
 
 # Slurm parameters
 MEMO=5G                             # Memory required (1 GB)
-TIME=00-00:20:00                    # Time required (20 m)
+TIME=00-04:00:00                    # Time required (4 h)
 CORE=1                              # Cores required (1)
 
 # Assemble order prefix

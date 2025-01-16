@@ -15,7 +15,7 @@ fi
 
 # Slurm parameters
 MEMO=64G                             # Memory required (32 GB)
-TIME=00-10:00:00                    # Time required (5 h 00 m)
+TIME=00-14:00:00                    # Time required (5 h 00 m)
 CORE=1                              # Cores required (1)
 
 # Assemble order prefix
