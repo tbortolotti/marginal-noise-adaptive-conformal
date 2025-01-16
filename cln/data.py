@@ -135,6 +135,12 @@ class DataModel_4(DataModel):
             self.imbalance_ratios = base / np.sum(base)
         else:
             raise ValueError("Either imbalance_ratios or imb must be provided.")
+        
+    def sample(self, n):        
+        X, Y = make_classification(n_samples=n, n_classes=self.K, n_features=self.p, n_informative=self.n_informative, 
+                                   class_sep=self.class_sep, random_state=self.random_state)
+        Y = Y.astype(np.int32)
+        return X, Y
 
     def sample_X(self, n):
         return self.rng.normal(0, 1, size=(n, self.p))
@@ -142,3 +148,60 @@ class DataModel_4(DataModel):
     def sample_Y(self, X):
         """Sample Y with the specified class imbalance."""
         return self.rng.choice(self.K, size=X.shape[0], p=self.imbalance_ratios)
+
+class DataModel_5(DataModel):
+    def __init__(self, K, p, imbalance_ratios=None, imb=None, random_state=None):
+        """
+        Parameters:
+        - K: Number of classes.            
+        - p: Number of features.
+        - imbalance_ratios: Array of length K with relative proportions of each class.
+        - random_state: Seed for reproducibility.
+        """
+        super().__init__(K, p, random_state=random_state)
+
+        if imbalance_ratios is not None:
+            self.imbalance_ratios = np.array(imbalance_ratios)/np.sum(imbalance_ratios)
+        elif imb is not None:
+            base = np.exp(-imb * np.arange(K))
+            self.imbalance_ratios = base / np.sum(base)
+        else:
+            raise ValueError("Either imbalance_ratios or imb must be provided.")
+
+    def sample(self, n):        
+        X, Y = make_classification(
+            n_samples=n, 
+            n_classes=self.K, 
+            n_features=self.p, 
+            n_informative=self.n_informative, 
+            class_sep=self.class_sep, 
+            random_state=self.random_state
+        )
+        Y = Y.astype(np.int32)
+    
+        # Post-sampling adjustment to control class balance
+        adjusted_indices = []
+        for k in range(self.K):
+            # Indices of samples belonging to class k
+            class_k_indices = np.where(Y == k)[0]
+        
+            # Number of samples to retain for class k
+            num_samples = int(self.imbalance_ratios[k] * n)
+        
+            # Select a subset of indices for the desired class balance
+            if num_samples <= len(class_k_indices):
+                adjusted_indices.extend(self.rng.choice(class_k_indices, size=num_samples, replace=False))
+            else:
+                # Oversample and add slight noise to avoid duplicates
+                oversampled_indices = self.rng.choice(class_k_indices, size=num_samples - len(class_k_indices), replace=True)
+                adjusted_indices.extend(class_k_indices)  # Include all available samples
+                adjusted_indices.extend(oversampled_indices)
+
+                 # Optional: Add noise to duplicate samples to make them unique
+                oversampled_indices = np.array(oversampled_indices)
+                noise = self.rng.normal(scale=0.01, size=X[oversampled_indices].shape)  # Small Gaussian noise
+                X[oversampled_indices] += noise
+    
+        adjusted_indices = np.array(adjusted_indices)
+        return X[adjusted_indices], Y[adjusted_indices]
+
