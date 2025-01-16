@@ -150,15 +150,10 @@ class DataModel_4(DataModel):
         return self.rng.choice(self.K, size=X.shape[0], p=self.imbalance_ratios)
 
 class DataModel_5(DataModel):
-    def __init__(self, K, p, imbalance_ratios=None, imb=None, random_state=None):
-        """
-        Parameters:
-        - K: Number of classes.            
-        - p: Number of features.
-        - imbalance_ratios: Array of length K with relative proportions of each class.
-        - random_state: Seed for reproducibility.
-        """
+    def __init__(self, K, p, signal=1, imbalance_ratios=None, imb=None, random_state=None):
         super().__init__(K, p, random_state=random_state)
+        self.n_informative = np.maximum(1, int(self.p*0.5))
+        self.class_sep = signal
 
         if imbalance_ratios is not None:
             self.imbalance_ratios = np.array(imbalance_ratios)/np.sum(imbalance_ratios)
