@@ -60,7 +60,7 @@ if True:
     n_train = int(sys.argv[10])
     n_cal = int(sys.argv[11])
     estimate = sys.argv[12]
-    imb = int(sys.argv[13])
+    imb = float(sys.argv[13])
     seed = int(sys.argv[14])
 
 
