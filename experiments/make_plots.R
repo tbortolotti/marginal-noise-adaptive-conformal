@@ -833,7 +833,7 @@ plot.data <- "synthetic5"
 
 ## Figure 302
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
 
 ### Experiment 101: CIFAR-10H data ------------------------
