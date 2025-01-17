@@ -716,7 +716,7 @@ plot.nu <- 0.2
 make_figure_5(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
-### Experiments 301 and 302: RBB, Increase in the class-imbalance -------------------
+### Experiment 301: RBB, Increase in the class-imbalance -------------------
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -742,8 +742,8 @@ init_settings <- function(plot.optimistic = FALSE) {
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   if(plot.optimistic) {
-    method.values <<- c("Standard", "Adaptive optimized", "Asymptotic", "Label conditional")
-    method.labels <<- c("Standard", "Adaptive", "Adaptive (asymptotic)", "Adaptive (label-cond)")
+    method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+")
+    method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)")
     color.scale <<- cbPalette[c(1,3,4,8)]
     shape.scale <<- c(1,2,4,7)
     linetype.scale <<- c(1,1,1,1)
@@ -822,23 +822,11 @@ plot.data <- "synthetic4"
 
 ## Figure 301
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
-
-exp.num <- 302
-plot.alpha <- 0.1
-plot.epsilon <- 0.1
-plot.contamination <- "RRB"
-plot.nu <- 0.2
-plot.K <- 4
-plot.data <- "synthetic5"
-
-## Figure 302
-make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 ## Plot of the label-wise performances
 
-make_figure_303 <- function(exp.num=exp.num, plot.data="synthetic5", plot.alpha=0.1,
+make_figure_302 <- function(exp.num=exp.num, plot.data="synthetic5", plot.alpha=0.1,
                             plot.K=4, plot.epsilon=0.1, plot.nu=0.2,
                             plot.guarantee="marginal", plot.contamination="uniform",
                             plot.estimate="none", plot.imb=1,
@@ -895,19 +883,19 @@ make_figure_303 <- function(exp.num=exp.num, plot.data="synthetic5", plot.alpha=
 }
 
 
-exp.num <- 302
+exp.num <- 301
 plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.contamination <- "RRB"
-plot.nu <- 0
+plot.nu <- 0.2
 plot.K <- 4
-plot.data <- "synthetic5"
+plot.data <- "synthetic4"
 plot.imb=2
 
 label.values <<- 0:3
 label.labels <<- paste("Label", 1:4, sep=" ")
 
-make_figure_303(exp.num=exp.num, plot.data=plot.data, plot.alpha=plot.alpha,
+make_figure_302(exp.num=exp.num, plot.data=plot.data, plot.alpha=plot.alpha,
                 plot.K=plot.K, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
                 plot.guarantee="marginal", plot.contamination=plot.contamination,
                 plot.estimate="none", plot.imb=plot.imb,
