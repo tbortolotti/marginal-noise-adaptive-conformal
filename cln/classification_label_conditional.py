@@ -49,9 +49,6 @@ class LabelNoiseConformal:
             self.V_alpha = V_alpha
             self.V_max = V_max
 
-        
-        rho_tilde = np.ones((K,))
-
         self.calibration_conditional = calibration_conditional
         if self.calibration_conditional:
             assert gamma is not None
@@ -103,6 +100,8 @@ class LabelNoiseConformal:
         # Define the F-hat functions
         F_hat, scores = self.compute_F_hat_scores(grey_box, Y_calib, random_noise)
         cal_sizes = np.array([len(scores[k,0]) for k in range(self.K)])
+        sys.stdout.flush()
+
         n_min = np.min(cal_sizes)
 
         # Sort the conformity scores
@@ -312,7 +311,7 @@ class LabelNoiseConformal_bounded_RR:
                 sys.stdout.flush()
 
         if verbose:
-            print('Evaluating conformity scores on {:d} calibration samples...'.format(X_cal.shape[0], X_cal.shape[1]))
+            print('Evaluating conformity scores on {:d} calibration samples...'.format(X_calib.shape[0], X_calib.shape[1]))
             sys.stdout.flush()
         # Evaluate conformity scores on calibration data
         p_hat_calib = self.black_box.predict_proba(X_calib)

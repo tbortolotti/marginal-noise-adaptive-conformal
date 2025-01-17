@@ -124,6 +124,7 @@ class MarginalLabelNoiseConformal:
         if len(I_hat)>0:
             i_hat = np.min(I_hat)
             tau_hat = scores_sorted[i_hat]
+            #print(Delta_hat[i_hat], delta)
         else:
             tau_hat = 1
         tau_hat = tau_hat * np.ones((K,))

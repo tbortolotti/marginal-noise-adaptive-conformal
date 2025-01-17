@@ -37,7 +37,7 @@ def convert_T_to_M(T,rho):
     # M_kl = P(Y=l | Y_tilde = k)
     K = T.shape[0]
     rho_t = np.dot(T, rho)
-    M = T
+    M = np.ones((K,K))
     for k in range(K):
         for l in range(K):
             M[k,l] = T[k,l] * rho[l] / rho_t[k]
