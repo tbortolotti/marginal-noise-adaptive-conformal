@@ -716,7 +716,7 @@ plot.nu <- 0.2
 make_figure_5(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
-### Experiment 301: RBB, Increase in the class-imbalance -------------------
+### Experiments 301 and 302: RBB, Increase in the class-imbalance -------------------
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -732,17 +732,18 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   summary <- results %>%
     pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, imb, estimate, n_train, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+    summarise(Mean=mean(Value, na.rm=TRUE), N=sum(!is.na(Value)), SE=2*sd(Value, na.rm=TRUE)/sqrt(N))  
   return(summary)
 }
+
 
 init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   if(plot.optimistic) {
-    method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+")
-    method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)")
+    method.values <<- c("Standard", "Adaptive optimized", "Asymptotic", "Label conditional")
+    method.labels <<- c("Standard", "Adaptive", "Adaptive (asymptotic)", "Adaptive (label-cond)")
     color.scale <<- cbPalette[c(1,3,4,8)]
     shape.scale <<- c(1,2,4,7)
     linetype.scale <<- c(1,1,1,1)
@@ -821,7 +822,7 @@ plot.data <- "synthetic4"
 
 ## Figure 301
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
 exp.num <- 302
 plot.alpha <- 0.1
@@ -834,6 +835,83 @@ plot.data <- "synthetic5"
 ## Figure 302
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.data=plot.data, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
+## Plot of the label-wise performances
+
+make_figure_303 <- function(exp.num=exp.num, plot.data="synthetic5", plot.alpha=0.1,
+                            plot.K=4, plot.epsilon=0.1, plot.nu=0.2,
+                            plot.guarantee="marginal", plot.contamination="uniform",
+                            plot.estimate="none", plot.imb=1,
+                            plot.optimistic=TRUE, save_plots=FALSE, reload=TRUE){
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic=plot.optimistic)
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==10000, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee,
+           model_name=="RFC", Alpha==plot.alpha, epsilon==plot.epsilon, nu==plot.nu, contamination==plot.contamination,
+           Method %in% method.values, Label %in% label.values, imb==plot.imb)
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.95), n_cal=1000, Method="Standard")
+  df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="Standard")
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Label = factor(Label, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
+    facet_grid(Key~Label, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    geom_point(data=df.range2, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 11),
+          legend.title = element_text(size = 11))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_eps%s_nu%s_mu%s_%s_%s_optimistic%s_labelwise.pdf",
+                         exp.num, plot.data, 10000, plot.K, plot.epsilon, plot.nu, plot.imb, plot.guarantee, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+
+exp.num <- 302
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.contamination <- "RRB"
+plot.nu <- 0
+plot.K <- 4
+plot.data <- "synthetic5"
+plot.imb=2
+
+label.values <<- 0:3
+label.labels <<- paste("Label", 1:4, sep=" ")
+
+make_figure_303(exp.num=exp.num, plot.data=plot.data, plot.alpha=plot.alpha,
+                plot.K=plot.K, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
+                plot.guarantee="marginal", plot.contamination=plot.contamination,
+                plot.estimate="none", plot.imb=plot.imb,
+                plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
 
 ### Experiment 101: CIFAR-10H data ------------------------

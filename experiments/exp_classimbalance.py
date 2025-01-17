@@ -80,8 +80,6 @@ elif data_name == "synthetic3":
     data_distribution = data.DataModel_3(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic4":
     data_distribution = data.DataModel_4(K, num_var, imb=imb, random_state=seed)
-elif data_name == "synthetic5":
-    data_distribution = data.DataModel_5(K, num_var, imb=imb, random_state=seed)
 else:
     print("Unknown data distribution!")
     sys.stdout.flush()
@@ -243,18 +241,18 @@ def run_experiment(random_state):
                                                                    pre_trained=True, random_state=random_state),
 
                 "Standard label conditional": lambda: arc.methods.SplitConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                               label_conditional=True, allow_empty=False,
+                                                               label_conditional=True, allow_empty=allow_empty,
                                                                pre_trained=True, random_state=random_state),
 
                 "Label conditional": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
                                                                  rho_tilde=rho_tilde_hat, M=M_hat,
                                                                  calibration_conditional=False, gamma=None,
-                                                                 optimistic=False, allow_empty=False, verbose=False, pre_trained=True, random_state=random_state),
+                                                                 optimistic=False, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
                 
                 "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
                                                                   rho_tilde=rho_tilde_hat, M=M_hat,
                                                                   calibration_conditional=False, gamma=None,
-                                                                  optimistic=True, allow_empty=False, verbose=False, pre_trained=True, random_state=random_state)
+                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
 
             }
 
