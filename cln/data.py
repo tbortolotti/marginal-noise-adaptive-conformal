@@ -119,17 +119,17 @@ class DataModel_3(DataModel):
         return y.astype(np.int32)
     
 
-    class DataModel_4(DataModel):
-        def __init__(self, K, p, signal=1, imb=None, random_state=None):
-            super().__init__(K, p, random_state=random_state)
-            self.n_informative = np.maximum(1, int(self.p*0.5))
-            self.class_sep = signal
-            base = np.exp(-imb * np.arange(self.K))
-            self.weights = base / np.sum(base)
+class DataModel_4(DataModel):
+    def __init__(self, K, p, signal=1, imb=None, random_state=None):
+        super().__init__(K, p, random_state=random_state)
+        self.n_informative = np.maximum(1, int(self.p*0.5))
+        self.class_sep = signal
+        base = np.exp(-imb * np.arange(self.K))
+        self.weights = base / np.sum(base)
 
-        def sample(self, n):        
-            X, Y = make_classification(n_samples=n, n_classes=self.K, weights=self.weights,
+    def sample(self, n):        
+        X, Y = make_classification(n_samples=n, n_classes=self.K, weights=self.weights,
                                    n_features=self.p, n_informative=self.n_informative, 
                                    class_sep=self.class_sep, random_state=self.random_state)
-            Y = Y.astype(np.int32)
-            return X, Y
+        Y = Y.astype(np.int32)
+        return X, Y
