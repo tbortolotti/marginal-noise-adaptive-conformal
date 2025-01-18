@@ -1091,33 +1091,16 @@ make_figure_102(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
 #' Plot marginal coverage as function of the strength of label contamination, increasing the number of labels
 #' 
 
+
 init_settings <- function(plot.optimistic = FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   if(plot.optimistic) {
-    #method.values <<- c("Standard", "Adaptive optimized+", "Adaptive simplified+", "Asymptotic+")
-    #method.labels <<- c("Standard", "Adaptive-o+", "Adaptive-s+", "Asymptotic+")
-    method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+")
-    method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)")
-    color.scale <<- cbPalette[c(1,3,4)]
-    shape.scale <<- c(1,2,4)
-    linetype.scale <<- c(1,1,1)
-    # method.values <<- c("Standard", "Adaptive optimized+")
-    # method.labels <<- c("Standard", "Adaptive+")
-    # color.scale <<- cbPalette[c(1,3)]
-    # shape.scale <<- c(1,2)
-    # linetype.scale <<- c(1,1)
-    
-  } else {
-    # method.values <<- c("Standard", "Adaptive optimized", "Adaptive simplified", "Asymptotic")
-    # method.labels <<- c("Standard", "Adaptive-o", "Adaptive-s", "Asymptotic")
-    method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized", "Asymptotic")
-    method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive", "Adaptive (asymptotic)")
-    color.scale <<- cbPalette[c(1,7,2,9)]
-    shape.scale <<- c(1,3,0,5)
+    method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+")
+    method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)")
+    color.scale <<- cbPalette[c(1,3,4,8)]
+    shape.scale <<- c(1,2,4,7)
     linetype.scale <<- c(1,1,1,1)
   }
-  label.values <<- c("4 classes", "8 classes", "16 classes")
-  label.labels <<- c("4 classes", "8 classes", "16 classes")
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
 }
@@ -1139,7 +1122,8 @@ load_data <- function(exp.num) {
   return(summary)
 }
 
-make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none",
+
+make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-epsilon-point",
                             plot.guarantee="marginal",
                             plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE,
                             slides=FALSE) {
@@ -1152,39 +1136,38 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
   if(!slides){
     
     df <- summary %>%
-      filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate,
-             Guarantee==plot.guarantee, Label=="marginal",
-             Method %in% method.values, n_cal %in% c(500, 1500, 2500, 4500, 9500, 14500, 19500))  %>%
+      filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
+             Method %in% method.values, n_cal %in% c(500, 1500, 2500, 4500, 9500))%>%
+      filter(n_cal >= 500) %>%
       mutate(Method = factor(Method, method.values, method.labels))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.92), n_cal=2500, Method="Standard")
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.92), n_cal=1500, Method="Standard")
     
     {
       df3 = df2 = df[1:2,]
       df3$n_cal[1] = df2$n_cal[1] = min(df$n_cal)
       df3$n_cal[2] = df2$n_cal[2] = max(df$n_cal)
       df2$Mean[1] = 0.89
-      df2$Mean[2] = 1.3
+      df2$Mean[2] = 1.2
       df3$Mean[1] = 0.92
-      df3$Mean[2] = 1.4
+      df3$Mean[2] = 3.5
     }
-    
     
     pp <- df %>%
       ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
       geom_point() +
       geom_line() +
-      geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=0.1) +
       geom_point(data = df2, alpha = 0) +
       geom_point(data = df3, alpha = 0) +
+      geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=0.1) +
       facet_wrap(.~Key, scales="free") +
       geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
       geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
       scale_color_manual(values=color.scale) +
       scale_shape_manual(values=shape.scale) +
       scale_linetype_manual(values=linetype.scale) +
-      scale_x_continuous(trans='log10', limits=c(500,20000)) +
+      scale_x_continuous(trans='log10', limits=c(500,10000)) +
       xlab("Number of calibration samples") +
       ylab("") +
       theme_bw() +
@@ -1195,9 +1178,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
             legend.title = element_text(size = 11)) 
     
     if(save_plots) {
-      plot.file <- sprintf("figures/bigearthnet_oracle_K%d_%s_optimistic%s_%s.pdf",
-                           plot.K, plot.guarantee, plot.optimistic, plot.estimate)
-      #ggsave(file=plot.file, height=3.5, width=7, units="in")
+      plot.file <- sprintf("figures/bigearthnet_%s_optimistic%s_%s_lcn.pdf", plot.guarantee, plot.optimistic, plot.estimate)
       ggsave(file=plot.file, height=3, width=6.5, units="in")
       return(NULL)
     } else{
@@ -1205,12 +1186,12 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
     }
   } else {
     df_filt <- summary %>%
-      filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate,
-             Guarantee==plot.guarantee, Label=="marginal",
-             Method %in% method.values, n_cal %in% c(500, 1500, 2500,4500, 9500, 14500,19500))
+      filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
+             Method %in% method.values, n_cal %in% c(500, 1500, 2500, 4500, 9500))%>%
+      filter(n_cal >= 500)
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.93), n_cal=2500, Method="Standard")
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.98,0.92), n_cal=5000, Method="Standard")
     
     for (i in 1:length(method.values)) {
       current_methods <- method.values[1:i]
@@ -1221,13 +1202,13 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
         mutate(Method = factor(Method, levels = current_methods, labels = current_labels))
       
       {
-        df3 = df2 = df_filtered[1:2,]
-        df3$n_cal[1] = df2$n_cal[1] = min(df_filtered$n_cal)
-        df3$n_cal[2] = df2$n_cal[2] = max(df_filtered$n_cal)
-        df2$Mean[1] = 0.88
-        df2$Mean[2] = 1.3
-        df3$Mean[1] = 0.94
-        df3$Mean[2] = 1.4
+        df3 = df2 = df[1:2,]
+        df3$n_cal[1] = df2$n_cal[1] = min(df$n_cal)
+        df3$n_cal[2] = df2$n_cal[2] = max(df$n_cal)
+        df2$Mean[1] = 0.89
+        df2$Mean[2] = 1.2
+        df3$Mean[1] = 0.92
+        df3$Mean[2] = 3.5
         }
       
       pp <- df_filtered %>%
@@ -1251,52 +1232,31 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
               legend.position = "bottom",
               legend.direction = "horizontal")
       
-      plot.file <- sprintf("figures/slides/bigearthnet_oracle_K%d_%s_optimistic%s_%s_%d.pdf",
-                           plot.K, plot.guarantee, plot.optimistic, plot.estimate, i)
+      plot.file <- sprintf("figures/slides/bigearthnet_%s_optimistic%s_%s_%d_lc.pdf",
+                           plot.guarantee, plot.optimistic, plot.estimate, i)
       ggsave(file = plot.file, plot = pp, height = 3.5, width = 7, units = "in")
     }
   }
+  
+  
 }
+
 
 exp.num <- 201
 plot.alpha <- 0.1
 plot.K <- 6
-plot.estimate = "none"
+plot.estimate <- "none"
 
-# Adaptive methods without the optimistic option (not shown in paper)
+# Figure 6
 make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
-                plot.estimate=plot.estimate, plot.guarantee="marginal",
-                plot.optimistic=FALSE, save_plots=TRUE, reload=TRUE)
-
-## Figure 7
-make_figure_201(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
-                plot.estimate=plot.estimate, plot.guarantee="marginal",
+                plot.estimate="none", plot.guarantee="marginal",
                 plot.optimistic=TRUE, save_plots=FALSE, reload=TRUE)
 
-### Experiment 202: BigEarthNet data ------------------------
+
+
 #' Figure A16
 #' Plot label-conditional coverage as function of the strength of label contamination,
 #' stratified by the number of labels
-
-
-init_settings <- function(plot.optimistic = FALSE) {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  if(plot.optimistic) {
-    method.values <<- c("Standard", "Label conditional+")
-    method.labels <<- c("Standard", "Adaptive+ (label-cond)")
-    color.scale <<- cbPalette[c(1,8)]
-    shape.scale <<- c(1,7)
-    linetype.scale <<- c(1,1)
-  } else {
-    method.values <<- c("Standard", "Label conditional")
-    method.labels <<- c("Standard","Adaptive (label-cond)")
-    color.scale <<- cbPalette[c(1,10,1)]
-    shape.scale <<- c(1,6)
-    linetype.scale <<- c(1,1)
-  }
-  label.values <<- 0:5
-  label.labels <<- c("CWW", "Arable Land", "Agriculture", "Vegetation", "Urban Fabric", "Mixed")
-}
 
 load_data <- function(exp.num) {
   idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -1325,7 +1285,7 @@ make_figure_202 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="none
   
   df <- summary %>%
     filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee,
-           Method %in% method.values, n_cal %in% c(2000,3000,5000,10000,15000), Label %in% label.values)
+           Method %in% method.values, n_cal %in% c(500, 1500, 2500,4500, 9500), Label %in% label.values)
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=10000, Method="Standard")
@@ -1372,176 +1332,15 @@ plot.alpha <- 0.1
 plot.K <- 6
 plot.estimate <- "none"
 
+label.values <<- 0:5
+label.labels <<- c("CWW", "Arable Land", "Agriculture", "Vegetation", "Urban Fabric", "Mixed")
+
 ## Figure A16
 make_figure_202(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
                 plot.estimate=plot.estimate,
-                plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
-
-
-
-
-
-# Experiment 201 and 202: BigEarthNet ------------------------------------------------
-
-init_settings <- function(plot.optimistic = FALSE) {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  if(plot.optimistic) {
-    method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+")
-    method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)")
-    color.scale <<- cbPalette[c(1,3,4,8)]
-    shape.scale <<- c(1,2,4,7)
-    linetype.scale <<- c(1,1,1,1)
-  }
-  df.dummy <<- tibble(key="Coverage", value=0.95)
-  df.dummy2 <<- tibble(key="Coverage", value=0.5)
-}
-
-
-load_data <- function(exp.num) {
-  idir <- sprintf("results_hpc/exp%d", exp.num)
-  ifile.list <- list.files(idir)
-  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
-    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
-  }))
-  
-  summary <- results %>%
-    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, K, n_cal, n_test, estimate,
-             Guarantee, Alpha, Label, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))
-  
-  return(summary)
-}
-
-
-make_figure_203 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-epsilon-point",
-                            plot.guarantee="marginal",
-                            plot.optimistic=FALSE, save_plots=FALSE, reload=TRUE,
-                            slides=FALSE) {
-  if(reload) {
-    summary <- load_data(exp.num)
-  }
-  
-  init_settings(plot.optimistic=plot.optimistic)
-  
-  if(!slides){
-    
-    df <- summary %>%
-      filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
-             Method %in% method.values, n_cal %in% c(500, 1500, 2500, 4500, 9500, 14500))%>%
-      filter(n_cal >= 500) %>%
-      mutate(Method = factor(Method, method.values, method.labels))
-    
-    df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.92), n_cal=1500, Method="Standard")
-    
-    {
-      df3 = df2 = df[1:2,]
-      df3$n_cal[1] = df2$n_cal[1] = min(df$n_cal)
-      df3$n_cal[2] = df2$n_cal[2] = max(df$n_cal)
-      df2$Mean[1] = 0.89
-      df2$Mean[2] = 1.2
-      df3$Mean[1] = 0.92
-      df3$Mean[2] = 3.5
-    }
-    
-    pp <- df %>%
-      ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
-      geom_point() +
-      geom_line() +
-      geom_point(data = df2, alpha = 0) +
-      geom_point(data = df3, alpha = 0) +
-      geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=0.1) +
-      facet_wrap(.~Key, scales="free") +
-      geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
-      geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
-      scale_color_manual(values=color.scale) +
-      scale_shape_manual(values=shape.scale) +
-      scale_linetype_manual(values=linetype.scale) +
-      scale_x_continuous(trans='log10', limits=c(500,15000)) +
-      xlab("Number of calibration samples") +
-      ylab("") +
-      theme_bw() +
-      theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-            legend.position = "bottom",
-            legend.direction = "horizontal",
-            legend.text = element_text(size = 11),
-            legend.title = element_text(size = 11)) 
-    
-    if(save_plots) {
-      plot.file <- sprintf("figures/bigearthnet_%s_optimistic%s_%s_lcn.pdf", plot.guarantee, plot.optimistic, plot.estimate)
-      ggsave(file=plot.file, height=3, width=6.5, units="in")
-      return(NULL)
-    } else{
-      return(pp)
-    }
-  } else {
-    df_filt <- summary %>%
-      filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
-             Method %in% method.values, n_cal %in% c(500, 1500, 2500, 4500, 9500))%>%
-      filter(n_cal >= 500)
-    
-    df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.98,0.92), n_cal=5000, Method="Standard")
-    
-    for (i in 1:length(method.values)) {
-      current_methods <- method.values[1:i]
-      current_labels <- method.labels[1:i]
-      
-      df_filtered <- df_filt %>%
-        filter(Method %in% current_methods) %>%
-        mutate(Method = factor(Method, levels = current_methods, labels = current_labels))
-      
-      {
-        df3 = df2 = df[1:2,]
-        df3$n_cal[1] = df2$n_cal[1] = min(df$n_cal)
-        df3$n_cal[2] = df2$n_cal[2] = max(df$n_cal)
-        df2$Mean[1] = 0.89
-        df2$Mean[2] = 1.2
-        df3$Mean[1] = 0.92
-        df3$Mean[2] = 3.5
-      }
-      
-      pp <- df_filtered %>%
-        ggplot(aes(x = n_cal, y = Mean, color = Method, shape = Method, linetype = Method)) +
-        geom_point() +
-        geom_line() +
-        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-        geom_point(data = df2, alpha = 0) +
-        geom_point(data = df3, alpha = 0) +
-        facet_wrap(~Key, scales = "free_y") +
-        geom_hline(data = df.nominal, aes(yintercept = Mean), linetype = "dashed") +
-        geom_point(data = df.range, aes(x = n_cal, y = Mean), alpha = 0) +
-        scale_color_manual(values = color.scale[1:i]) +
-        scale_shape_manual(values = shape.scale[1:i]) +
-        scale_linetype_manual(values = linetype.scale[1:i]) +
-        scale_x_continuous(trans='log10', limits=c(500,10000)) +
-        xlab("Number of calibration samples") +
-        ylab("") +
-        theme_bw() +
-        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
-              legend.position = "bottom",
-              legend.direction = "horizontal")
-      
-      plot.file <- sprintf("figures/slides/bigearthnet_%s_optimistic%s_%s_%d_lc.pdf",
-                           plot.guarantee, plot.optimistic, plot.estimate, i)
-      ggsave(file = plot.file, plot = pp, height = 3.5, width = 7, units = "in")
-    }
-  }
-  
-  
-}
-
-
-exp.num <- 201
-plot.alpha <- 0.1
-plot.K <- 6
-plot.estimate <- "none"
-
-# Figure 6
-make_figure_203(exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
-                plot.estimate="none", plot.guarantee="marginal",
                 plot.optimistic=TRUE, save_plots=FALSE, reload=TRUE)
+
+
 
 
 
