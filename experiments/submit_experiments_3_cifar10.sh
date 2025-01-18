@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Parameters
-CONF=102
+CONF=101
 
-if [[ $CONF == 102 ]]; then
-  # Figure A15
+if [[ $CONF == 101 ]]; then
+  # Figure 5
   BATCH_SIZE_LIST=(1000 2000 5000 10000)
   #BATCH_SIZE_LIST=(1000)
   EPSILON_N_CLEAN_LIST=(0.1)
@@ -53,7 +53,7 @@ for SEED in $SEED_LIST; do
 
           if [[ $COMPLETE -eq 0 ]]; then
             # Script to be run
-            SCRIPT="exp_cifar_lc.sh $BATCH_SIZE $EPSILON_N_CLEAN $EPSILON_N_CORR $ESTIMATE $SEED"
+            SCRIPT="exp_cifar.sh $BATCH_SIZE $EPSILON_N_CLEAN $EPSILON_N_CORR $ESTIMATE $SEED"
             # Define job name
             OUTF=$LOGS"/"$JOBN".out"
             ERRF=$LOGS"/"$JOBN".err"
