@@ -5,17 +5,17 @@ CONF=201
 
 if [[ $CONF == 201 ]]; then
   # Figure 6
-  BATCH_SIZE_LIST=(700 800 900 1000 2000 3000 5000 10000 15000)
+  BATCH_SIZE_LIST=(1000 2000 3000 5000 10000 15000 20000)
   #BATCH_SIZE_LIST=(700)
   ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 30)
+  SEED_LIST=$(seq 1 50)
   #SEED_LIST=$(seq 1 1)
 
 fi
 
 # Slurm parameters
 MEMO=64G                             # Memory required (32 GB)
-TIME=00-14:00:00                    # Time required (5 h 00 m)
+TIME=00-07:00:00                    # Time required (7 h 00 m)
 CORE=1                              # Cores required (1)
 
 # Assemble order prefix
