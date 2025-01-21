@@ -64,8 +64,7 @@ make_figure_1 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
              Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
              Method %in% method.values,
              contamination==plot.contamination,
-             nu==plot.nu, epsilon %in% plot.epsilon) %>%
-      filter(n_cal >= 500)
+             nu==plot.nu, epsilon %in% plot.epsilon)
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
     df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
@@ -213,6 +212,10 @@ make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.
               plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=FALSE, slides=FALSE)
 
+make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+              plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=FALSE, slides=FALSE)
+
 #' ---------------------------------------------------------------------------------------------------------------------
 ### Experiment 2: Impact of Label contamination model ------------------------
 #' Figure 2 and Figure A11
@@ -291,7 +294,7 @@ make_figure_2 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margina
       mutate(Nu = sprintf("%.2f", nu))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.85,1), n_cal=1000, Method="Standard")
     
     appender <- function(string) TeX(paste("$\\nu : $", string))
     
@@ -352,10 +355,10 @@ plot.K <- 4
 
 ## Figure 2
 make_figure_2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
-# Optimistic counterpart (not shown in paper)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
+# Figure 3
 make_figure_2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
 
 
 # For slides
@@ -497,7 +500,7 @@ make_figure_2A(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guara
 
 #' ---------------------------------------------------------------------------------------------------------------------
 ### Experiment 3: Impact of number of classes, RRB -----------------------------
-#' Figure 3 and Figure A14
+#' Figure A12 and Figure A13
 #' Plot marginal coverage as function of the number of calibration samples, increasing the number of classes
 #' 
 
@@ -602,7 +605,7 @@ make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 
 #' ---------------------------------------------------------------------------------------------------------------------
 ### Experiment 4: Impact of number of classes, Uniform and Block ------------------------
-#' Figure A12 and Figure A13
+#' Figure A14 and Figure A15
 #' Plot marginal coverage as function of the number of calibration samples, increasing the number of classes
 #' 
 
@@ -611,7 +614,7 @@ plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.nu <- 0
 
-## Figure A15: Uniform
+## Figure A14: Uniform
 plot.contamination <- "uniform"
 make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
@@ -619,7 +622,7 @@ make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
-## Figure A16: Block
+## Figure A15: Block
 plot.contamination <- "block"
 make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
@@ -628,8 +631,132 @@ make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
-#' ---------------------------------------------------------------------------------------------------------------------
-### Experiment 5: The advantage of a method for marginal coverage
+
+### Experiment 6: Impact of higher K ------------------------------------------------
+
+init_settings <- function(plot.optimistic = FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  label.values <<- c("10 classes", "20 classes", "50 classes")
+  label.labels <<- c("10 classes", "20 classes", "50 classes")
+  if(plot.optimistic) {
+    method.values <<- c("Standard", "Adaptive optimized", "Adaptive optimized+")
+    method.labels <<- c("Standard", "Adaptive", "Adaptive+")
+    color.scale <<- cbPalette[c(1,2,3)]
+    shape.scale <<- c(1,0,2)
+    linetype.scale <<- c(1,1,1)
+  } else {
+    method.values <<- c("Standard", "Adaptive simplified", "Adaptive optimized", "Asymptotic")
+    method.labels <<- c("Standard", "Adaptive (simplified)", "Adaptive", "Adaptive (asymptotic)")
+    color.scale <<- cbPalette[c(1,7,2,9)]
+    shape.scale <<- c(1,3,0,5)
+    linetype.scale <<- c(1,1,1,1)
+  }
+}
+
+make_figure_4 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+                          plot.contamination="uniform",
+                          plot.epsilon=0.1, plot.nu=0.2,
+                          plot.optimistic = FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic = plot.optimistic)
+  
+  df <- summary %>%
+    filter(data=="synthetic1", num_var==20, n_train==10000, signal==1, Guarantee==plot.guarantee,
+           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon, nu==plot.nu, K %in% c(10,20,50)) %>%
+    filter(n_cal >= 500)
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(K_lab = sprintf("%d classes", K)) %>%
+    mutate(K_lab = factor(K_lab, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
+    facet_grid(Key~K_lab, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 11),
+          legend.title = element_text(size = 11))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num,
+                         10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4, width=6.5, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 6
+plot.alpha <- 0.1
+plot.nu <- 0.8
+
+plot.contamination <- "uniform"
+plot.epsilon <- 0.1
+make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
+
+plot.epsilon <- 0.2
+make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
+
+
+plot.contamination <- "block"
+plot.epsilon <- 0.1
+make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
+# # Optimistic counterpart (not shown in paper)
+# make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+#               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+plot.epsilon <- 0.2
+make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
+# # Optimistic counterpart (not shown in paper)
+# make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+#               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+# 
+
+plot.contamination <- "RRB"
+plot.epsilon <- 0.1
+make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
+# # Optimistic counterpart (not shown in paper)
+# make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+#               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+plot.epsilon <- 0.2
+make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
+# Optimistic counterpart (not shown in paper)
+make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+
+### Experiment 5: The advantage of a method for marginal coverage ------------------------------------------------
 #' Contamination model: RRB with nu = 0.2 -------------------------------------
 #' Plot marginal coverage as function of the number of calibration samples, increasing the number of classes
 #' 
@@ -1120,30 +1247,19 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
     df <- summary %>%
       filter(Alpha==plot.alpha, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee, Label=="marginal",
              Method %in% method.values, n_cal %in% c(500, 1500, 2500, 4500, 9500, 14500, 19500))%>%
-      filter(n_cal >= 500) %>%
-      mutate(Method = factor(Method, method.values, method.labels))
+      mutate(Method = factor(Method, method.values, method.labels),
+             Mean = ifelse(Key == "Size", log10(Mean), Mean),
+             SE = ifelse(Key == "Size", log10(Mean + SE) - log10(Mean), SE))
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
     df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.92), n_cal=1500, Method="Standard")
-    
-    {
-      df3 = df2 = df[1:2,]
-      df3$n_cal[1] = df2$n_cal[1] = min(df$n_cal)
-      df3$n_cal[2] = df2$n_cal[2] = max(df$n_cal)
-      df2$Mean[1] = 0.89
-      df2$Mean[2] = 1.2
-      df3$Mean[1] = 0.92
-      df3$Mean[2] = 3.5
-    }
     
     pp <- df %>%
       ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
       geom_point() +
       geom_line() +
-      geom_point(data = df2, alpha = 0) +
-      geom_point(data = df3, alpha = 0) +
       geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=0.1) +
-      facet_wrap(.~Key, scales="free") +
+      facet_wrap(~Key, scales = "free_y", labeller = as_labeller(c("Coverage" = "Coverage", "Size" = "Size (log10 scale)"))) +
       geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
       geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
       scale_color_manual(values=color.scale) +
@@ -1162,7 +1278,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
     if(save_plots) {
       plot.file <- sprintf("figures/bigearthnet_oracle_K%d_%s_optimistic%s_%s_lc.pdf",
                            plot.K, plot.guarantee, plot.optimistic, plot.estimate)
-      ggsave(file=plot.file, height=3.5, width=7, units="in")
+      ggsave(file=plot.file, height=3.6, width=7, units="in")
       return(NULL)
     } else{
       return(pp)
@@ -1174,7 +1290,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
       filter(n_cal >= 500)
     
     df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.98,0.92), n_cal=5000, Method="Standard")
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.92), n_cal=5000, Method="Standard")
     
     for (i in 1:length(method.values)) {
       current_methods <- method.values[1:i]
@@ -1189,9 +1305,9 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
         df3$n_cal[1] = df2$n_cal[1] = min(df$n_cal)
         df3$n_cal[2] = df2$n_cal[2] = max(df$n_cal)
         df2$Mean[1] = 0.89
-        df2$Mean[2] = 1.2
+        df2$Mean[2] = 0.1
         df3$Mean[1] = 0.92
-        df3$Mean[2] = 3.5
+        df3$Mean[2] = 0.6
         }
       
       pp <- df_filtered %>%
@@ -1215,7 +1331,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
               legend.position = "bottom",
               legend.direction = "horizontal")
       
-      plot.file <- sprintf("figures/slides/bigearthnet_oracle_K%d_%s_optimistic%s_%s_%d_lcn.pdf",
+      plot.file <- sprintf("figures/slides/bigearthnet_oracle_K%d_%s_optimistic%s_%s_lc_%d.pdf",
                            plot.K, plot.guarantee, plot.optimistic, plot.estimate, i)
       ggsave(file = plot.file, plot = pp, height = 3.5, width = 7, units = "in")
     }
