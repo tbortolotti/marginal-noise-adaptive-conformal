@@ -682,7 +682,7 @@ make_figure_4 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", 
     geom_point() +
     geom_line() +
     #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
-    facet_grid(Key~K_lab, scales="free") +
+    facet_wrap(Key~K_lab, scales="free") +
     geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
@@ -703,7 +703,7 @@ make_figure_4 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", 
     plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
                          exp.num,
                          10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=4, width=6.5, units="in")
+    ggsave(file=plot.file, height=5, width=7, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -803,7 +803,7 @@ make_figure_5 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", 
     geom_point() +
     geom_line() +
     #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
-    facet_grid(Key~K_lab, scales="free") +
+    facet_wrap(Key~K_lab, scales="free_y") +
     geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
@@ -824,7 +824,7 @@ make_figure_5 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", 
     plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
                          exp.num,
                          10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=3.5, width=7, units="in")
+    ggsave(file=plot.file, height=5, width=7, units="in")
     return(NULL)
   } else{
     return(pp)
