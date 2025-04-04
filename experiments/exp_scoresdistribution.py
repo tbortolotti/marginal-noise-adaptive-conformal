@@ -74,7 +74,6 @@ lambda_ = 0.8
 var_ = 0.02
 geometry = "circle"
 
-
 def sample_by_label_distribution(X_all, Y_all, rho, total_samples, random_state = 2025):
     """
     X_all:          numpy array of shape (n, p)
@@ -240,7 +239,7 @@ def generate_synthetic_data(p, K, m, lambda_,
     return (X, Y, final_centers, main_idx) if return_num else (X, Y)
 
 # Impose the label proportions from the population model
-rho = {
+rho_list = {
     "0": 0.02,
     "1": 0.15,
     "2": 0.13,
@@ -252,6 +251,8 @@ rho = {
     "8": 0.4,
     "9": 0.03
 }
+
+rho = [0.02, 0.15, 0.13, 0.09, 0.06, 0.05, 0.04, 0.03, 0.4, 0.03]
 
 # Initialize noise contamination process
 if contamination_model == "uniform":
@@ -316,7 +317,7 @@ def run_experiment(random_state):
                             geometry = geometry,
                             random_state=random_state,
                             randomize = True)
-    X_all, Y_all = sample_by_label_distribution(X_all, Y_all, rho, total_samples = n_train+n_cal+n_test,random_state = random_state+1)
+    X_all, Y_all = sample_by_label_distribution(X_all, Y_all, rho_list, total_samples = n_train+n_cal+n_test,random_state = random_state+1)
     print("Done.")
     sys.stdout.flush()
 
