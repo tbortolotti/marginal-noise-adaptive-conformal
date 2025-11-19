@@ -9,7 +9,7 @@ if [[ $CONF == 7 ]]; then
   NUM_VAR_LIST=(20)
   K_LIST=(10 20 50)
   MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.1)
+  EPSILON_LIST=(0.05)
   NU_LIST=(0.2)
   CONTAMINATION_LIST=("RRB")
   N_TRAIN_LIST=(10000)
@@ -53,7 +53,7 @@ for SEED in $SEED_LIST; do
                     for ESTIMATE in "${ESTIMATE_LIST[@]}"; do
 
 
-			                JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_est"$ESTIMATE"_seed"$SEED
+			                JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal5.0_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_est"$ESTIMATE"_seed"$SEED
 			                OUT_FILE=$OUT_DIR"/"$JOBN".txt"
 			                COMPLETE=0
 			                # ls $OUT_FILE

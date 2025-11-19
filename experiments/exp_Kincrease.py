@@ -62,7 +62,8 @@ if True:
 
 
 # Define other constant parameters
-signal = K/10
+#signal = K/10
+signal = 5
 n_test = 2000
 batch_size = 20
 allow_empty = True
