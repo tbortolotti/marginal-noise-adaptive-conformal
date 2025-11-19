@@ -17,33 +17,30 @@ sys.path.append("../third_party")
 from cln import data
 from cln import contamination
 from cln.utils import evaluate_predictions, estimate_rho
-
 from cln.classification import MarginalLabelNoiseConformal
-from cln.classification_label_conditional import LabelNoiseConformal
-
 from third_party import arc
 
 
 # Define default parameters
 exp_num = 1
-data_name = 'synthetic4'
+data_name = 'synthetic1'
 num_var = 20
 K = 4
 signal = 1
 model_name = 'RFC'
-epsilon = 0.1
+epsilon = 0.2
 nu = 0
 contamination_model = "uniform"
 n_train = 1000
 n_cal = 5000
-estimate = "None"
+estimate = "none"
 seed = 1
 
 # Parse input parameters
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 15:
+    if len(sys.argv) != 14:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -60,13 +57,12 @@ if True:
     n_train = int(sys.argv[10])
     n_cal = int(sys.argv[11])
     estimate = sys.argv[12]
-    imb = float(sys.argv[13])
-    seed = int(sys.argv[14])
+    seed = int(sys.argv[13])
 
 
 # Define other constant parameters
 n_test = 2000
-batch_size = 20
+batch_size = 10
 allow_empty = True
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
@@ -78,8 +74,6 @@ elif data_name == "synthetic2":
     data_distribution = data.DataModel_2(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic3":
     data_distribution = data.DataModel_3(K, num_var, signal=signal, random_state=seed)
-elif data_name == "synthetic4":
-    data_distribution = data.DataModel_4(K, num_var, imb=imb, random_state=seed)
 else:
     print("Unknown data distribution!")
     sys.stdout.flush()
@@ -126,13 +120,13 @@ else:
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
                        'signal':[signal], 'n_train':[n_train], 'n_cal':[n_cal],
                        'epsilon':[epsilon], 'nu':[nu], 'contamination':[contamination_model],
-                       'model_name':[model_name], 'estimate':[estimate], 'imb':[imb], 'seed':[seed]})
+                       'model_name':[model_name], 'estimate':[estimate], 'seed':[seed]})
 
 # Output file
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
 outfile_prefix += "_K" + str(K) + "_signal" + str(signal) + "_" + model_name
 outfile_prefix += "_eps" + str(epsilon) + "_nu" + str(nu) + "_" + contamination_model
-outfile_prefix += "_nt" + str(n_train) + "_nc" + str(n_cal) + "_est" + estimate + "_imb" + str(imb) +  "_seed" + str(seed)
+outfile_prefix += "_nt" + str(n_train) + "_nc" + str(n_cal) + "_est" + estimate + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
@@ -162,13 +156,9 @@ def run_experiment(random_state):
 
     # Estimate (if applicable) the label contamination model
     if estimate=="none":
-        rho_hat = rho
         rho_tilde_hat = rho_tilde
-        M_hat = M
     elif estimate=="rho":
         rho_tilde_hat = estimate_rho(Yt, K)
-        rho_hat = np.dot(M.T, rho_tilde_hat)
-        M_hat = M
     else:
         print("Unknown estimation option!")
         sys.stdout.flush()
@@ -184,6 +174,21 @@ def run_experiment(random_state):
 
     # Extract the pre-trained model
     black_box_pt = method_train.black_box
+
+    # Estimate the contamination process using anchor points
+    _, X_cal, _, _ = train_test_split(X, Y, test_size=n_cal, random_state=random_state)
+    p_hat_cal = black_box_pt.predict_proba(X_cal)
+    if not isinstance(p_hat_cal, np.ndarray):
+        p_hat_cal = np.asarray(p_hat_cal)
+    _, K_out = p_hat_cal.shape
+    assert K_out == K, f"black_box_pt returned {K_out} classes, expected {K}"
+
+    T_hat = np.zeros((K, K), dtype=float)
+    m = max(1, int(np.ceil(0.03 * n_cal)))
+    for l in range(K):
+        scores_l = p_hat_cal[:, l]
+        top_idx = np.argsort(scores_l)[::-1][:m]
+        T_hat[:, l] = p_hat_cal[top_idx, :].mean(axis=0)
 
     res = pd.DataFrame({})
     for alpha in [0.1]:
@@ -214,24 +219,11 @@ def run_experiment(random_state):
                                                                           optimized=True, optimistic=True, verbose=False,
                                                                           pre_trained=True, random_state=random_state),
 
-                "Adaptive simplified": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                           epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
-                                                                           allow_empty=allow_empty, method="improved",
-                                                                           optimized=False, optimistic=False, verbose=False,
-                                                                           pre_trained=True, random_state=random_state),
-
                 "Adaptive simplified+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
                                                                            epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                            allow_empty=allow_empty, method="improved",
                                                                            optimized=False, optimistic=True, verbose=False,
                                                                            pre_trained=True, random_state=random_state),
-
-                "Asymptotic": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                  epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
-                                                                  asymptotic_MC_samples=asymptotic_MC_samples, T=T,
-                                                                  rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
-                                                                  method="asymptotic", optimistic=False, verbose=False,
-                                                                  pre_trained=True, random_state=random_state),
 
                 "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
                                                                    epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
@@ -240,19 +232,30 @@ def run_experiment(random_state):
                                                                    method="asymptotic", optimistic=True, verbose=False,
                                                                    pre_trained=True, random_state=random_state),
 
-                "Standard label conditional": lambda: arc.methods.SplitConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                               label_conditional=True, allow_empty=allow_empty,
-                                                               pre_trained=True, random_state=random_state),
+                "Adaptive optimized AP": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                          epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
+                                                                          allow_empty=allow_empty, method="improved",
+                                                                          optimized=True, optimistic=False, verbose=False,
+                                                                          pre_trained=True, random_state=random_state),
 
-                "Label conditional": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                 rho_tilde=rho_tilde_hat, M=M_hat,
-                                                                 calibration_conditional=False, gamma=None,
-                                                                 optimistic=False, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
-                
-                "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                  rho_tilde=rho_tilde_hat, M=M_hat,
-                                                                  calibration_conditional=False, gamma=None,
-                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
+                "Adaptive optimized+ AP": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                          epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
+                                                                          allow_empty=allow_empty, method="improved",
+                                                                          optimized=True, optimistic=True, verbose=False,
+                                                                          pre_trained=True, random_state=random_state),
+
+                "Adaptive simplified+ AP": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                           epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
+                                                                           allow_empty=allow_empty, method="improved",
+                                                                           optimized=False, optimistic=True, verbose=False,
+                                                                           pre_trained=True, random_state=random_state),
+
+                "Asymptotic+ AP": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                   epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
+                                                                   asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
+                                                                   rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
+                                                                   method="asymptotic", optimistic=True, verbose=False,
+                                                                   pre_trained=True, random_state=random_state)
 
             }
 
@@ -272,7 +275,7 @@ def run_experiment(random_state):
                 sys.stdout.flush()
 
                 # Evaluate the method
-                res_new = evaluate_predictions(predictions, X_test, Y_test, K, label_conditional=True, verbose=False)
+                res_new = evaluate_predictions(predictions, X_test, Y_test, K, verbose=False)
                 res_new['Method'] = method_name
                 res_new['Guarantee'] = guarantee
                 res_new['Alpha'] = alpha

@@ -454,7 +454,7 @@ def run_experiment(random_state):
                 sys.stdout.flush()
 
                 # Evaluate the method
-                res_new = evaluate_predictions(predictions, X_test, Y_test, K, verbose=False)
+                res_new = evaluate_predictions(predictions, X_test, Y_test, K, label_conditional=True, verbose=False)
                 res_new['Method'] = method_name
                 res_new['Guarantee'] = guarantee
                 res_new['Alpha'] = alpha

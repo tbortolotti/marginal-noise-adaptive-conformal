@@ -13,18 +13,21 @@ def _evaluate_predictions(S, X, Y, verbose=False):
     res = {'Coverage':[marg_coverage], 'Size':[size]}
     return pd.DataFrame(res)
 
-def evaluate_predictions(S, X, Y, K, verbose=False):
+def evaluate_predictions(S, X, Y, K, label_conditional=False, verbose=False):
     S = np.array(S, dtype=object)
     results = pd.DataFrame(_evaluate_predictions(S, X, Y, verbose=verbose))
     results['Label'] = 'marginal'
-    for k in range(K):
-        idx_k = np.where(Y==k)[0]
-        if len(idx_k)>0:
-            res_k = pd.DataFrame(_evaluate_predictions(S[idx_k], X[idx_k], Y[idx_k], verbose=False))
-        else:
-            res_k = pd.DataFrame({'Coverage':[np.nan], 'Size':[np.nan]})
-        res_k['Label'] = k
-        results = pd.concat([results,res_k])
+    
+    if label_conditional:
+        for k in range(K):
+            idx_k = np.where(Y==k)[0]
+            if len(idx_k)>0:
+                res_k = pd.DataFrame(_evaluate_predictions(S[idx_k], X[idx_k], Y[idx_k], verbose=False))
+            else:
+                res_k = pd.DataFrame({'Coverage':[np.nan], 'Size':[np.nan]})
+            res_k['Label'] = k
+            results = pd.concat([results,res_k])
+    
     return pd.DataFrame(results)
 
 def evaluate_predictions_cc(S, X, Y, K, n_batches, verbose=False):

@@ -61,9 +61,60 @@ def eval_delta_marg_b(beta_0, betas, W, n):
     loss = loss_1 + 2/np.sqrt(n) * loss_2_b
     return loss
 
+
+def eval_delta_marg_a_revision(beta_0, betas, W, n):
+    K = W.shape[0]
+    # Identity matrix of size K
+    I_K = np.eye(K)
+
+    # Constructing a matrix with the i-th row as beta_i
+    Beta_matrix = cp.vstack([betas[i] * cp.Constant(np.ones(K)/K) for i in range(K)])
+
+    # Constructing Omega matrix
+    Omega = W - beta_0 * I_K - Beta_matrix
+
+    # Constants for objective function
+    const_a = np.sqrt(np.log(K*n+1))
+
+    # Calculate c(n)
+    c_n = estimate_c_const(n)
+
+    # Loss functions
+    loss_1 = c_n * (cp.abs(beta_0) + cp.sum(cp.abs(betas))/K)
+    loss_2_a = cp.norm(Omega, 1) * const_a
+    
+    loss = loss_1 + 2/np.sqrt(n) * loss_2_a
+    return loss
+
+def eval_delta_marg_b_revision(beta_0, betas, W, n):
+    K = W.shape[0]
+
+    # Identity matrix of size K
+    I_K = np.eye(K)
+
+    # Constructing a matrix with the i-th row as beta_i
+    Beta_matrix = cp.vstack([betas[i] * cp.Constant(np.ones(K)/K) for i in range(K)])
+
+    # Constructing Omega matrix
+    Omega = W - beta_0 * I_K - Beta_matrix
+
+    # Constants for objective function
+    const_b = 24 * ((2 * np.log(K)+1)/(2 * np.log(K)-1)) * np.sqrt(2*K*np.log(K))
+
+    # Calculate c(n)
+    c_n = estimate_c_const(n)
+
+    # Loss functions
+    loss_1 = c_n * (cp.abs(beta_0) + cp.sum(cp.abs(betas))/K)
+    loss_2_b = cp.norm(Omega, "inf") * const_b
+    
+    loss = loss_1 + 2/np.sqrt(n) * loss_2_b
+    return loss
+
+# Occhio a modificare qui per ripristinare le cose come erano prima
 def eval_delta_marg(beta_0, betas, W, n):
-    loss_a = eval_delta_marg_a(beta_0, betas, W, n).value
-    loss_b = eval_delta_marg_b(beta_0, betas, W, n).value
+    loss_a = eval_delta_marg_a_revision(beta_0, betas, W, n).value
+    loss_b = eval_delta_marg_b_revision(beta_0, betas, W, n).value
     return np.minimum(loss_a, loss_b)
 
 def solve_optim_problem_a(W, n):
@@ -73,7 +124,7 @@ def solve_optim_problem_a(W, n):
     betas = cp.Variable(K)
    
     # Solve problem A
-    loss = eval_delta_marg_a(beta_0, betas, W, n)
+    loss = eval_delta_marg_a_revision(beta_0, betas, W, n)
     objective = cp.Minimize(loss)
     problem = cp.Problem(objective, [])
     problem.solve()
@@ -91,7 +142,7 @@ def solve_optim_problem_b(W, n):
     betas = cp.Variable(K)
 
     # Solve problem A
-    loss = eval_delta_marg_b(beta_0, betas, W, n)
+    loss = eval_delta_marg_b_revision(beta_0, betas, W, n)
     objective = cp.Minimize(loss)
     problem = cp.Problem(objective, [])
     problem.solve()
