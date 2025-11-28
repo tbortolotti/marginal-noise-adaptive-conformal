@@ -2179,8 +2179,10 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical")
-  method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)")
+  # method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical")
+  # method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)")
+  method.values <<- c("Clean sample")
+  method.labels <<- c("Clean sample")
   color.scale <<- cbPalette[c(1,2,3,4)]
   shape.scale <<- c(1,0,2,3)
   linetype.scale <<- c(1,1,1,1)
@@ -2580,4 +2582,90 @@ make_figure_705(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 save_plots=FALSE, reload=TRUE)
 
 
+## Alternative visualization: stratifying on n_cal
+make_figure_705b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
+                            plot.contamination="uniform", plot.n_train, plot.n_cal, plot.signal=1, plot.model_name="RFC",
+                            plot.epsilon=0.2, plot.nu=0, plot.gamma,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==plot.n_train, n_cal %in% plot.n_cal, K==plot.K,
+           signal==plot.signal,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon==plot.epsilon, gamma %in% plot.gamma)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(N_cal = factor(sprintf("N cal: %d", n_cal), 
+                          levels = sprintf("N cal: %d", c(500, 1000, 2000, 5000)), 
+                          labels = c("N cal: 500", "N cal: 1000", "N cal: 2000", "N cal: 5000"))) %>%
+    ggplot(aes(x=gamma, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~N_cal, scales="free") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10', limits=c(0.001,1)) +
+    xlab("Threshold") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_K%d_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.K, plot.nu, plot.contamination)
+    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
 
+exp.num <- 705
+plot.nu <- 0
+plot.epsilon <- 0.2
+plot.K <- 5
+plot.data <- "synthetic1"
+plot.contamination <- "uniform"
+plot.n_train <- 10000
+plot.n_cal <- c(500, 1000, 2000, 5000)
+plot.signal <- 1
+plot.model_name <- "RFC"
+plot.gamma <- c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1)
+
+
+make_figure_705b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.n_cal=plot.n_cal,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
+                save_plots=FALSE, reload=TRUE)
+
+
+#' Questo esperimento ci dice che il minimo dell'errore commesso con il metodo AP empirical
+#' corrisponde (giustamente) al punto in cui l'accuratezza del set anchor points comincia a crollare.
+#' Questo ha senso perché per ottenere stime empiriche buone servono sia tanti punti
+#' che questi punti siano degli anchor points accurati.
+#' Come il numero di calibration samples aumenta, la necessità di arrivare fino al "limite" dell'accuratezza
+#' si riduce perché a quel punto è possibile massimizzare l'accuratezza.
+#' 
+#' Qui secondo me stiamo toccando il discorso delle numerosità equivalenti.
+#' Data una certa configurazione (data generation process, point classifier, altro?),
+#' esiste una sorta di sample size equivalente a cui si raggiunge una sorta di plateu?
+#' Come faccio ad accorgermene? Provo a guardare l'andamento dell'errore del solo metodo dei clean samples, per vedere se c'è un plateu.
+#' No, questa storia del plateu è una cagata mi sa.
+#' Allora qual è la questione qui? Ah forse posso provare calibration sampple sizes ancora maggiori e vedere che c'è una stabilizzazione su accuracy 1.
