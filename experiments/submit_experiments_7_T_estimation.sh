@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=700
+CONF=700z
 
 if [[ $CONF == 700 ]]; then
   DATA_LIST=("synthetic1")
@@ -83,7 +83,7 @@ elif [[ $CONF == 705 ]]; then
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(5000)
+  N_CAL_LIST=(500 1000 2000 5000)
   GAMMA_LIST=(0.001 0.002 0.005 0.01 0.02 0.05 0.1 0.2 0.5 1)
   SEED_LIST=$(seq 1 5)
 

@@ -1834,7 +1834,7 @@ make_figure_202(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K,
                 plot.optimistic=TRUE, save_plots=TRUE, reload=TRUE)
 
 
-### Experiments 600: Estimating the contamination process ------------------------
+### Experiments 600: Using the estimated T in the adaptive algorithm ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -2158,6 +2158,426 @@ make_figure_605(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal
 
 
 
+### Experiments 700: Estimating the contamination process ------------------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("tv_d", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, gamma, n_train, n_cal, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical")
+  method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)")
+  color.scale <<- cbPalette[c(1,2,3,4)]
+  shape.scale <<- c(1,0,2,3)
+  linetype.scale <<- c(1,1,1,1)
+}
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
+#### Experiment 701: Impact of Label contamination strength ------------------------
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_701 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
+                            plot.contamination="uniform", plot.n_train=10000, plot.signal=1, plot.model_name="RFC",
+                            plot.epsilon, plot.nu=0, plot.gamma=0.03,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K, signal==plot.signal,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon %in% plot.epsilon, gamma==plot.gamma)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Epsilon, scales="free") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
+    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 701
+plot.nu <- 0
+plot.epsilon <- c(0.05,0.1,0.15,0.2)
+plot.K <- 5
+plot.data <- "synthetic1"
+plot.contamination <- "uniform"
+plot.n_train <- 10000
+plot.signal <- 1
+plot.model_name <- "RFC"
+plot.gamma <- 0.03
+
+make_figure_701(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+              plot.signal=plot.signal, plot.model_name=plot.model_name,
+              plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
+              save_plots=FALSE, reload=TRUE)
+
+
+# Ok qui ora devo introdurre gli stimatori parametrici
+
+
+#### Experiment 702: Impact of the threshold gamma  ------------------------
+make_figure_702 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
+                            plot.contamination="uniform", plot.n_train=10000, plot.signal=1, plot.model_name="RFC",
+                            plot.epsilon=0.2, plot.nu=0, plot.gamma,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K, signal==plot.signal,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon==plot.epsilon, gamma %in% plot.gamma)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Gamma = sprintf("Thresh: %.2f", gamma)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Gamma, scales="free") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
+    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 702
+plot.nu <- 0
+plot.epsilon <- 0.2
+plot.K <- 5
+plot.data <- "synthetic1"
+plot.contamination <- "uniform"
+plot.n_train <- 10000
+plot.signal <- 1
+plot.model_name <- "RFC"
+plot.gamma <- c(0.01,0.05, 0.1, 0.2)
+
+make_figure_702(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
+                save_plots=FALSE, reload=TRUE)
+
+#### Experiment 703: Impact of the class separation ------------------------
+make_figure_703 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
+                            plot.contamination="uniform", plot.n_train=10000, plot.signal, plot.model_name="RFC",
+                            plot.epsilon=0.2, plot.nu=0, plot.gamma=0.03,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K,
+           signal%in%plot.signal,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon==plot.epsilon, gamma==plot.gamma)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Signal = sprintf("Class sep: %.2f", signal)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Signal, scales="free") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
+    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 703
+plot.nu <- 0
+plot.epsilon <- 0.2
+plot.K <- 5
+plot.data <- "synthetic1"
+plot.contamination <- "uniform"
+plot.n_train <- 10000
+plot.signal <- c(0.1, 0.5, 1)
+plot.model_name <- "RFC"
+plot.gamma <- 0.03
+
+make_figure_703(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
+                save_plots=FALSE, reload=TRUE)
+
+
+#### Experiment 704: Impact of the quality of the point predictor ------------------------
+make_figure_704 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
+                            plot.contamination="uniform", plot.n_train, plot.signal=1, plot.model_name="RFC",
+                            plot.epsilon=0.2, plot.nu=0, plot.gamma=0.03,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train%in%plot.n_train, K==plot.K,
+           signal==plot.signal,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon==plot.epsilon, gamma==plot.gamma)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(N_train = factor(sprintf("N train: %d", n_train), 
+                          levels = sprintf("N train: %d", c(500, 1000, 2000)), 
+                          labels = c("N_train: 500", "N train: 1000", "N train: 2000"))) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~N_train, scales="free") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_K%d_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.K, plot.nu, plot.contamination)
+    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 704
+plot.nu <- 0
+plot.epsilon <- 0.2
+plot.K <- 5
+plot.data <- "synthetic1"
+plot.contamination <- "uniform"
+plot.n_train <- c(500, 1000, 2000)
+plot.signal <- 1
+plot.model_name <- "RFC"
+plot.gamma <- 0.03
+
+make_figure_704(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
+                save_plots=FALSE, reload=TRUE)
+
+
+#' Commento:
+#' Probabilmente dovrei fare un unico plot stratificando per l'accuracy nell'individuare 
+#' gli anchor points
+#' Questi di fatto sono tutti plot che ci stanno dando la stessa informazione, ovvero che
+#' quando perdo accuracy nel set di anchor points i metodi anchor points peggiorano.
+#' L'altro commento che volevo fare è appunto che devo aggiungere altri stimatori, magari parametrici,
+#' perché mi sembra strano il metodo Patrini et al. funzioni veramente così male.
+#' Magari posso farmi venire in mente idee migliori, oltre al metodo ibrido già proposto?
+#' 
+#' Ci può stare che adesso io faccia qualche ragionamento sull'accuratezza.
+
+
+#### Experiment 705: Analysis on the accuracy -----------------------------------------------------------------
+#' Facciamo qualche prima visualizzazione...
+
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("accuracy", "accuracy_tilde", "tv_d"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, gamma, n_train, n_cal, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  method.values <<- c("Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical")
+  method.labels <<- c("Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)")
+  color.scale <<- cbPalette[c(2,3,4)]
+  shape.scale <<- c(0,2,3)
+  linetype.scale <<- c(1,1,1)
+}
+
+make_figure_705 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
+                            plot.contamination="uniform", plot.n_train=10000, plot.n_cal=5000,
+                            plot.signal=1, plot.model_name="RFC",
+                            plot.epsilon=0.2, plot.nu=0, plot.gamma,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K,
+           signal==plot.signal,
+           model_name==plot.model_name,
+           Method=="Anchor points empirical",
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon==plot.epsilon, gamma %in% plot.gamma)
+  
+  pp <- df %>%
+    ggplot(aes(x=gamma, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=0.1) +
+    facet_wrap(~Key, scales = "free_y", labeller = as_labeller(c("accuracy" = "accuracy", "accuracy_tilde" = "accuracy_tilde", "tv_d"="tv_d"))) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10', limits=c(0.001,1)) +
+    scale_y_continuous(trans='log10') +
+    xlab("Threshold") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
+    ggsave(file=plot.file, height=3, width=9.5, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+
+exp.num <- 705
+plot.nu <- 0
+plot.epsilon <- 0.2
+plot.K <- 5
+plot.data <- "synthetic1"
+plot.contamination <- "uniform"
+plot.n_train <- 10000
+plot.n_cal <- 5000
+plot.signal <- 1
+plot.model_name <- "RFC"
+plot.gamma <- c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1)
+
+make_figure_705(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.n_cal=plot.n_cal,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
+                save_plots=FALSE, reload=TRUE)
 
 
 
