@@ -14,7 +14,7 @@ if [[ $CONF == 601 ]]; then
   CONTAMINATION_LIST=("uniform" "block")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  ESTIMATE_LIST=("none")
+  GAMMA_LIST=(0.03)
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 602 ]]; then
@@ -28,7 +28,7 @@ elif [[ $CONF == 602 ]]; then
   CONTAMINATION_LIST=("RRB")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  ESTIMATE_LIST=("none")
+  GAMMA_LIST=(0.03)
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 603 ]]; then
@@ -42,7 +42,7 @@ elif [[ $CONF == 603 ]]; then
   CONTAMINATION_LIST=("RRB")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  ESTIMATE_LIST=("none")
+  GAMMA_LIST=(0.03)
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 604 ]]; then
@@ -56,7 +56,7 @@ elif [[ $CONF == 604 ]]; then
   CONTAMINATION_LIST=("RRB")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  ESTIMATE_LIST=("none")
+  GAMMA_LIST=(0.03)
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 605 ]]; then
@@ -70,7 +70,7 @@ elif [[ $CONF == 605 ]]; then
   CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  ESTIMATE_LIST=("none")
+  GAMMA_LIST=(0.03)
   SEED_LIST=$(seq 1 5)
   
 elif [[ $CONF == 606 ]]; then
@@ -85,7 +85,7 @@ elif [[ $CONF == 606 ]]; then
   CONTAMINATION_LIST=("RRB")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  ESTIMATE_LIST=("none")
+  GAMMA_LIST=(0.03)
   SEED_LIST=$(seq 1 5)
 
 fi
@@ -122,8 +122,8 @@ for SEED in $SEED_LIST; do
        		      for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
                   for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
                     for N_CAL in "${N_CAL_LIST[@]}"; do
-                      for ESTIMATE in "${ESTIMATE_LIST[@]}"; do
-			                  JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_est"$ESTIMATE"_seed"$SEED
+                      for GAMMA in "${GAMMA_LIST[@]}"; do
+			                  JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_gamma"$GAMMA"_seed"$SEED
 			                  OUT_FILE=$OUT_DIR"/"$JOBN".txt"
 			                  COMPLETE=0
 			                  #  ls $OUT_FILE
@@ -133,7 +133,7 @@ for SEED in $SEED_LIST; do
 
 			                  if [[ $COMPLETE -eq 0 ]]; then
                           # Script to be run
-                          SCRIPT="exp_ap.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CAL $ESTIMATE $SEED"
+                          SCRIPT="exp_ap.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CAL $GAMMA $SEED"
                           # Define job name
                           OUTF=$LOGS"/"$JOBN".out"
                           ERRF=$LOGS"/"$JOBN".err"

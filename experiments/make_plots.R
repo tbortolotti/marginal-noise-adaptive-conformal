@@ -2179,10 +2179,10 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  # method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical")
-  # method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)")
-  method.values <<- c("Clean sample")
-  method.labels <<- c("Clean sample")
+  method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical")
+  method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)")
+  # method.values <<- c("Clean sample")
+  # method.labels <<- c("Clean sample")
   color.scale <<- cbPalette[c(1,2,3,4)]
   shape.scale <<- c(1,0,2,3)
   linetype.scale <<- c(1,1,1,1)
@@ -2496,7 +2496,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("accuracy", "accuracy_tilde", "tv_d"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("accuracy", "accuracy_tilde", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, gamma, n_train, n_cal, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -2604,8 +2604,8 @@ make_figure_705b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(N_cal = factor(sprintf("N cal: %d", n_cal), 
-                          levels = sprintf("N cal: %d", c(500, 1000, 2000, 5000)), 
-                          labels = c("N cal: 500", "N cal: 1000", "N cal: 2000", "N cal: 5000"))) %>%
+                          levels = sprintf("N cal: %d", c(500, 1000, 5000, 50000)), 
+                          labels = c("N cal: 500", "N cal: 1000", "N cal: 5000", "N cal: 50000"))) %>%
     ggplot(aes(x=gamma, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
@@ -2642,10 +2642,10 @@ plot.K <- 5
 plot.data <- "synthetic1"
 plot.contamination <- "uniform"
 plot.n_train <- 10000
-plot.n_cal <- c(500, 1000, 2000, 5000)
+plot.n_cal <- c(500, 1000, 5000, 50000)
 plot.signal <- 1
 plot.model_name <- "RFC"
-plot.gamma <- c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1)
+plot.gamma <- c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2)
 
 
 make_figure_705b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
@@ -2669,3 +2669,18 @@ make_figure_705b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
 #' Come faccio ad accorgermene? Provo a guardare l'andamento dell'errore del solo metodo dei clean samples, per vedere se c'è un plateu.
 #' No, questa storia del plateu è una cagata mi sa.
 #' Allora qual è la questione qui? Ah forse posso provare calibration sampple sizes ancora maggiori e vedere che c'è una stabilizzazione su accuracy 1.
+
+
+#' Ok, qui mi sto portando a casa due punti importanti:
+#' 1. Patrini et al. non migliora con l'aumentare del calibration sample size,
+#'    almeno con i point predictors che ho considerato io.
+#'    Questo è sicuramente un problema che va sistemato.
+#' 2. Patrini et al., quando ha un errore competitivo con il metodo empirico,
+#'    è perché viene utilizzato su soglie molto piccole.
+#' 
+
+
+
+
+
+
