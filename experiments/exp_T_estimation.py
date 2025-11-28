@@ -155,7 +155,7 @@ def run_experiment(random_state):
     methods = {
         "Anchor points Patrini": lambda: AnchorPointsEstimation(X_cal,Yt_cal, K, gamma, black_box_pt, empirical=False),
 
-        "Anchor points empirical": lambda: AnchorPointsEstimation(X_cal,Yt_cal, K, gamma, empirical=True)
+        "Anchor points empirical": lambda: AnchorPointsEstimation(X_cal,Yt_cal, K, gamma, black_box_pt, empirical=True)
     }
 
     # Initialize an empty list to store the evaluation results
