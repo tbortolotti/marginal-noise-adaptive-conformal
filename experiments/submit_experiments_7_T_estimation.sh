@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=700z
+CONF=705
 
 if [[ $CONF == 700 ]]; then
   DATA_LIST=("synthetic1")
@@ -141,9 +141,9 @@ for SEED in $SEED_LIST; do
                           # Print order
                           echo $ORD
                           # Submit order
-                          # $ORD
+                          $ORD
                           # Run command now
-                          ./$SCRIPT
+                          #./$SCRIPT
 			                  fi
 		      
 		                  done
