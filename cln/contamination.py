@@ -58,7 +58,7 @@ class LinearContaminationModel:
             idx_l = np.where(Y==l)[0]
             n_l = len(idx_l)
             if n_l > 0:
-                w = self.T[:,l]
+                w = self.T[:,l].copy()
                 w /= np.sum(w)
                 Y_tilde[idx_l] = self.rng.choice(K, size=(n_l,), replace=True, p=w)
         return Y_tilde
