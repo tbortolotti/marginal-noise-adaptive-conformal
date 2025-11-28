@@ -57,7 +57,7 @@ if True:
     contamination_model = sys.argv[9]
     n_train = int(sys.argv[10])
     n_cal = int(sys.argv[11])
-    gamma = int(sys.argv[12])
+    gamma = float(sys.argv[12])
     seed = int(sys.argv[13])
 
 
