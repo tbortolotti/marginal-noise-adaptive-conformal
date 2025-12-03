@@ -2183,14 +2183,14 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 }
 
 init_settings <- function() {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical")
-  method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical", "Anchor points empirical parametric")
+  method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)", "AP (empirical param)")
   # method.values <<- c("Clean sample")
   # method.labels <<- c("Clean sample")
-  color.scale <<- cbPalette[c(1,2,3,4)]
-  shape.scale <<- c(1,0,2,3)
-  linetype.scale <<- c(1,1,1,1)
+  color.scale <<- cbPalette[c(1,2,3,4,5)]
+  shape.scale <<- c(1,0,2,3,4)
+  linetype.scale <<- c(1,1,1,1,1)
 }
 
 
@@ -2249,7 +2249,7 @@ make_figure_701 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 exp.num <- 701
 plot.nu <- 0
 plot.epsilon <- c(0.05,0.1,0.15,0.2)
-plot.K <- 5
+plot.K <- 4
 plot.data <- "synthetic1"
 plot.contamination <- "uniform"
 plot.n_train <- 10000
@@ -2261,7 +2261,7 @@ make_figure_701(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
               plot.signal=plot.signal, plot.model_name=plot.model_name,
               plot.contamination=plot.contamination, plot.n_train=plot.n_train,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
-              save_plots=FALSE, reload=TRUE)
+              save_plots=TRUE, reload=TRUE)
 
 
 # Ok qui ora devo introdurre gli stimatori parametrici
@@ -2555,7 +2555,7 @@ make_figure_705 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
-    scale_x_continuous(trans='log10', limits=c(0.001,1)) +
+    scale_x_continuous(trans='log10', limits=c(0.001,0.5)) +
     xlab("Threshold") +
     ylab("") +
     theme_bw() +
@@ -2586,7 +2586,7 @@ plot.n_train <- 10000
 plot.n_cal <- c(500, 1000, 5000, 50000)
 plot.signal <- 1
 plot.model_name <- "RFC"
-plot.gamma <- c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1)
+plot.gamma <- c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5)
 
 
 make_figure_705(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,

@@ -185,7 +185,7 @@ def run_experiment(random_state):
 
 
     # Estimate using n_equivalent samples with clean/noisy labels correspondence
-    n_eq = int(np.round(n_cal * gamma))
+    n_eq = int(np.ceil(n_cal * gamma * K))
     _, Y_cal_eq, _, Yt_cal_eq = train_test_split(Y_cal, Yt_cal, test_size=n_eq, random_state=random_state+3)
     T_hat_n_eq = np.zeros((K, K), dtype=float)
     for l in range(K):
