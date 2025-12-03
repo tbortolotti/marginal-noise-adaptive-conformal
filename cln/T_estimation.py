@@ -66,11 +66,11 @@ def evaluate_estimate(T, T_hat, Y=None, Yt=None, K=None, anchor_points_list=None
 
 class AnchorPointsEstimation:
     def __init__(self, X, Yt, K, gamma, black_box,
-                 empirical=True, verbose=False):
+                 estimation_method="empirical", verbose=False):
         
         self.K = K
         self.gamma = gamma
-        self.empirical = empirical
+        self.method = estimation_method
         self.black_box = copy.deepcopy(black_box)
         self.n_cal = X.shape[0]
 
@@ -88,28 +88,47 @@ class AnchorPointsEstimation:
 
         m = max(1, int(np.ceil(self.gamma * self.n_cal)))
 
-        T_hat = np.zeros((self.K, self.K), dtype=float)
+        # Find set of anchor points
         for l in range(self.K):
             scores_l = p_hat[:, l]
             top_idx = np.argsort(scores_l)[::-1][:m]
-
             # Update the list of anchor points
             anchor_points_list.append(top_idx)
 
-            if empirical:
+        self.anchor_points_list = anchor_points_list
+
+        # Estimate T_hat
+        if estimation_method=="empirical":
+            T_hat = np.zeros((self.K, self.K), dtype=float)
+            for l in range(self.K):
+                top_idx = self.anchor_points_list[l]
                 # Use anchor points as true classes and then evaluate empirical frequencies
                 if len(top_idx)>0:
                     counts = np.bincount(Yt[top_idx], minlength=self.K)
                     T_hat[:,l] = counts/len(top_idx)
                 else:
                     T_hat[:, l] = np.ones(self.K) / self.K
-            else:
-                # Use the point predictor (Patrini et al.)
+        elif estimation_method=="Patrini":
+            T_hat = np.zeros((self.K, self.K), dtype=float)
+            for l in range(self.K):
+                top_idx = self.anchor_points_list[l]
                 col_T_hat = p_hat[top_idx, :].mean(axis=0)
                 T_hat[:, l] = col_T_hat/np.sum(col_T_hat)
+        elif estimation_method=="empirical_parametricRR":
+            # Evaluate A_tilde in the set of anchor points
+            anchors_correct_tilde = 0
+            anchors_total = 0
+            for l in range(K):
+                top_idx = anchor_points_list[l]
+                Yt_top = Yt[top_idx]
+                anchors_correct_tilde += np.sum(Yt_top == l)
+                anchors_total   += len(top_idx)
+            # Use A_tilde as an estimate of epsilon
+            accuracy_tilde_gamma = anchors_correct_tilde/anchors_total
+            epsilon_hat = K/(K-1)*(1-accuracy_tilde_gamma)
+            T_hat = (1-epsilon_hat) * np.identity(K) + epsilon_hat/K * np.ones((K,K))
             
         self.T_hat = T_hat
-        self.anchor_points_list = anchor_points_list
 
         if verbose:
             print('Estimation via anchor points completed.')

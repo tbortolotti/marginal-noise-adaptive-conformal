@@ -6,7 +6,7 @@ CONF=705
 if [[ $CONF == 700 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
-  K_LIST=(5)
+  K_LIST=(4)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
   EPSILON_LIST=(0.2)
@@ -20,7 +20,7 @@ if [[ $CONF == 700 ]]; then
 elif [[ $CONF == 701 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
-  K_LIST=(5)
+  K_LIST=(4)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
   EPSILON_LIST=(0.05 0.1 0.15 0.2)
@@ -34,7 +34,7 @@ elif [[ $CONF == 701 ]]; then
 elif [[ $CONF == 702 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
-  K_LIST=(5)
+  K_LIST=(4)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
   EPSILON_LIST=(0.2)
@@ -48,7 +48,7 @@ elif [[ $CONF == 702 ]]; then
 elif [[ $CONF == 703 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
-  K_LIST=(5)
+  K_LIST=(4)
   SIGNAL_LIST=(0.1 0.5 1.0)
   MODEL_LIST=('RFC')
   EPSILON_LIST=(0.2)
@@ -62,7 +62,7 @@ elif [[ $CONF == 703 ]]; then
 elif [[ $CONF == 704 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
-  K_LIST=(5)
+  K_LIST=(4)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
   EPSILON_LIST=(0.2)
@@ -76,7 +76,7 @@ elif [[ $CONF == 704 ]]; then
 elif [[ $CONF == 705 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
-  K_LIST=(5)
+  K_LIST=(4)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
   EPSILON_LIST=(0.2)
