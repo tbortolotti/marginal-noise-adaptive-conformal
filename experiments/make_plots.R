@@ -2309,7 +2309,7 @@ make_figure_702 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s.pdf",
                          exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
-    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    ggsave(file=plot.file, height=7.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -2331,7 +2331,7 @@ make_figure_702(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 703: Impact of the class separation ------------------------
 make_figure_703 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
@@ -2375,9 +2375,9 @@ make_figure_703 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s.pdf",
                          exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
-    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    ggsave(file=plot.file, height=7.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -2399,7 +2399,7 @@ make_figure_703(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 704: Impact of the quality of the point predictor ------------------------
@@ -2446,9 +2446,9 @@ make_figure_704 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_K%d_nu%s_%s_%s_optimistic%s.pdf",
+    plot.file <- sprintf("figures/exp%d_%s_K%d_nu%s_%s.pdf",
                          exp.num, plot.data, plot.K, plot.nu, plot.contamination)
-    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    ggsave(file=plot.file, height=7.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -2470,7 +2470,7 @@ make_figure_704(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #' Commento:
@@ -2500,20 +2500,20 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("accuracy", "accuracy_tilde", "frobenius_d"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("accuracy", "accuracy_tilde", "frobenius_d", "tv_d"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, gamma, n_train, n_cal, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
-# init_settings <- function() {
-#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-#   method.values <<- c("Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical")
-#   method.labels <<- c("Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)")
-#   color.scale <<- cbPalette[c(2,3,4)]
-#   shape.scale <<- c(0,2,3)
-#   linetype.scale <<- c(1,1,1)
-# }
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  method.values <<- c("Anchor points Patrini", "Anchor points empirical", "Anchor points empirical parametric")
+  method.labels <<- c("AP (Patrini)", "AP (empirical)", "AP (empirical param)")
+  color.scale <<- cbPalette[c(2,3,4)]
+  shape.scale <<- c(0,2,3)
+  linetype.scale <<- c(1,1,1)
+}
 
 
 
@@ -2578,7 +2578,7 @@ make_figure_705 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 exp.num <- 705
 plot.nu <- 0
 plot.epsilon <- 0.2
-plot.K <- 5
+plot.K <- 4
 plot.data <- "synthetic1"
 plot.contamination <- "uniform"
 plot.n_train <- 10000

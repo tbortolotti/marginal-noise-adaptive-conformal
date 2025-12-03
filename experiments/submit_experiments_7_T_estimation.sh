@@ -87,6 +87,34 @@ elif [[ $CONF == 705 ]]; then
   GAMMA_LIST=(0.001 0.002 0.005 0.01 0.02 0.05 0.1 0.2 0.5 1)
   SEED_LIST=$(seq 1 5)
 
+elif [[ $CONF == 706 ]]; then
+  DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0.2)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("uniform")
+  N_TRAIN_LIST=(500 1000 10000)
+  N_CAL_LIST=(5000)
+  GAMMA_LIST=(0.001 0.002 0.005 0.01 0.02 0.05 0.1 0.2 0.5 1)
+  SEED_LIST=$(seq 1 5)
+
+elif [[ $CONF == 707 ]]; then
+  DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('block')
+  EPSILON_LIST=(0.2)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("uniform")
+  N_TRAIN_LIST=(500 1000 10000)
+  N_CAL_LIST=(5000)
+  GAMMA_LIST=(0.001 0.002 0.005 0.01 0.02 0.05 0.1 0.2 0.5 1)
+  SEED_LIST=$(seq 1 5)
+
 fi
 
 
