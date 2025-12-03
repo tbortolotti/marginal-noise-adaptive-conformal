@@ -185,15 +185,21 @@ def run_experiment(random_state):
 
 
     # Estimate using n_equivalent samples with clean/noisy labels correspondence
-    n_eq = int(np.ceil(n_cal * gamma * K))
-    _, Y_cal_eq, _, Yt_cal_eq = train_test_split(Y_cal, Yt_cal, test_size=n_eq, random_state=random_state+3)
+    n_eq = int(np.round(n_cal * gamma * K))
     T_hat_n_eq = np.zeros((K, K), dtype=float)
     for l in range(K):
-        idx = (Y_cal_eq == l)
-        n_l = np.sum(idx)
-        if n_l > 0:
-            counts = np.bincount(Yt_cal_eq[idx], minlength=K)
-            T_hat_n_eq[:, l] = counts / n_l
+        idx_l = (Y_cal == l)
+        Yt_cal_l = Yt_cal[idx_l]
+        n_l = len(Yt_cal_l)
+        n_l_eq = min(n_l,int(np.ceil(n_cal * gamma)))
+        if n_l_eq==n_l:
+            Yt_cal_l_eq = Yt_cal_l
+        else:
+            _,Yt_cal_l_eq = train_test_split(Yt_cal_l, test_size=n_l_eq, random_state=random_state+3)
+
+        if n_l_eq > 0:
+            counts = np.bincount(Yt_cal_l_eq, minlength=K)
+            T_hat_n_eq[:, l] = counts / n_l_eq
         else:
             # Fallback if a class i does not appear in Y_train2
             T_hat_n_eq[:, l] = np.ones(K) / K

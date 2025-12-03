@@ -2237,9 +2237,9 @@ make_figure_701 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s.pdf",
                          exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
-    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    ggsave(file=plot.file, height=7.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -2263,8 +2263,7 @@ make_figure_701(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
               save_plots=TRUE, reload=TRUE)
 
-
-# Ok qui ora devo introdurre gli stimatori parametrici
+# Qui dovrò pensare agli altri stimatori parametrici su altri esperimenti
 
 
 #### Experiment 702: Impact of the threshold gamma  ------------------------
@@ -2308,7 +2307,7 @@ make_figure_702 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s.pdf",
                          exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
     ggsave(file=plot.file, height=3.2, width=9, units="in")
     return(NULL)
@@ -2320,7 +2319,7 @@ make_figure_702 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 exp.num <- 702
 plot.nu <- 0
 plot.epsilon <- 0.2
-plot.K <- 5
+plot.K <- 4
 plot.data <- "synthetic1"
 plot.contamination <- "uniform"
 plot.n_train <- 10000
@@ -2388,7 +2387,7 @@ make_figure_703 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 exp.num <- 703
 plot.nu <- 0
 plot.epsilon <- 0.2
-plot.K <- 5
+plot.K <- 4
 plot.data <- "synthetic1"
 plot.contamination <- "uniform"
 plot.n_train <- 10000
@@ -2459,7 +2458,7 @@ make_figure_704 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 exp.num <- 704
 plot.nu <- 0
 plot.epsilon <- 0.2
-plot.K <- 5
+plot.K <- 4
 plot.data <- "synthetic1"
 plot.contamination <- "uniform"
 plot.n_train <- c(500, 1000, 2000)
