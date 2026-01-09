@@ -1953,6 +1953,15 @@ make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
 
+exp.num <- 603
+plot.data <- "synthetic3"
+
+plot.contamination <- "uniform"
+make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
+
 
 init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
