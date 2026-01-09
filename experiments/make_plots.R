@@ -2187,13 +2187,16 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical", "Anchor points empirical parametric")
-  method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)", "AP (empirical param)")
-  # method.values <<- c("Clean sample")
-  # method.labels <<- c("Clean sample")
-  color.scale <<- cbPalette[c(1,2,3,4,5)]
-  shape.scale <<- c(1,0,2,3,4)
-  linetype.scale <<- c(1,1,1,1,1)
+  # method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical", "Anchor points empirical parametric")
+  # method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)", "AP (empirical param)")
+  # color.scale <<- cbPalette[c(1,2,3,4,5)]
+  # shape.scale <<- c(1,0,2,3,4)
+  # linetype.scale <<- c(1,1,1,1,1)
+  method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points empirical", "Anchor points empirical parametric")
+  method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (empirical)", "AP (RRM)")
+  color.scale <<- cbPalette[c(1,2,4,5)]
+  shape.scale <<- c(1,0,3,4)
+  linetype.scale <<- c(1,1,1,1)
 }
 
 
@@ -2264,7 +2267,7 @@ make_figure_701(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
               plot.signal=plot.signal, plot.model_name=plot.model_name,
               plot.contamination=plot.contamination, plot.n_train=plot.n_train,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
-              save_plots=TRUE, reload=TRUE)
+              save_plots=FALSE, reload=TRUE)
 
 # Qui dovrò pensare agli altri stimatori parametrici su altri esperimenti
 
@@ -2334,7 +2337,32 @@ make_figure_702(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
+
+
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("offdiag_mass", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, gamma, n_train, n_cal, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+make_figure_702(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
+                save_plots=FALSE, reload=TRUE)
 
 #### Experiment 703: Impact of the class separation ------------------------
 make_figure_703 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
