@@ -191,14 +191,17 @@ def run_experiment(random_state):
 
         # Initialize and apply the method
         method = method_func()
-        T_hat, anchor_points_list, _, _ = method.get_estimate()
+        T_hat, anchor_points_list, gamma_opt, _ = method.get_estimate()
+
+        if gamma_opt is None:
+            gamma_opt = 50*K/n_cal
 
         print("Done.")
         sys.stdout.flush()
 
         performances = evaluate_estimate(T, T_hat, Y_cal, Yt_cal, K, anchor_points_list)
         res_update = header.copy()
-        res_update = res_update.assign(Method=method_name, n_eq=n_cal, **performances)
+        res_update = res_update.assign(Method=method_name, gamma_opt=gamma_opt, **performances)
         res_list.append(res_update)
 
     # Combine all results into a single DataFrame

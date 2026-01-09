@@ -2774,8 +2774,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("Clean sample", "AP D2L", "AP drop", "AP threshold")
-  method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP (threshold)")
+  method.values <<- c("Clean sample", "AP D2L", "AP drop5", "AP threshold")
+  method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
   color.scale <<- cbPalette[c(1,2,4,5)]
   shape.scale <<- c(1,0,3,4)
   linetype.scale <<- c(1,1,1,1)
@@ -2787,7 +2787,7 @@ init_settings <- function() {
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
 make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
                             plot.contamination="uniform", plot.n_train=10000, plot.signal=1, plot.model_name="RFC",
-                            plot.epsilon, plot.nu=0, plot.gamma=0.03,
+                            plot.epsilon, plot.nu=0,
                             save_plots=FALSE, reload=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
@@ -2803,7 +2803,8 @@ make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            nu==plot.nu, epsilon %in% plot.epsilon)
   
   pp <- df %>%
-    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Method = factor(Method, method.values, method.labels),
+           Mean = ifelse( Mean>0.2, NA, Mean)) %>%
     mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
