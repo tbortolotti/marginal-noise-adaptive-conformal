@@ -1860,15 +1860,23 @@ init_settings <- function(plot.optimistic = FALSE) {
   label.values <<- c("10 classes", "20 classes", "50 classes")
   label.labels <<- c("10 classes", "20 classes", "50 classes")
   
+  # method.values <<- c("Standard", "Standard using AP", "Adaptive optimized+", "Adaptive optimized+ clean",
+  #                     "Adaptive optimized+ AP D2L", "Adaptive optimized+ AP drop1", "Adaptive optimized+ AP drop05", "Adaptive optimized+ AP drop01",
+  #                     "Adaptive optimized+ AP param")
+  # method.labels <<- c("Standard", "Standard (AP)", "Adaptive+", "Adaptive+ (clean)",
+  #                     "Adaptive+ (AP D2L)", "Adaptive+ (AP drop 10%)", "Adaptive+ (AP drop 5%)", "Adaptive+ (AP drop 1%)",
+  #                     "Adaptive+ (AP RRM)")
+  # color.scale <<- cbPalette[c(1,2,3,4,5,6,7,8,9)]
+  # shape.scale <<- c(1,0,2,3,4,5,6,7,8)
+  # linetype.scale <<- c(1,1,1,1,1,1,1,1,1)
+  
   method.values <<- c("Standard", "Standard using AP", "Adaptive optimized+", "Adaptive optimized+ clean",
-                      "Adaptive optimized+ AP D2L", "Adaptive optimized+ AP drop1", "Adaptive optimized+ AP drop05", "Adaptive optimized+ AP drop01",
-                      "Adaptive optimized+ AP param")
+                      "Adaptive optimized+ AP drop01", "Adaptive optimized+ AP param")
   method.labels <<- c("Standard", "Standard (AP)", "Adaptive+", "Adaptive+ (clean)",
-                      "Adaptive+ (AP D2L)", "Adaptive+ (AP drop 10%)", "Adaptive+ (AP drop 5%)", "Adaptive+ (AP drop 1%)",
-                      "Adaptive+ (AP RRM)")
-  color.scale <<- cbPalette[c(1,2,3,4,5,6,7,8,9)]
-  shape.scale <<- c(1,0,2,3,4,5,6,7,8)
-  linetype.scale <<- c(1,1,1,1,1,1,1,1,1)
+                      "Adaptive+ (AP drop 1%)", "Adaptive+ (AP RRM)")
+  color.scale <<- cbPalette[c(1,2,3,4,5,6)]
+  shape.scale <<- c(1,0,2,3,4,5)
+  linetype.scale <<- c(1,1,1,1,1,1)
 }
 
 
@@ -1947,7 +1955,7 @@ make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 plot.contamination <- "block"
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
               plot.contamination=plot.contamination,
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
 
 #' COMMENTO:

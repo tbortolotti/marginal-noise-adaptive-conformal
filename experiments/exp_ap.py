@@ -177,14 +177,11 @@ def run_experiment(random_state):
     method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L")
     T_hat_D2L, _, gamma_opt, _ = method.get_estimate()
 
-    method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.1)
-    T_hat_drop_1, _, gamma_opt, _ = method.get_estimate()
-
-    method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.05)
+    method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.005)
     T_hat_drop_05, _, gamma_opt, _ = method.get_estimate()
 
     method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01)
-    T_hat_drop_01, _, gamma_opt, _ = method.get_estimate()
+    T_hat_drop_1, _, gamma_opt, _ = method.get_estimate()
 
      ## Anchor points method for parametric T estimation
     method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=gamma_opt)
@@ -250,13 +247,8 @@ def run_experiment(random_state):
                                                                     epsilon=epsilon, T=T_hat_drop_05, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
-                                                                    pre_trained=True, random_state=random_state),
+                                                                    pre_trained=True, random_state=random_state),  
 
-        "Adaptive optimized+ AP drop01": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                    epsilon=epsilon, T=T_hat_drop_01, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
-                                                                    pre_trained=True, random_state=random_state),    
         "Adaptive optimized+ AP param": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
                                                                     epsilon=epsilon, T=T_hat_param, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
