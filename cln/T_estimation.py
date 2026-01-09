@@ -42,6 +42,8 @@ def evaluate_estimate(T, T_hat, Y=None, Yt=None, K=None, anchor_points_list=None
     #js_d = js_matrix_distance(T.T, T_hat.T)
     tv_d = tv_matrix_distance(T.T, T_hat.T)
     frobenius_d = np.linalg.norm(T - T_hat, ord='fro')/T_norm
+    K = T.shape[0]
+    offdiag_mass = 1/K * (np.trace(T) - np.trace(T_hat))
 
     try:
         W_hat = np.linalg.inv(T_hat)
@@ -54,7 +56,8 @@ def evaluate_estimate(T, T_hat, Y=None, Yt=None, K=None, anchor_points_list=None
             'tv_d':tv_d,
             #'js_d':js_d,
             'frobenius_d':frobenius_d,
-            'frob_inv_d':frob_inv_d}
+            'frob_inv_d':frob_inv_d,
+            'offdiag_mass':offdiag_mass}
          
     if verbose:
         #print('Jensen Shannon Distance:             {:2.3%}'.format(js_d))
@@ -182,7 +185,7 @@ class AnchorPointsEstimation:
                  calibrate_gamma = False,
                  gamma_vec = None,
                  elbow_detection_method="D2L",
-                 drop = 0.03,
+                 drop = 0.01,
                  verbose=False):
         
         self.K = K
@@ -284,7 +287,7 @@ class AnchorPointsEstimation:
         if self.calibrate_gamma:
             return self.T_hat, self.anchor_points, self.gamma_opt, self.accuracy_tilde_vec
         else:
-            return self.T_hat, None, None, None
+            return self.T_hat, self.anchor_points, None, None
     
     def get_anchor_dataset(self, X):
         # Construct the anchor dataset

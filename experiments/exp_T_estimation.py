@@ -34,7 +34,7 @@ nu = 0
 contamination_model = "uniform"
 n_train = 1000
 n_cal = 5000
-gamma = 0.03
+gamma = 0.01
 seed = 1
 
 # Parse input parameters
@@ -219,7 +219,7 @@ def run_experiment(random_state):
 
         # Initialize and apply the method
         method = method_func()
-        T_hat, anchor_points_list = method.get_estimate()
+        T_hat, anchor_points_list, _, _ = method.get_estimate()
 
         print("Done.")
         sys.stdout.flush()
