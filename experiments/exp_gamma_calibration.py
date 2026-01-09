@@ -59,7 +59,7 @@ if True:
     seed = int(sys.argv[12])
 
 # Define other constant parameters
-batch_size = 10
+batch_size = 20
 gamma_vec = np.asarray([0.0001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dtype=float)
 
 # Initialize the data distribution
@@ -154,7 +154,7 @@ def run_experiment(random_state):
 
         "AP drop": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
 
-        "AP threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", gamma=(2*K/n_cal))
+        "AP threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", gamma=(50*K/n_cal))
     }
 
     # Initialize an empty list to store the evaluation results
