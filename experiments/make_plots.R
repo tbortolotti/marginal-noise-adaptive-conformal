@@ -1856,7 +1856,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
   label.values <<- c("10 classes", "20 classes", "50 classes")
   label.labels <<- c("10 classes", "20 classes", "50 classes")
   
@@ -1952,18 +1952,31 @@ make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
               plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
+
+
+init_settings <- function(plot.optimistic = FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  label.values <<- c("10 classes", "20 classes", "50 classes")
+  label.labels <<- c("10 classes", "20 classes", "50 classes")
+  
+  
+  method.values <<- c("Standard", "Standard using AP", "Adaptive optimized+", "Adaptive optimized+ clean",
+                      "Adaptive optimized+ AP drop05")
+  method.labels <<- c("Standard", "Standard (AP)", "Adaptive+", "Adaptive+ (clean)",
+                      "Adaptive+ (AP drop 0.5%)")
+  color.scale <<- cbPalette[c(1,2,3,4,5,6)]
+  shape.scale <<- c(1,0,2,3,4,5)
+  linetype.scale <<- c(1,1,1,1,1,1)
+}
+
+
 plot.contamination <- "block"
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
               plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
-
-#' COMMENTO:
-#' Cose da fare qui:
-#' 1. Per large calibration sample sizes non dovrebbe esserci questa grande distanza tra la nominal
-#'    e la empirical coverage. Usando il metodo che usa Matteo che tiene conto anche dell'incertezza legata
-#'    alla stima di T si risolve questo problema? Cioè dovrei "tirare" su tutto.
-#' 2. 
 
 #' ---------------------------------------------------------------------------------------------------------------------
 #### Experiment 602: Impact of Label contamination model ------------------------
@@ -2042,9 +2055,7 @@ plot.nu <- c(0, 0.25, 0.75, 1)
 plot.epsilon <- 0.1
 plot.K <- 4
 
-make_figure_602(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=FALSE, reload=TRUE)
-# Optimistic counterpart
+
 make_figure_602(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
