@@ -3,7 +3,7 @@
 # Parameters
 CONF=800
 
-if [[ $CONF == 700 ]]; then
+if [[ $CONF == 800 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
@@ -16,7 +16,7 @@ if [[ $CONF == 700 ]]; then
   N_CAL_LIST=(5000)
   SEED_LIST=(1)
 
-elif [[ $CONF == 701 ]]; then
+elif [[ $CONF == 801 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
