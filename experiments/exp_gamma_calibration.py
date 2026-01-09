@@ -156,7 +156,7 @@ def run_experiment(random_state):
 
         "AP drop1": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
 
-        "AP drop05": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
+        "AP drop05": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.005),
 
         "AP threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", gamma=(50*K/n_cal))
     }
