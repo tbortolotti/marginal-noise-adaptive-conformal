@@ -64,44 +64,190 @@ def evaluate_estimate(T, T_hat, Y=None, Yt=None, K=None, anchor_points_list=None
 
     return res
 
+def evaluate_accuracy_tilde(Yt, K, anchor_points_):
+    # Evaluate quality of the set of anchor points
+    anchors_correct_tilde = 0
+    anchors_total = 0
+
+    for l in range(K):
+        top_idx = anchor_points_[l]
+        Yt_top = Yt[top_idx]
+        anchors_correct_tilde += np.sum(Yt_top == l)
+        anchors_total   += len(top_idx)
+    
+    accuracy_tilde_gamma = anchors_correct_tilde/anchors_total
+
+    return accuracy_tilde_gamma
+
+def gamma_by_percent_drop(gamma_vec, accuracy_vec, drop=0.03):
+    acc_max = np.max(accuracy_vec)
+    ok = np.where(accuracy_vec >= (1.0-drop)*acc_max)[0]
+    if ok.size == 0:
+        idx = int(np.argmax(accuracy_vec))
+    else:
+        idx = int(ok[-1])
+    return gamma_vec[idx]
+
+"""
+def elbow_gamma_distance_to_line(gamma_vec, accuracy_tilde_vec, smooth_flag=False):
+    # Distance-to-line elbow finder.
+    if gamma_vec.size != accuracy_tilde_vec.size or gamma_vec.size < 3:
+        raise ValueError("gamma_vec and accuracy_tilde_vec must have same length >= 3.")
+    
+    y = accuracy_tilde_vec
+
+    if smooth_flag:
+        window = 3
+        pad = window // 2
+        ypad = np.pad(y, (pad, pad), mode="edge")
+        kernel = np.ones(window) / window
+        y = np.convolve(ypad, kernel, mode="valid")
+
+    # Endpoints
+    x1, y1 = gamma_vec[0], y[0]
+    x2, y2 = gamma_vec[-1], y[-1]
+
+    dx, dy = (x2 - x1), (y2 - y1)
+    denom = np.hypot(dx, dy)
+    if denom == 0:
+        raise ValueError("Endpoints are identical; cannot form a line for distance-to-line method.")
+
+    # Perpendicular distances
+    distances = np.abs((y1 - y2) * gamma_vec + (x2 - x1) * y + (x1 * y2 - x2 * y1)) / denom
+
+    # Exclude endpoints
+    distances[0] = -np.inf
+    distances[-1] = -np.inf
+
+    idx_elbow = int(np.argmax(distances))
+    gamma_elbow = gamma_vec[idx_elbow]
+
+    return gamma_elbow
+"""
+
+def elbow_gamma_distance_to_line(gamma_vec, accuracy_tilde_vec, smooth_flag=False):
+    # Distance-to-line elbow finder in log(gamma) space.
+
+    # Convert to numeric arrays
+    gamma_vec = np.asarray(gamma_vec, dtype=float).ravel()
+    y = np.asarray(accuracy_tilde_vec, dtype=float).ravel()
+
+    if smooth_flag:
+        window = 3
+        pad = window // 2
+        ypad = np.pad(y, (pad, pad), mode="edge")
+        kernel = np.ones(window) / window
+        y = np.convolve(ypad, kernel, mode="valid")
+
+    if gamma_vec.size != y.size or gamma_vec.size < 3:
+        raise ValueError("gamma_vec and accuracy_tilde_vec must have same length >= 3.")
+
+    if np.any(gamma_vec <= 0):
+        raise ValueError("All gamma values must be strictly positive to take logs.")
+
+    # Log-transform gamma
+    x = np.log10(gamma_vec)
+
+    # Endpoints of the chord
+    x1, y1 = x[0], y[0]
+    x2, y2 = x[-1], y[-1]
+
+    dx, dy = (x2 - x1), (y2 - y1)
+    denom = np.hypot(dx, dy)
+    if denom == 0:
+        raise ValueError("Endpoints are identical; cannot form a line for distance-to-line method.")
+
+    # Line coefficients: A x + B y + C = 0
+    A = y1 - y2
+    B = x2 - x1
+    C = x1 * y2 - x2 * y1
+
+    # Perpendicular distances
+    distances = np.abs(A * x + B * y + C) / denom
+
+    # Exclude endpoints
+    distances[0] = -np.inf
+    distances[-1] = -np.inf
+
+    idx_elbow = int(np.argmax(distances))
+
+    gamma_elbow = gamma_vec[idx_elbow]
+
+    return gamma_elbow
+
 class AnchorPointsEstimation:
-    def __init__(self, X, Yt, K, gamma, black_box,
-                 estimation_method="empirical", verbose=False):
+    def __init__(self, X, Yt, K, black_box,
+                 estimation_method="empirical",
+                 gamma = None,
+                 calibrate_gamma = False,
+                 gamma_vec = None,
+                 elbow_detection_method="D2L",
+                 drop = 0.03,
+                 verbose=False):
         
         self.K = K
-        self.gamma = gamma
         self.method = estimation_method
         self.black_box = copy.deepcopy(black_box)
         self.n_cal = X.shape[0]
 
+        self.calibrate_gamma = calibrate_gamma
+        if gamma_vec is not None:
+            self.gamma_vec = gamma_vec
+
+        self.elbow_detection_method = elbow_detection_method
+        self.drop = drop
 
         # Estimate the probabilities on the calibration set
         p_hat = black_box.predict_proba(X)
         if not isinstance(p_hat, np.ndarray):
             p_hat = np.asarray(p_hat)
-        _, K_out = p_hat.shape
-        assert K_out == self.K, f"black_box_pt returned {K_out} classes, expected {self.K}"
 
         ## Estimate the contamination process by identifying anchor points
-        # Identify the set of anchor points with threshold gamma%
-        anchor_points_list = []
+        if self.calibrate_gamma:
+            anchor_points_list = {}
+            accuracy_tilde_list = []
 
-        m = max(1, int(np.ceil(self.gamma * self.n_cal)))
+            for gamma in gamma_vec:
+                # Find set of anchor points with threshold gamma%
+                anchor_points_list[gamma] = []
+                m = max(1, int(np.ceil(gamma * self.n_cal)))
+                
+                for l in range(self.K):
+                    scores_l = p_hat[:, l]
+                    top_idx = np.argsort(scores_l)[::-1][:m]
+                    # Update the list of anchor points
+                    anchor_points_list[gamma].append(top_idx)
+                
+                accuracy_tilde_gamma = evaluate_accuracy_tilde(Yt, self.K, anchor_points_list[gamma])
+                accuracy_tilde_list.append(accuracy_tilde_gamma)
 
-        # Find set of anchor points
-        for l in range(self.K):
-            scores_l = p_hat[:, l]
-            top_idx = np.argsort(scores_l)[::-1][:m]
-            # Update the list of anchor points
-            anchor_points_list.append(top_idx)
+            accuracy_tilde_vec = np.asarray(accuracy_tilde_list)
+            self.accuracy_tilde_vec = accuracy_tilde_vec
+            if self.elbow_detection_method=="D2L":
+                gamma_opt = elbow_gamma_distance_to_line(gamma_vec, accuracy_tilde_vec, smooth_flag=True)
+            elif self.elbow_detection_method=="drop":
+                gamma_opt = gamma_by_percent_drop(gamma_vec, accuracy_tilde_vec, drop=self.drop)
+            self.gamma_opt = gamma_opt
+            self.anchor_points = anchor_points_list[gamma_opt].copy()
+        else:
+            self.gamma_opt = gamma
+            # Identify the set of anchor points with threshold gamma%
+            anchor_points = []
+            m = max(1, int(np.ceil(self.gamma_opt * self.n_cal)))
 
-        self.anchor_points_list = anchor_points_list
+            for l in range(self.K):
+                scores_l = p_hat[:, l]
+                top_idx = np.argsort(scores_l)[::-1][:m]
+                # Update the list of anchor points
+                anchor_points.append(top_idx)
+
+            self.anchor_points = anchor_points
 
         # Estimate T_hat
         if estimation_method=="empirical":
             T_hat = np.zeros((self.K, self.K), dtype=float)
             for l in range(self.K):
-                top_idx = self.anchor_points_list[l]
+                top_idx = self.anchor_points[l]
                 # Use anchor points as true classes and then evaluate empirical frequencies
                 if len(top_idx)>0:
                     counts = np.bincount(Yt[top_idx], minlength=self.K)
@@ -111,7 +257,7 @@ class AnchorPointsEstimation:
         elif estimation_method=="Patrini":
             T_hat = np.zeros((self.K, self.K), dtype=float)
             for l in range(self.K):
-                top_idx = self.anchor_points_list[l]
+                top_idx = self.anchor_points[l]
                 col_T_hat = p_hat[top_idx, :].mean(axis=0)
                 T_hat[:, l] = col_T_hat/np.sum(col_T_hat)
         elif estimation_method=="empirical_parametricRR":
@@ -119,7 +265,7 @@ class AnchorPointsEstimation:
             anchors_correct_tilde = 0
             anchors_total = 0
             for l in range(K):
-                top_idx = anchor_points_list[l]
+                top_idx = anchor_points[l]
                 Yt_top = Yt[top_idx]
                 anchors_correct_tilde += np.sum(Yt_top == l)
                 anchors_total   += len(top_idx)
@@ -134,6 +280,39 @@ class AnchorPointsEstimation:
             print('Estimation via anchor points completed.')
             sys.stdout.flush()
 
-    
     def get_estimate(self):
-        return self.T_hat, self.anchor_points_list
+        if self.calibrate_gamma:
+            return self.T_hat, self.anchor_points, self.gamma_opt, self.accuracy_tilde_vec
+        else:
+            return self.T_hat, None, None, None
+    
+    def get_anchor_dataset(self, X):
+        # Construct the anchor dataset
+        K = self.K
+
+        p_hat = self.black_box.predict_proba(X)
+        if not isinstance(p_hat, np.ndarray):
+            p_hat = np.asarray(p_hat)
+
+        # Collect (index, class) pairs
+        anchor_pairs = []
+        for l in range(K):
+            for idx in self.anchor_points[l]:
+                anchor_pairs.append((int(idx), l))
+
+        # Resolve possible duplicates:
+        # assign each index to the class with maximal p_hat
+        anchor_dict = {}
+        for idx, l in anchor_pairs:
+            if idx not in anchor_dict:
+                anchor_dict[idx] = l
+            else:
+                # choose class with highest predicted probability
+                if p_hat[idx, l] > p_hat[idx, anchor_dict[idx]]:
+                    anchor_dict[idx] = l
+
+        anchor_idx = np.array(sorted(anchor_dict.keys()), dtype=int)
+        Y_anchor = np.array([anchor_dict[i] for i in anchor_idx], dtype=int)
+        X_anchor = X[anchor_idx]
+
+        return (X_anchor, Y_anchor)

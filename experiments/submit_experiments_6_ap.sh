@@ -1,9 +1,22 @@
 #!/bin/bash
 
 # Parameters
-CONF=601
+CONF=600
 
-if [[ $CONF == 601 ]]; then
+if [[ $CONF == 600 ]]; then
+  DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0. 0.05 0.1 0.2)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("uniform" "block")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(2000)
+  SEED_LIST=(1)
+
+elif [[ $CONF == 601 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
@@ -14,7 +27,6 @@ if [[ $CONF == 601 ]]; then
   CONTAMINATION_LIST=("uniform" "block")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  GAMMA_LIST=(0.03)
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 602 ]]; then
@@ -23,69 +35,11 @@ elif [[ $CONF == 602 ]]; then
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.1)
+  EPSILON_LIST=(0.2)
   NU_LIST=(0 0.25 0.5 0.75  1)
   CONTAMINATION_LIST=("RRB")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  GAMMA_LIST=(0.03)
-  SEED_LIST=$(seq 1 5)
-
-elif [[ $CONF == 603 ]]; then
-  DATA_LIST=("synthetic1")
-  NUM_VAR_LIST=(20)
-  K_LIST=(4)
-  SIGNAL_LIST=(1.0)
-  MODEL_LIST=('SVC' 'NN')
-  EPSILON_LIST=(0.1)
-  NU_LIST=(0 0.25 0.5 0.75  1)
-  CONTAMINATION_LIST=("RRB")
-  N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  GAMMA_LIST=(0.03)
-  SEED_LIST=$(seq 1 5)
-
-elif [[ $CONF == 604 ]]; then
-  DATA_LIST=("synthetic2" "synthetic3")
-  NUM_VAR_LIST=(20)
-  K_LIST=(4)
-  SIGNAL_LIST=(1.0)
-  MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.1)
-  NU_LIST=(0 0.25 0.5 0.75  1)
-  CONTAMINATION_LIST=("RRB")
-  N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  GAMMA_LIST=(0.03)
-  SEED_LIST=$(seq 1 5)
-
-elif [[ $CONF == 605 ]]; then
-  DATA_LIST=("synthetic1")
-  NUM_VAR_LIST=(20)
-  K_LIST=(10 20 50)
-  SIGNAL_LIST=(1.0)
-  MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.1)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform")
-  N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  GAMMA_LIST=(0.03)
-  SEED_LIST=$(seq 1 5)
-  
-elif [[ $CONF == 606 ]]; then
-  # Figure 3
-  DATA_LIST=("synthetic1")
-  NUM_VAR_LIST=(20)
-  K_LIST=(10 20 50)
-  SIGNAL_LIST=(1.0)
-  MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.1)
-  NU_LIST=(0.2 0.8)
-  CONTAMINATION_LIST=("RRB")
-  N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  GAMMA_LIST=(0.03)
   SEED_LIST=$(seq 1 5)
 
 fi
@@ -122,32 +76,29 @@ for SEED in $SEED_LIST; do
        		      for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
                   for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
                     for N_CAL in "${N_CAL_LIST[@]}"; do
-                      for GAMMA in "${GAMMA_LIST[@]}"; do
-			                  JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_gamma"$GAMMA"_seed"$SEED
-			                  OUT_FILE=$OUT_DIR"/"$JOBN".txt"
-			                  COMPLETE=0
-			                  #  ls $OUT_FILE
-			                  if [[ -f $OUT_FILE ]]; then
-                              COMPLETE=1
-			                  fi
+                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_gamma"$GAMMA"_seed"$SEED
+                      OUT_FILE=$OUT_DIR"/"$JOBN".txt"
+                      COMPLETE=0
+                      #  ls $OUT_FILE
+                      if [[ -f $OUT_FILE ]]; then
+                            COMPLETE=1
+                      fi
 
-			                  if [[ $COMPLETE -eq 0 ]]; then
-                          # Script to be run
-                          SCRIPT="exp_ap.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CAL $GAMMA $SEED"
-                          # Define job name
-                          OUTF=$LOGS"/"$JOBN".out"
-                          ERRF=$LOGS"/"$JOBN".err"
-                          # Assemble slurm order for this job
-                          ORD=$ORDP" -J "$JOBN" -o "$OUTF" -e "$ERRF" "$SCRIPT
-                          # Print order
-                          echo $ORD
-                          # Submit order
-                          $ORD
-                          # Run command now
-                          #./$SCRIPT
-			                  fi
-		      
-		                  done
+                      if [[ $COMPLETE -eq 0 ]]; then
+                        # Script to be run
+                        SCRIPT="exp_ap.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CAL $GAMMA $SEED"
+                        # Define job name
+                        OUTF=$LOGS"/"$JOBN".out"
+                        ERRF=$LOGS"/"$JOBN".err"
+                        # Assemble slurm order for this job
+                        ORD=$ORDP" -J "$JOBN" -o "$OUTF" -e "$ERRF" "$SCRIPT
+                        # Print order
+                        echo $ORD
+                        # Submit order
+                        $ORD
+                        # Run command now
+                        #./$SCRIPT
+                      fi
                     done
                   done
                 done

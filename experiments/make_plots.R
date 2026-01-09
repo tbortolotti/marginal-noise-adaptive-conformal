@@ -2515,9 +2515,7 @@ init_settings <- function() {
   linetype.scale <<- c(1,1,1)
 }
 
-
-
-## Alternative visualization: stratifying on n_cal
+## Stratifying on n_cal
 make_figure_705 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
                             plot.contamination="uniform", plot.n_train, plot.n_cal, plot.signal=1, plot.model_name="RFC",
                             plot.epsilon=0.2, plot.nu=0, plot.gamma,
@@ -2595,6 +2593,106 @@ make_figure_705(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
                 save_plots=TRUE, reload=TRUE)
 
+#### Experiment 706: Accuracy stratified on n_train -----------------------------------------------------------------
+
+## Stratifying on n_train
+make_figure_706 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
+                            plot.contamination="uniform", plot.n_train, plot.n_cal, plot.signal=1, plot.model_name="RFC",
+                            plot.epsilon=0.2, plot.nu=0, plot.gamma,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train %in% plot.n_train, n_cal== plot.n_cal, K==plot.K,
+           signal==plot.signal,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon==plot.epsilon, gamma %in% plot.gamma)
+  
+  df.range <- tibble(Key=c("accuracy","accuracy"), Mean=c(1/plot.K,1), gamma=0.1, Method="AP (Patrini)")
+  df.rangetilde <- tibble(Key=c("accuracy_tilde","accuracy_tilde"), Mean=c(1/plot.K,1), gamma=0.1, Method="AP (Patrini)")
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(N_train = factor(sprintf("N train: %d", n_train), 
+                          levels = sprintf("N train: %d", c(500, 1000, 10000)), 
+                          labels = c("N train: 500", "N cal: 1000", "N cal: 10000"))) %>%
+    ggplot(aes(x=gamma, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_blank(data = df.range) +
+    geom_blank(data = df.rangetilde) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~N_train, scales="free") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10', limits=c(0.001,0.5)) +
+    xlab("Threshold") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_K%d_nu%s_%s.pdf",
+                         exp.num, plot.data, plot.K, plot.nu, plot.contamination)
+    ggsave(file=plot.file, height=7.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 706
+plot.nu <- 0
+plot.epsilon <- 0.2
+plot.K <- 4
+plot.data <- "synthetic1"
+plot.contamination <- "uniform"
+plot.n_train <- c(500, 1000,10000)
+plot.n_cal <- 5000
+plot.signal <- 1
+plot.model_name <- "RFC"
+plot.gamma <- c(0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2, 0.5)
+
+
+make_figure_706(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.n_cal=plot.n_cal,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
+                save_plots=TRUE, reload=TRUE)
+
+
+
+#### Experiment 707: Accuracy stratified on n_train -----------------------------------------------------------------
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  method.values <<- c("Anchor points Patrini", "Anchor points empirical")
+  method.labels <<- c("AP (Patrini)", "AP (empirical)")
+  color.scale <<- cbPalette[c(2,3)]
+  shape.scale <<- c(0,2)
+  linetype.scale <<- c(1,1)
+}
+
+plot.contamination <- "block"
+exp.num <- 707
+make_figure_706(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.n_cal=plot.n_cal,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
+                save_plots=TRUE, reload=TRUE)
 
 #' Questo esperimento ci dice che il minimo dell'errore commesso con il metodo AP empirical
 #' corrisponde (giustamente) al punto in cui l'accuratezza del set anchor points comincia a crollare.
