@@ -1871,12 +1871,13 @@ init_settings <- function(plot.optimistic = FALSE) {
   # linetype.scale <<- c(1,1,1,1,1,1,1,1)
   
   method.values <<- c("Standard", "Standard using AP", "Adaptive optimized+", "Adaptive optimized+ clean",
-                      "Adaptive optimized+ AP drop05", "Adaptive optimized+ AP param")
+                      "Adaptive optimized+ AP drop1",
+                      "Adaptive optimized+ AP D2L")
   method.labels <<- c("Standard", "Standard (AP)", "Adaptive+", "Adaptive+ (clean)",
-                      "Adaptive+ (AP drop 0.5%)", "Adaptive+ (AP RRM)")
-  color.scale <<- cbPalette[c(1,2,3,4,5,6)]
-  shape.scale <<- c(1,0,2,3,4,5)
-  linetype.scale <<- c(1,1,1,1,1,1)
+                      "Adaptive+ (AP drop 0.5%)", "Adaptive+ (AP D2L)")
+  color.scale <<- cbPalette[c(1,2,3,4,5,6,7)]
+  shape.scale <<- c(1,0,2,3,4,5,6)
+  linetype.scale <<- c(1,1,1,1,1,1,1)
 }
 
 
@@ -1933,7 +1934,7 @@ make_figure_601 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
                          exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=3.2, width=9, units="in")
+    ggsave(file=plot.file, height=3.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -1950,7 +1951,7 @@ plot.data <- "synthetic1"
 plot.contamination <- "uniform"
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
               plot.contamination=plot.contamination,
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 exp.num <- 603
@@ -2187,16 +2188,16 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  # method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical", "Anchor points empirical parametric")
-  # method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)", "AP (empirical param)")
-  # color.scale <<- cbPalette[c(1,2,3,4,5)]
-  # shape.scale <<- c(1,0,2,3,4)
-  # linetype.scale <<- c(1,1,1,1,1)
-  method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points empirical", "Anchor points empirical parametric")
-  method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (empirical)", "AP (RRM)")
-  color.scale <<- cbPalette[c(1,2,4,5)]
-  shape.scale <<- c(1,0,3,4)
-  linetype.scale <<- c(1,1,1,1)
+  method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points Patrini", "Anchor points empirical", "Anchor points empirical parametric")
+  method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (Patrini)", "AP (empirical)", "AP (empirical RRM)")
+  color.scale <<- cbPalette[c(1,2,3,4,5)]
+  shape.scale <<- c(1,0,2,3,4)
+  linetype.scale <<- c(1,1,1,1,1)
+  # method.values <<- c("Clean sample", "Clean sample (n_eq)", "Anchor points empirical", "Anchor points empirical parametric")
+  # method.labels <<- c("Clean sample", "Clean sample (n_eq)", "AP (empirical)", "AP (RRM)")
+  # color.scale <<- cbPalette[c(1,2,4,5)]
+  # shape.scale <<- c(1,0,3,4)
+  # linetype.scale <<- c(1,1,1,1)
 }
 
 
@@ -2267,7 +2268,7 @@ make_figure_701(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
               plot.signal=plot.signal, plot.model_name=plot.model_name,
               plot.contamination=plot.contamination, plot.n_train=plot.n_train,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.gamma=plot.gamma,
-              save_plots=FALSE, reload=TRUE)
+              save_plots=TRUE, reload=TRUE)
 
 # Qui dovrò pensare agli altri stimatori parametrici su altri esperimenti
 
@@ -2539,11 +2540,16 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  method.values <<- c("Anchor points Patrini", "Anchor points empirical", "Anchor points empirical parametric")
-  method.labels <<- c("AP (Patrini)", "AP (empirical)", "AP (empirical param)")
-  color.scale <<- cbPalette[c(2,3,4)]
-  shape.scale <<- c(0,2,3)
-  linetype.scale <<- c(1,1,1)
+  # method.values <<- c("Anchor points Patrini", "Anchor points empirical", "Anchor points empirical parametric")
+  # method.labels <<- c("AP (Patrini)", "AP (empirical)", "AP (empirical param)")
+  # color.scale <<- cbPalette[c(2,3,4)]
+  # shape.scale <<- c(0,2,3)
+  # linetype.scale <<- c(1,1,1)
+  method.values <<- c("Anchor points empirical", "Anchor points empirical parametric")
+  method.labels <<- c( "AP (empirical)", "AP (empirical RRM)")
+  color.scale <<- cbPalette[c(3,4)]
+  shape.scale <<- c(2,3)
+  linetype.scale <<- c(1,1)
 }
 
 ## Stratifying on n_cal
@@ -2565,8 +2571,8 @@ make_figure_705 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            contamination==plot.contamination,
            nu==plot.nu, epsilon==plot.epsilon, gamma %in% plot.gamma)
   
-  df.range <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.35,1), gamma=0.1, Method="AP (Patrini)")
-  df.rangetilde <- tibble(Key=c("accuracy_tilde","accuracy_tilde"), Mean=c(0.35,1), gamma=0.1, Method="AP (Patrini)")
+  df.range <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.35,1), gamma=0.1, Method="AP (empirical)")
+  df.rangetilde <- tibble(Key=c("accuracy_tilde","accuracy_tilde"), Mean=c(0.35,1), gamma=0.1, Method="AP (empirical)")
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
@@ -2766,7 +2772,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("tv_d", "frobenius_d", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("gamma_opt", "frobenius_d", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, n_train, n_cal, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
