@@ -1861,19 +1861,19 @@ init_settings <- function(plot.optimistic = FALSE) {
   label.labels <<- c("10 classes", "20 classes", "50 classes")
   
   # method.values <<- c("Standard", "Standard using AP", "Adaptive optimized+", "Adaptive optimized+ clean",
-  #                     "Adaptive optimized+ AP D2L", "Adaptive optimized+ AP drop1", "Adaptive optimized+ AP drop05", "Adaptive optimized+ AP drop01",
+  #                     "Adaptive optimized+ AP D2L", "Adaptive optimized+ AP drop1", "Adaptive optimized+ AP drop05",
   #                     "Adaptive optimized+ AP param")
   # method.labels <<- c("Standard", "Standard (AP)", "Adaptive+", "Adaptive+ (clean)",
-  #                     "Adaptive+ (AP D2L)", "Adaptive+ (AP drop 10%)", "Adaptive+ (AP drop 5%)", "Adaptive+ (AP drop 1%)",
+  #                     "Adaptive+ (AP D2L)", "Adaptive+ (AP drop 1%)", "Adaptive+ (AP drop 0.5%)",
   #                     "Adaptive+ (AP RRM)")
-  # color.scale <<- cbPalette[c(1,2,3,4,5,6,7,8,9)]
-  # shape.scale <<- c(1,0,2,3,4,5,6,7,8)
-  # linetype.scale <<- c(1,1,1,1,1,1,1,1,1)
+  # color.scale <<- cbPalette[c(1,2,3,4,5,6,7,8)]
+  # shape.scale <<- c(1,0,2,3,4,5,6,7)
+  # linetype.scale <<- c(1,1,1,1,1,1,1,1)
   
   method.values <<- c("Standard", "Standard using AP", "Adaptive optimized+", "Adaptive optimized+ clean",
-                      "Adaptive optimized+ AP drop01", "Adaptive optimized+ AP param")
+                      "Adaptive optimized+ AP drop05", "Adaptive optimized+ AP param")
   method.labels <<- c("Standard", "Standard (AP)", "Adaptive+", "Adaptive+ (clean)",
-                      "Adaptive+ (AP drop 1%)", "Adaptive+ (AP RRM)")
+                      "Adaptive+ (AP drop 0.5%)", "Adaptive+ (AP RRM)")
   color.scale <<- cbPalette[c(1,2,3,4,5,6)]
   shape.scale <<- c(1,0,2,3,4,5)
   linetype.scale <<- c(1,1,1,1,1,1)

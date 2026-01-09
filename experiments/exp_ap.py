@@ -177,13 +177,13 @@ def run_experiment(random_state):
     method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L")
     T_hat_D2L, _, gamma_opt, _ = method.get_estimate()
 
-    method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.005)
-    T_hat_drop_05, _, gamma_opt, _ = method.get_estimate()
-
     method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01)
     T_hat_drop_1, _, gamma_opt, _ = method.get_estimate()
 
-     ## Anchor points method for parametric T estimation
+    method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.005)
+    T_hat_drop_05, _, gamma_opt, _ = method.get_estimate()
+
+    ## Anchor points method for parametric T estimation
     method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=gamma_opt)
     T_hat_param, _, _, _ = method.get_estimate()
 
