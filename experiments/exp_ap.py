@@ -41,7 +41,7 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 14:
+    if len(sys.argv) != 13:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -57,9 +57,7 @@ if True:
     contamination_model = sys.argv[9]
     n_train = int(sys.argv[10])
     n_cal = int(sys.argv[11])
-    gamma = float(sys.argv[12])
-    seed = int(sys.argv[13])
-
+    seed = int(sys.argv[12])
 
 # Define other constant parameters
 estimate = "none"
