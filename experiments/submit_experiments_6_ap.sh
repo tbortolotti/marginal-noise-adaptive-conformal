@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=600
+CONF=601
 
 if [[ $CONF == 600 ]]; then
   DATA_LIST=("synthetic1")
@@ -26,7 +26,7 @@ elif [[ $CONF == 601 ]]; then
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform" "block")
   N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 602 ]]; then
@@ -39,7 +39,7 @@ elif [[ $CONF == 602 ]]; then
   NU_LIST=(0 0.25 0.5 0.75  1)
   CONTAMINATION_LIST=("RRB")
   N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
 fi
