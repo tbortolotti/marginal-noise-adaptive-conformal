@@ -60,7 +60,7 @@ if True:
 
 # Define other constant parameters
 batch_size = 20
-gamma_vec = np.asarray([0.0001, 0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dtype=float)
+gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dtype=float)
 
 # Initialize the data distribution
 if data_name == "synthetic1":
@@ -152,7 +152,11 @@ def run_experiment(random_state):
     methods = {
         "AP D2L": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L"),
 
-        "AP drop": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
+        "AP drop5": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.05),
+
+        "AP drop1": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
+
+        "AP drop05": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
 
         "AP threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", gamma=(50*K/n_cal))
     }
