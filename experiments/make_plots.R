@@ -1870,14 +1870,21 @@ init_settings <- function(plot.optimistic = FALSE) {
   # shape.scale <<- c(1,0,2,3,4,5,6,7)
   # linetype.scale <<- c(1,1,1,1,1,1,1,1)
   
-  method.values <<- c("Standard", "Standard using AP", "Adaptive optimized+", "Adaptive optimized+ clean",
-                      "Adaptive optimized+ AP drop1",
+  method.values <<- c("Standard",
+                      #"Standard using AP",
+                      "Adaptive optimized+", "Adaptive optimized+ clean",
+                      #"Adaptive optimized+ AP drop1",
                       "Adaptive optimized+ AP D2L")
-  method.labels <<- c("Standard", "Standard (AP)", "Adaptive+", "Adaptive+ (clean)",
-                      "Adaptive+ (AP drop 0.5%)", "Adaptive+ (AP D2L)")
-  color.scale <<- cbPalette[c(1,2,3,4,5,6,7)]
-  shape.scale <<- c(1,0,2,3,4,5,6)
-  linetype.scale <<- c(1,1,1,1,1,1,1)
+                      #"Adaptive optimized+ AP param")
+  method.labels <<- c("Standard",
+                      #"Standard (AP)",
+                      "Adaptive+", "Adaptive+ (clean)",
+                      #"Adaptive+ (AP drop 1%)",
+                      "Adaptive+ (AP D2L)")
+                      #"Adaptive+ (AP RRM)")
+  color.scale <<- cbPalette[c(1,3,4,5)]
+  shape.scale <<- c(1,2,3,4)
+  linetype.scale <<- c(1,1,1,1)
 }
 
 
@@ -1934,7 +1941,7 @@ make_figure_601 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
                          exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=3.5, width=9, units="in")
+    ggsave(file=plot.file, height=4, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -1952,6 +1959,93 @@ plot.contamination <- "uniform"
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
               plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+
+# With standard AP
+init_settings <- function(plot.optimistic = FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+
+  method.values <<- c("Standard", "Standard using AP", "Adaptive optimized+", "Adaptive optimized+ clean",
+                      "Adaptive optimized+ AP D2L")
+  method.labels <<- c("Standard", "Standard (AP)", "Adaptive+", "Adaptive+ (clean)",
+                      "Adaptive+ (AP D2L)")
+  color.scale <<- cbPalette[c(1,2,3,4,5)]
+  shape.scale <<- c(1,0,2,3,4)
+  linetype.scale <<- c(1,1,1,1,1)
+}
+
+make_figure_601bis <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+                            plot.contamination="uniform",
+                            plot.epsilon, plot.nu=0,
+                            plot.optimistic=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic = plot.optimistic)
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==10000, K==plot.K, signal==1, Guarantee==plot.guarantee,
+           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon %in% plot.epsilon)
+  
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
+    #        mutate(Label = factor(Label, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Epsilon, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          #legend.position = "bottom",
+          #legend.direction = "horizontal",
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s_AP.pdf",
+                         exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 601
+plot.alpha <- 0.1
+plot.nu <- 0
+plot.epsilon <- c(0.05,0.1,0.2)
+plot.K <- 4
+plot.data <- "synthetic1"
+
+plot.contamination <- "uniform"
+make_figure_601bis(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+
 
 
 exp.num <- 603
@@ -2772,7 +2866,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("gamma_opt", "frobenius_d", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("tv_d", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
+    #pivot_longer(c("gamma_opt", "frobenius_d", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, n_train, n_cal, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -2780,7 +2875,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("Clean sample", "AP D2L", "AP drop5", "AP threshold")
+  method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
   method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
   color.scale <<- cbPalette[c(1,2,4,5)]
   shape.scale <<- c(1,0,3,4)
@@ -2855,6 +2950,81 @@ make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    #pivot_longer(c("tv_d", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("gamma_opt", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, n_train, n_cal, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+
+make_figure_801bis <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
+                            plot.contamination="uniform", plot.n_train=10000, plot.signal=1, plot.model_name="RFC",
+                            plot.epsilon, plot.nu=0,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K, signal==plot.signal,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon %in% plot.epsilon)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels),
+           Mean = ifelse( Mean>0.2, NA, Mean)) %>%
+    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Epsilon, scales="free") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_bis.pdf",
+                         exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
+    ggsave(file=plot.file, height=5.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+make_figure_801bis(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu,
+                save_plots=TRUE, reload=TRUE)

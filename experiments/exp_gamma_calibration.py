@@ -32,7 +32,7 @@ model_name = 'RFC'
 epsilon = 0.2
 nu = 0
 contamination_model = "uniform"
-n_train = 1000
+n_train = 10000
 n_cal = 5000
 seed = 1
 
@@ -88,7 +88,6 @@ else:
     sys.stdout.flush()
     exit(-1)
 
-
 # Initialize black-box model
 if model_name == 'RFC':
     black_box = arc.black_boxes.RFC(n_estimators=100, max_features="sqrt")
@@ -104,7 +103,6 @@ else:
     print("Unknown model!")
     sys.stdout.flush()
     exit(-1)
-
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
@@ -158,7 +156,17 @@ def run_experiment(random_state):
 
         "AP drop05": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.005),
 
-        "AP threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", gamma=(50*K/n_cal))
+        "AP threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", gamma=(20*K/n_cal)),
+
+        "AP RR D2L": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L"),
+
+        "AP RR drop5": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.05),
+
+        "AP RR drop1": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
+
+        "AP RR drop05": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.005),
+
+        "AP RR threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=(20*K/n_cal))
     }
 
     # Initialize an empty list to store the evaluation results
@@ -178,8 +186,10 @@ def run_experiment(random_state):
             T_hat_clean[:, l] = np.ones(K) / K
     col_sums = T_hat_clean.sum(axis=0, keepdims=True)
     T_hat_clean /= col_sums
+    epsilon_hat = (1-T_hat_clean[0,0])*K/(K-1)
 
     performances = evaluate_estimate(T, T_hat_clean)
+    performances['epsilon_res'] = epsilon_hat - epsilon
     res_update = header.copy()
     res_update = res_update.assign(Method='Clean sample',  n_eq=n_cal, **performances)
     res_list.append(res_update)
@@ -192,14 +202,16 @@ def run_experiment(random_state):
         # Initialize and apply the method
         method = method_func()
         T_hat, anchor_points_list, gamma_opt, _ = method.get_estimate()
+        epsilon_hat = (1-T_hat[0,0])*K/(K-1)
 
         if gamma_opt is None:
-            gamma_opt = 50*K/n_cal
+            gamma_opt = 20*K/n_cal
 
         print("Done.")
         sys.stdout.flush()
 
         performances = evaluate_estimate(T, T_hat, Y_cal, Yt_cal, K, anchor_points_list)
+        performances['epsilon_res'] = epsilon_hat - epsilon
         res_update = header.copy()
         res_update = res_update.assign(Method=method_name, gamma_opt=gamma_opt, **performances)
         res_list.append(res_update)

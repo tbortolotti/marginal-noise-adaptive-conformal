@@ -24,7 +24,7 @@ from third_party import arc
 
 
 # Define default parameters
-exp_num = 1
+exp_num = 601
 data_name = 'synthetic1'
 num_var = 20
 K = 4

@@ -268,7 +268,7 @@ class AnchorPointsEstimation:
             anchors_correct_tilde = 0
             anchors_total = 0
             for l in range(K):
-                top_idx = anchor_points[l]
+                top_idx = self.anchor_points[l]
                 Yt_top = Yt[top_idx]
                 anchors_correct_tilde += np.sum(Yt_top == l)
                 anchors_total   += len(top_idx)
