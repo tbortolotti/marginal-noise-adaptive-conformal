@@ -186,7 +186,7 @@ def run_experiment(random_state):
             T_hat_clean[:, l] = np.ones(K) / K
     col_sums = T_hat_clean.sum(axis=0, keepdims=True)
     T_hat_clean /= col_sums
-    epsilon_hat = (1-T_hat_clean[0,0])*K/(K-1)
+    epsilon_hat = (1-1/K*np.trace(T_hat_clean))*K/(K-1)
 
     performances = evaluate_estimate(T, T_hat_clean)
     performances['epsilon_res'] = epsilon_hat - epsilon
@@ -202,7 +202,7 @@ def run_experiment(random_state):
         # Initialize and apply the method
         method = method_func()
         T_hat, anchor_points_list, gamma_opt, _ = method.get_estimate()
-        epsilon_hat = (1-T_hat[0,0])*K/(K-1)
+        epsilon_hat = (1-1/K*np.trace(T_hat))*K/(K-1)
 
         if gamma_opt is None:
             gamma_opt = 20*K/n_cal
