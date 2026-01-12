@@ -166,7 +166,9 @@ def run_experiment(random_state):
 
         "AP RR drop05": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.005),
 
-        "AP RR threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=(20*K/n_cal))
+        "AP RR threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=(20*K/n_cal)),
+
+        "AP RR 3perc": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=0.03)
     }
 
     # Initialize an empty list to store the evaluation results

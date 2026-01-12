@@ -2854,6 +2854,21 @@ make_figure_706(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 
 
 ### Experiments 800: Criterion for gamma calibration ------------------------
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
+  # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
+  method.values <<- c("Clean sample", "AP RR D2L", "AP RR drop1", "AP RR threshold")
+  method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (drop 1%)", "AP RR threshold")
+  color.scale <<- cbPalette[c(1,2,4,5)]
+  shape.scale <<- c(1,0,3,4)
+  linetype.scale <<- c(1,1,1,1)
+}
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
+#### Experiment 801: Impact of Label contamination strength ------------------------
+
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -2873,18 +2888,6 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   return(summary)
 }
 
-init_settings <- function() {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
-  method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
-  color.scale <<- cbPalette[c(1,2,4,5)]
-  shape.scale <<- c(1,0,3,4)
-  linetype.scale <<- c(1,1,1,1)
-}
-
-
-#' ---------------------------------------------------------------------------------------------------------------------
-#### Experiment 801: Impact of Label contamination strength ------------------------
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
 make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
                             plot.contamination="uniform", plot.n_train=10000, plot.signal=1, plot.model_name="RFC",
@@ -2950,7 +2953,7 @@ make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 load_data <- function(exp.num, from_cluster=TRUE) {
@@ -2966,7 +2969,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   }))    
   summary <- results %>%
     #pivot_longer(c("tv_d", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
-    pivot_longer(c("gamma_opt", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("gamma_opt", "offdiag_mass", "epsilon_res"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, n_train, n_cal, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -3027,4 +3030,4 @@ make_figure_801bis(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, 
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
