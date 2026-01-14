@@ -190,7 +190,7 @@ def run_experiment(random_state):
     performances = evaluate_estimate(T, T_hat_clean)
     performances['epsilon_res'] = epsilon_hat - epsilon
     res_update = header.copy()
-    res_update = res_update.assign(Method='Clean sample',  n_eq=n_cal, **performances)
+    res_update = res_update.assign(Method='Clean sample',  gamma_opt=1, **performances)
     res_list.append(res_update)
 
     # Loop through the methods, apply them, and evaluate the results
