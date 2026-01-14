@@ -3061,7 +3061,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("tv_d", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("epsilon_res", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
     #pivot_longer(c("gamma_opt", "frobenius_d", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, n_train, n_cal, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
@@ -3085,6 +3085,8 @@ make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu,
                 save_plots=FALSE, reload=TRUE)
 
+#' ---------------------------------------------------------------------------------------------------------------------
+#### Experiment 803: Impact of filtering the anchor points set ------------------------
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -3098,18 +3100,77 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    #pivot_longer(c("tv_d", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
-    pivot_longer(c("gamma_opt", "offdiag_mass", "epsilon_res"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("epsilon_res", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
+    #pivot_longer(c("gamma_opt", "frobenius_d", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, n_train, n_cal, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
+make_figure_803 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", plot.K=4,
+                            plot.contamination="uniform", plot.n_train=10000, plot.signal, plot.model_name="RFC",
+                            plot.epsilon=0.2, plot.nu=0,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K,
+           signal %in% plot.signal,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           nu==plot.nu, epsilon==plot.epsilon)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels),
+           Mean = ifelse( Mean>0.2, NA, Mean)) %>%
+    mutate(Signal = sprintf("Sep: %.2f", signal)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Signal, scales="free") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s.pdf",
+                         exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
+    ggsave(file=plot.file, height=7.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
 
-make_figure_801bis(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                   plot.signal=plot.signal, plot.model_name=plot.model_name,
-                   plot.contamination=plot.contamination, plot.n_train=plot.n_train,
-                   plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-                   save_plots=FALSE, reload=TRUE)
 
+exp.num <- 803
+plot.nu <- 0
+plot.epsilon <- c(0.05,0.1,0.15,0.2)
+plot.K <- 4
+plot.data <- "synthetic1_easy"
+plot.contamination <- "uniform"
+plot.n_train <- 10000
+plot.signal <- 1
+plot.model_name <- "RFC"
 
+make_figure_803(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu,
+                save_plots=FALSE, reload=TRUE)
