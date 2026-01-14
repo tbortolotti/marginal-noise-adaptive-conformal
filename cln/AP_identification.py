@@ -270,8 +270,6 @@ def multimodal_gmm_certifier(
     return Y_hat
 """
 
-
-
 class AnchorPointsIdentification:
     def __init__(self, X, Yt, K, black_box,
                  gamma = None,
@@ -347,7 +345,7 @@ class AnchorPointsIdentification:
             # Operate a filtering of the anchor points set in order to improve accuracy
             if filter_method=="mahalanobisdepth":
                 X_anchor, Yt_anchor, anchor_idx = self.get_anchor_dataset(X)
-                Yt_anchor_filtered = mahalanobis_depth_certifier(X_anchor, Yt_anchor, cov_estimator="ledoitwolf", anchor_m=20)
+                Yt_anchor_filtered = mahalanobis_depth_certifier(X_anchor, Yt_anchor, cov_estimator="ledoitwolf")
 
                 keep_mask = (Yt_anchor_filtered != -1)
                 kept_indices = set(anchor_idx[keep_mask])
