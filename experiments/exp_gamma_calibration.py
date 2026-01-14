@@ -18,13 +18,14 @@ sys.path.append("../third_party")
 
 from cln import data
 from cln import contamination
-from cln.T_estimation import evaluate_estimate, AnchorPointsEstimation
+from cln.AP_identification import AnchorPointsIdentification
+from cln.T_estimation import evaluate_estimate, TMatrixEstimation
 from third_party import arc
 
 
 # Define default parameters
 exp_num = 801
-data_name = 'synthetic1'
+data_name = 'synthetic1_easy'
 num_var = 20
 K = 4
 signal = 1
@@ -64,6 +65,8 @@ gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dt
 
 # Initialize the data distribution
 if data_name == "synthetic1":
+    data_distribution = data.DataModel_1(K, num_var, signal=signal, random_state=seed)
+if data_name == "synthetic1_easy":
     data_distribution = data.DataModel_1(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic2":
     data_distribution = data.DataModel_2(K, num_var, signal=signal, random_state=seed)
@@ -148,27 +151,21 @@ def run_experiment(random_state):
     black_box_pt.fit(X_train, Yt_train)
 
     methods = {
-        "AP D2L": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L"),
+        "D2L": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L"),
 
-        "AP drop5": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.05),
+        "drop1": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
 
-        "AP drop1": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
+        "threshold": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=(20*K/n_cal)),
 
-        "AP drop05": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.005),
+        "top1perc": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=0.01),
 
-        "AP threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", gamma=(20*K/n_cal)),
+        "D2L filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", ap_filter=True),
 
-        "AP RR D2L": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L"),
+        "drop1 filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01, ap_filter=True),
 
-        "AP RR drop5": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.05),
+        "threshold filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=(20*K/n_cal), ap_filter=True),
 
-        "AP RR drop1": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
-
-        "AP RR drop05": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.005),
-
-        "AP RR threshold": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=(20*K/n_cal)),
-
-        "AP RR 3perc": lambda: AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=0.03)
+        "top1perc filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=0.01, ap_filter=True),
     }
 
     # Initialize an empty list to store the evaluation results
@@ -201,10 +198,14 @@ def run_experiment(random_state):
         print(f"Applying {method_name} method...", end=' ')
         sys.stdout.flush()
 
-        # Initialize and apply the method
+        # Initialize and apply the method for anchor points
         method = method_func()
-        T_hat, anchor_points_list, gamma_opt, _ = method.get_estimate()
-        epsilon_hat = (1-1/K*np.trace(T_hat))*K/(K-1)
+        anchor_points_list, gamma_opt, _ = method.get_ap_()
+
+        # Use anchor points to estimate T
+        T_method = TMatrixEstimation(X_cal, Yt_cal, K, black_box_pt, anchor_points_list, estimation_method="empirical_parametricRR")
+        T_hat = T_method.get_estimate()
+        epsilon_hat = (1-T_hat[0,0])*K/(K-1)
 
         if gamma_opt is None:
             gamma_opt = 20*K/n_cal

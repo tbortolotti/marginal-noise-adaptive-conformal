@@ -2858,11 +2858,11 @@ init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
   # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
-  method.values <<- c("Clean sample", "AP RR D2L", "AP RR drop1", "AP RR threshold")
-  method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (drop 1%)", "AP RR threshold")
-  color.scale <<- cbPalette[c(1,2,4,5)]
-  shape.scale <<- c(1,0,3,4)
-  linetype.scale <<- c(1,1,1,1)
+  method.values <<- c("Clean sample", "AP RR D2L", "AP RR drop1", "AP RR threshold", "AP RR 3perc")
+  method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (drop 1%)", "AP RR threshold", "AP RR 3p")
+  color.scale <<- cbPalette[c(1,2,4,5,6)]
+  shape.scale <<- c(1,0,3,4,5)
+  linetype.scale <<- c(1,1,1,1,1)
 }
 
 

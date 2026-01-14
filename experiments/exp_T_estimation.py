@@ -18,7 +18,7 @@ sys.path.append("../third_party")
 
 from cln import data
 from cln import contamination
-from cln.T_estimation import evaluate_estimate, AnchorPointsEstimation
+from cln.T_estimation import evaluate_estimate, TMatrixEstimation
 from third_party import arc
 
 
@@ -153,11 +153,11 @@ def run_experiment(random_state):
     black_box_pt.fit(X_train, Yt_train)
 
     methods = {
-        "Anchor points Patrini": lambda: AnchorPointsEstimation(X_cal,Yt_cal, K, black_box_pt, estimation_method="Patrini", gamma=gamma),
+        "Anchor points Patrini": lambda: TMatrixEstimation(X_cal,Yt_cal, K, black_box_pt, estimation_method="Patrini", gamma=gamma),
 
-        "Anchor points empirical": lambda: AnchorPointsEstimation(X_cal,Yt_cal, K, black_box_pt, estimation_method="empirical", gamma=gamma),
+        "Anchor points empirical": lambda: TMatrixEstimation(X_cal,Yt_cal, K, black_box_pt, estimation_method="empirical", gamma=gamma),
 
-        "Anchor points empirical parametric": lambda: AnchorPointsEstimation(X_cal,Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=gamma)
+        "Anchor points empirical parametric": lambda: TMatrixEstimation(X_cal,Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=gamma)
     }
 
     # Initialize an empty list to store the evaluation results

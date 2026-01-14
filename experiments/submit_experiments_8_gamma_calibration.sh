@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Parameters
-CONF=801
+CONF=800
 
 if [[ $CONF == 800 ]]; then
-  DATA_LIST=("synthetic1")
+  DATA_LIST=("synthetic1_easy")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
@@ -18,6 +18,19 @@ if [[ $CONF == 800 ]]; then
 
 elif [[ $CONF == 801 ]]; then
   DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0.05 0.1 0.15 0.2)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("uniform")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  SEED_LIST=$(seq 1 5)
+
+elif [[ $CONF == 802 ]]; then
+  DATA_LIST=("synthetic1_easy")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
