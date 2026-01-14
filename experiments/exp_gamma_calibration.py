@@ -157,7 +157,7 @@ def run_experiment(random_state):
 
         "threshold": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=(20*K/n_cal)),
 
-        "top1perc": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=0.01),
+        "top3perc": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=0.03),
 
         "D2L filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", ap_filter=True),
 
@@ -165,7 +165,7 @@ def run_experiment(random_state):
 
         "threshold filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=(20*K/n_cal), ap_filter=True),
 
-        "top1perc filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=0.01, ap_filter=True),
+        "top3perc filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=0.03, ap_filter=True),
     }
 
     # Initialize an empty list to store the evaluation results

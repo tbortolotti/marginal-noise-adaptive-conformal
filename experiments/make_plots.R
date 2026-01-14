@@ -3041,8 +3041,15 @@ init_settings <- function() {
   # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
   # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
   
-  method.values <<- c("Clean sample", "D2L", "D2L filtered", "top1perc", "top1perc filtered")
-  method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 1%)", "AP RR (top 1% filt)")
+  # method.values <<- c("Clean sample", "D2L", "D2L filtered", "top1perc", "top1perc filtered")
+  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 1%)", "AP RR (top 1% filt)")
+  # 
+  # color.scale <<- cbPalette[c(1,2,4,5,6)]
+  # shape.scale <<- c(1,0,3,4,5)
+  # linetype.scale <<- c(1,1,1,1,1)
+  
+  method.values <<- c("Clean sample", "top1perc", "top1perc filtered")
+  method.labels <<- c("Clean sample", "AP RR (top 1%)", "AP RR (top 1% filt)")
   
   color.scale <<- cbPalette[c(1,2,4,5,6)]
   shape.scale <<- c(1,0,3,4,5)
@@ -3088,24 +3095,28 @@ make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 #' ---------------------------------------------------------------------------------------------------------------------
 #### Experiment 803: Impact of filtering the anchor points set ------------------------
 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
-  ifile.list <- list.files(idir, recursive = FALSE) 
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
+  # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
   
-  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
-    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
-  }))    
-  summary <- results %>%
-    pivot_longer(c("epsilon_res", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
-    #pivot_longer(c("gamma_opt", "frobenius_d", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, n_train, n_cal, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
-  return(summary)
+  # method.values <<- c("Clean sample", "D2L", "D2L filtered", "top1perc", "top1perc filtered")
+  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 1%)", "AP RR (top 1% filt)")
+  # 
+  # color.scale <<- cbPalette[c(1,2,4,5,6)]
+  # shape.scale <<- c(1,0,3,4,5)
+  # linetype.scale <<- c(1,1,1,1,1)
+  
+  # method.values <<- c("Clean sample", "D2L", "D2L filtered")
+  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)")
+  method.values <<- c("Clean sample", "top1perc", "top1perc filtered")
+  method.labels <<- c("Clean sample", "AP RR (top1perc)", "AP RR (top1perc filt)")
+  
+  color.scale <<- cbPalette[c(1,2,4,5,6)]
+  shape.scale <<- c(1,0,3,4,5)
+  linetype.scale <<- c(1,1,1,1,1)
 }
+
 
 make_figure_803 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", plot.K=4,
                             plot.contamination="uniform", plot.n_train=10000, plot.signal, plot.model_name="RFC",
@@ -3161,12 +3172,12 @@ make_figure_803 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
 
 exp.num <- 803
 plot.nu <- 0
-plot.epsilon <- c(0.05,0.1,0.15,0.2)
+plot.epsilon <- 0.2
 plot.K <- 4
 plot.data <- "synthetic1_easy"
 plot.contamination <- "uniform"
 plot.n_train <- 10000
-plot.signal <- 1
+plot.signal <- c(0.3, 0.7, 1.0, 2.0)
 plot.model_name <- "RFC"
 
 make_figure_803(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
