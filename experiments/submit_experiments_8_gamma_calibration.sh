@@ -86,9 +86,9 @@ for SEED in $SEED_LIST; do
             for EPSILON in "${EPSILON_LIST[@]}"; do
 	            for NU in "${NU_LIST[@]}"; do
        		      for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
-                  for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
-                    for N_CAL in "${N_CAL_LIST[@]}"; do
-                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_seed"$SEED
+                  for N_TRAIN0 in "${N_TRAIN0_LIST[@]}"; do
+                    for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
+                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt0"$N_TRAIN0"_nt"$N_TRAIN"_seed"$SEED
                       OUT_FILE=$OUT_DIR"/"$JOBN".txt"
                       COMPLETE=0
                       #  ls $OUT_FILE
@@ -98,7 +98,7 @@ for SEED in $SEED_LIST; do
 
                       if [[ $COMPLETE -eq 0 ]]; then
                         # Script to be run
-                        SCRIPT="exp_gamma_calibration.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CAL $SEED"
+                        SCRIPT="exp_gamma_calibration.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN0 $N_TRAIN $SEED"
                         # Define job name
                         OUTF=$LOGS"/"$JOBN".out"
                         ERRF=$LOGS"/"$JOBN".err"
