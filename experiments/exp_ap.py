@@ -17,7 +17,8 @@ sys.path.append("../third_party")
 
 from cln import data
 from cln import contamination
-from cln.T_estimation import AnchorPointsEstimation
+from cln.AP_identification import AnchorPointsIdentification
+from cln.T_estimation import TMatrixEstimation
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
 from third_party import arc
@@ -33,7 +34,8 @@ model_name = 'RFC'
 epsilon = 0.2
 nu = 0
 contamination_model = "uniform"
-n_train = 10000
+n_train0 = 10000
+n_train = 5000
 n_cal = 5000
 seed = 1
 
@@ -66,7 +68,7 @@ batch_size = 10
 allow_empty = True
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
-gamma_vec = np.asarray([0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dtype=float)
+gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2, 0.5], dtype=float)
 
 # Initialize the data distribution
 if data_name == "synthetic1":
@@ -140,7 +142,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     data_distribution.set_seed(random_state+1)
-    X_all, Y_all = data_distribution.sample(n_train+n_cal+n_test)
+    X_all, Y_all = data_distribution.sample(n_train0+n_train+n_cal+n_test)
     print("Done.")
     sys.stdout.flush()
 
@@ -167,40 +169,35 @@ def run_experiment(random_state):
 
 
     # Separate data into training and calibration
-    X_train, X_cal, _, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state)
+    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state)
+
+    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train, random_state=random_state+1)
 
     # Fit the point predictor on the training set
     black_box_pt = copy.deepcopy(black_box)
     black_box_pt.fit(X_train, Yt_train)
 
+    # Estimate T using all the clean/noisy labels correspondence
+    T_method = TMatrixEstimation(X_train2, Y_train2, Yt_train2, K, estimation_method="empirical")
+    T_hat_clean = T_method.get_estimate()
+
     ## Anchor points method for T estimation
-    method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L")
-    T_hat_D2L, _, gamma_opt, _ = method.get_estimate()
+    method = AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=0.03, ap_filter=True)
+    Ya_train2, _, _ = method.get_anchor_points()
+    T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
+    T_hat_top3perc_filtered = T_method.get_estimate()
 
-    method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical_parametricRR", gamma=gamma_opt)
-    T_hat_param, _, _, _ = method.get_estimate()
+    method = AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", ap_filter=True)
+    Ya_train2, gamma_opt, _ = method.get_anchor_points()
+    T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
+    T_hat_D2L_filtered = T_method.get_estimate()
 
-    # Get dataset of anchor points
-    X_anchor, Y_anchor = method.get_anchor_dataset(X_cal)
-
-    method = AnchorPointsEstimation(X_cal, Yt_cal, K, black_box_pt, estimation_method="empirical", calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01)
-    T_hat_drop_1, _, gamma_opt, _ = method.get_estimate()
-
-    # Estimate using all the clean/noisy labels correspondence
-    T_hat_clean = np.zeros((K, K), dtype=float)
-    for l in range(K):
-        idx = (Y_cal == l)
-        n_l = np.sum(idx)
-        if n_l > 0:
-            counts = np.bincount(Yt_cal[idx], minlength=K)
-            T_hat_clean[:, l] = counts / n_l
-        else:
-            # Fallback if a class i does not appear in Y_train2
-            T_hat_clean[:, l] = np.ones(K) / K
-    col_sums = T_hat_clean.sum(axis=0, keepdims=True)
-    T_hat_clean /= col_sums
-
-
+    # Create dataset of sole anchor points
+    method = AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=gamma_opt, ap_filter=True)
+    Ya_cal, _, _ = method.get_anchor_points()
+    idxs_cal_anchor = (Ya_cal != -1)
+    X_anchor = X_cal[idxs_cal_anchor,]
+    Y_anchor = Y_cal[idxs_cal_anchor]
 
     alpha = 0.1
     guarantee = 'marginal'
@@ -211,50 +208,38 @@ def run_experiment(random_state):
 
     # Define a dictionary of methods with their names and corresponding initialization parameters
     methods = {
-        "Standard": lambda: arc.methods.SplitConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                        pre_trained=True, random_state=random_state),
+        "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+                                                       pre_trained=True, random_state=random_state),
 
         "Standard using AP": lambda: arc.methods.SplitConformal(X_anchor, Y_anchor, black_box_pt, K, alpha, n_cal=-1,
-                                                        pre_trained=True, random_state=random_state),
+                                                                pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+        "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
+                                                                    optimized=True, optimistic=False, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+        "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
+                                                                    optimized=True, optimistic=False, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ AP D2L": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                    epsilon=epsilon, T=T_hat_D2L, rho_tilde=rho_tilde_hat,
+        "Adaptive optimized+ AP top3perc": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+                                                                    epsilon=epsilon, T=T_hat_top3perc_filtered, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
+                                                                    optimized=True, optimistic=False, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ AP drop1": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                    epsilon=epsilon, T=T_hat_drop_1, rho_tilde=rho_tilde_hat,
+        "Adaptive optimized+ AP D2L": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+                                                                    epsilon=epsilon, T=T_hat_D2L_filtered, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
-                                                                    pre_trained=True, random_state=random_state),
-
-        #"Adaptive optimized+ AP drop05": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-        #                                                            epsilon=epsilon, T=T_hat_drop_05, rho_tilde=rho_tilde_hat,
-        #                                                            allow_empty=allow_empty, method="improved",
-        #                                                            optimized=True, optimistic=True, verbose=False,
-        #                                                            pre_trained=True, random_state=random_state),  
-
-        "Adaptive optimized+ AP param": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                    epsilon=epsilon, T=T_hat_param, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
+                                                                    optimized=True, optimistic=False, verbose=False,
                                                                     pre_trained=True, random_state=random_state)
 
     }
-
+    
     # Initialize an empty list to store the evaluation results
     res_list = []
 

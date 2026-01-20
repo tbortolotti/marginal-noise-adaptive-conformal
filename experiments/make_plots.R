@@ -3100,17 +3100,14 @@ init_settings <- function() {
   # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
   # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
   
-  # method.values <<- c("Clean sample", "D2L", "D2L filtered", "top1perc", "top1perc filtered")
-  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 1%)", "AP RR (top 1% filt)")
-  # 
-  # color.scale <<- cbPalette[c(1,2,4,5,6)]
-  # shape.scale <<- c(1,0,3,4,5)
-  # linetype.scale <<- c(1,1,1,1,1)
-  
+  # method.values <<- c("Clean sample", "D2L", "D2L filtered", "top3perc", "top3perc filtered")
+  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 3%)", "AP RR (top 3% filt)")
   # method.values <<- c("Clean sample", "D2L", "D2L filtered")
   # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)")
-  method.values <<- c("Clean sample", "top1perc", "top1perc filtered")
-  method.labels <<- c("Clean sample", "AP RR (top1perc)", "AP RR (top1perc filt)")
+  method.values <<- c("Clean sample", "top3perc", "top3perc filtered")
+  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)")
+  # method.values <<- c("Clean sample", "threshold", "threshold filtered")
+  # method.labels <<- c("Clean sample", "AP RR (thresh)", "AP RR (threshfilt)")
   
   color.scale <<- cbPalette[c(1,2,4,5,6)]
   shape.scale <<- c(1,0,3,4,5)
@@ -3160,7 +3157,7 @@ make_figure_803 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s.pdf",
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s.png",
                          exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
     ggsave(file=plot.file, height=7.5, width=9, units="in")
     return(NULL)
@@ -3184,4 +3181,4 @@ make_figure_803(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)

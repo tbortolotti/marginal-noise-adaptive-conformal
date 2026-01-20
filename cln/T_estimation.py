@@ -5,45 +5,31 @@ from scipy.spatial.distance import jensenshannon
 import copy
 import sys
 
-def js_matrix_distance(P, Q):
-    return np.mean([jensenshannon(P[i], Q[i]) for i in range(P.shape[0])])
-
 def tv_matrix_distance(P, Q):
     return np.mean([0.5 * np.sum(np.abs(P[i] - Q[i])) for i in range(P.shape[0])])
 
-def evaluate_estimate(T, T_hat, Y=None, Yt=None, K=None, anchor_points_list=None, verbose=False):
+def evaluate_estimate(T, T_hat, Y=None, Y_anchor_=None, Yt=None, K=None, verbose=False):
 
-    if anchor_points_list is not None:
-        # Evaluate quality of the set of anchor points
-        anchors_correct = 0
-        anchors_correct_tilde = 0
-        anchors_total = 0
+    # Accuracy of the set of anchor points
+    accuracy = np.sum(Y_anchor_ == Y)/np.sum(Y_anchor_ != -1)
+    accuracy_tilde = np.sum(Y_anchor_ == Yt)/np.sum(Y_anchor_ != -1)
 
-        for l in range(K):
-            top_idx = anchor_points_list[l]
-            Y_top = Y[top_idx]
-            Yt_top = Yt[top_idx]
-            anchors_correct += np.sum(Y_top == l)
-            anchors_correct_tilde += np.sum(Yt_top == l)
-            anchors_total   += len(top_idx)
-
-        accuracy_gamma = anchors_correct/anchors_total
-        accuracy_tilde_gamma = anchors_correct_tilde/anchors_total
-    else:
-        accuracy_gamma = 1
-        accuracy_tilde_gamma = 1
-
-    # Evaluate quality of estimated T
+    # Evaluate quality of estimated T in terms of:
+    # Frobenius norm
     T_norm = np.linalg.norm(T, 'fro')
     W = np.linalg.inv(T)
     Tinv_norm = np.linalg.norm(W, 'fro')
 
-    # Method clean dataset
-    #js_d = js_matrix_distance(T.T, T_hat.T)
+    # Total variation distance
     tv_d = tv_matrix_distance(T.T, T_hat.T)
     frobenius_d = np.linalg.norm(T - T_hat, ord='fro')/T_norm
+
+    # Offdiagonal mass and epsilon residual
     K = T.shape[0]
     offdiag_mass = 1/K * (np.trace(T) - np.trace(T_hat))
+    epsilon_hat = (1-1/K*np.trace(T_hat))*K/(K-1)
+    epsilon = (1-1/K*np.trace(T))*K/(K-1)
+    epsilon_res = epsilon_hat - epsilon
 
     try:
         W_hat = np.linalg.inv(T_hat)
@@ -51,70 +37,64 @@ def evaluate_estimate(T, T_hat, Y=None, Yt=None, K=None, anchor_points_list=None
     except np.linalg.LinAlgError:
         frob_inv_d = None
 
-    res = {'accuracy': accuracy_gamma,
-           'accuracy_tilde': accuracy_tilde_gamma,
-            'tv_d':tv_d,
-            #'js_d':js_d,
-            'frobenius_d':frobenius_d,
-            'frob_inv_d':frob_inv_d,
-            'offdiag_mass':offdiag_mass}
+    res = {'accuracy': accuracy,
+           'accuracy_tilde': accuracy_tilde,
+           'tv_d':tv_d,
+           'frobenius_d':frobenius_d,
+           'frob_inv_d':frob_inv_d,
+           'offdiag_mass':offdiag_mass,
+           'epsilon_res':epsilon_res}
          
     if verbose:
-        #print('Jensen Shannon Distance:             {:2.3%}'.format(js_d))
+        print('Accuracy:             {:2.3%}'.format(accuracy))
+        print('Accuracy_tilde:             {:2.3%}'.format(accuracy_tilde))
         print('Total Variation Distance:            {:2.3%}'.format(tv_d))
         print('Fobrenius Distance:                  {:2.3%}'.format(frobenius_d))
         print('Fobrenius Distance of Inverses:      {:2.3%}'.format(frob_inv_d))
+        print('Off-diagonal mass:      {:2.3%}'.format(offdiag_mass))
+        print('Residual with sign in epsilon estimation:      {:2.3%}'.format(epsilon_res))
 
     return res
 
 class TMatrixEstimation:
-    def __init__(self, X, Yt, K,
-                 black_box,
-                 anchor_points,
+    def __init__(self, X, Y_anchor, Yt, K,
                  estimation_method="empirical",
                  verbose=False):
         
         self.K = K
-        self.black_box = copy.deepcopy(black_box)
         self.method = estimation_method
-        self.n_cal = X.shape[0]
-        self.anchor_points = anchor_points
+        self.n = X.shape[0]
 
         # Estimate T_hat
         if estimation_method=="empirical":
             T_hat = np.zeros((self.K, self.K), dtype=float)
-            for l in range(self.K):
-                top_idx = self.anchor_points[l]
-                # Use anchor points as true classes and then evaluate empirical frequencies
-                if len(top_idx)>0:
-                    counts = np.bincount(Yt[top_idx], minlength=self.K)
-                    T_hat[:,l] = counts/len(top_idx)
-                else:
-                    T_hat[:, l] = np.ones(self.K) / self.K
-        elif estimation_method=="Patrini":
-            # Estimate the probabilities on the calibration set
-            p_hat = black_box.predict_proba(X)
-            if not isinstance(p_hat, np.ndarray):
-                p_hat = np.asarray(p_hat)
-            
-            # Use probabilities to identify anchor points
-            T_hat = np.zeros((self.K, self.K), dtype=float)
-            for l in range(self.K):
-                top_idx = self.anchor_points[l]
-                col_T_hat = p_hat[top_idx, :].mean(axis=0)
-                T_hat[:, l] = col_T_hat/np.sum(col_T_hat)
-        elif estimation_method=="empirical_parametricRR":
-            # Evaluate A_tilde in the set of anchor points
-            anchors_correct_tilde = 0
-            anchors_total = 0
             for l in range(K):
-                top_idx = self.anchor_points[l]
-                Yt_top = Yt[top_idx]
-                anchors_correct_tilde += np.sum(Yt_top == l)
-                anchors_total   += len(top_idx)
-            # Use A_tilde as an estimate of epsilon
-            accuracy_tilde_gamma = anchors_correct_tilde/anchors_total
-            epsilon_hat = K/(K-1)*(1-accuracy_tilde_gamma)
+                idx = (Y_anchor == l)
+                n_l = np.sum(idx)
+                if n_l > 0:
+                    counts = np.bincount(Yt[idx], minlength=K)
+                    T_hat[:, l] = counts / n_l
+                else:
+                    # Fallback if a class i never appears in the set of anchor points
+                    T_hat[:, l] = np.ones(K) / K
+            col_sums = T_hat.sum(axis=0, keepdims=True)
+            T_hat /= col_sums
+        # elif estimation_method=="Patrini":
+        #     # Estimate the probabilities on the calibration set
+        #     p_hat = black_box.predict_proba(X)
+        #     if not isinstance(p_hat, np.ndarray):
+        #         p_hat = np.asarray(p_hat)
+        #     
+        #     # Use probabilities to identify anchor points
+        #     T_hat = np.zeros((self.K, self.K), dtype=float)
+        #     for l in range(self.K):
+        #         top_idx = self.anchor_points[l]
+        #         col_T_hat = p_hat[top_idx, :].mean(axis=0)
+        #         T_hat[:, l] = col_T_hat/np.sum(col_T_hat)
+        elif estimation_method=="empirical_parametricRR":
+            # Count how many Yt correspond to Y where Y!=-1 and use the result to estimate epsilon
+            accuracy_tilde = np.sum(Y_anchor==Yt)/np.sum(Y_anchor!=-1)
+            epsilon_hat = K/(K-1)*(1-accuracy_tilde)
             T_hat = (1-epsilon_hat) * np.identity(K) + epsilon_hat/K * np.ones((K,K))
             
         self.T_hat = T_hat

@@ -25,7 +25,7 @@ from third_party import arc
 
 # Define default parameters
 exp_num = 801
-data_name = 'synthetic1_easy'
+data_name = 'synthetic1'
 num_var = 20
 K = 4
 signal = 1
@@ -33,8 +33,8 @@ model_name = 'RFC'
 epsilon = 0.2
 nu = 0
 contamination_model = "uniform"
-n_train = 10000
-n_cal = 5000
+n_train0 = 10000
+n_train = 5000
 seed = 1
 
 # Parse input parameters
@@ -55,8 +55,8 @@ if True:
     epsilon = float(sys.argv[7])
     nu = float(sys.argv[8])
     contamination_model = sys.argv[9]
-    n_train = int(sys.argv[10])
-    n_cal = int(sys.argv[11])
+    n_train0 = int(sys.argv[10])
+    n_train = int(sys.argv[11])
     seed = int(sys.argv[12])
 
 # Define other constant parameters
@@ -131,7 +131,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     data_distribution.set_seed(random_state+1)
-    X, Y = data_distribution.sample(n_train+n_cal)
+    X, Y = data_distribution.sample(n_train0+n_train)
     print("Done.")
     sys.stdout.flush()
 
@@ -144,28 +144,24 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Separate data into training and calibration
-    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+3)
+    X_train1, X_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+3)
 
     # Fit the point predictor on the training set
     black_box_pt = copy.deepcopy(black_box)
-    black_box_pt.fit(X_train, Yt_train)
+    black_box_pt.fit(X_train1, Yt_train1)
 
     methods = {
-        "D2L": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L"),
+        "D2L": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L"),
 
-        "drop1": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01),
+        "threshold": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n_cal)),
 
-        "threshold": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=(20*K/n_cal)),
+        "top3perc": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=0.03),
 
-        "top3perc": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=0.03),
+        "D2L filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", ap_filter=True),
 
-        "D2L filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", ap_filter=True),
+        "threshold filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n_cal), ap_filter=True),
 
-        "drop1 filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="drop", drop=0.01, ap_filter=True),
-
-        "threshold filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=(20*K/n_cal), ap_filter=True),
-
-        "top3perc filtered": lambda: AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=0.03, ap_filter=True),
+        "top3perc filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=0.03, ap_filter=True),
     }
 
     # Initialize an empty list to store the evaluation results
@@ -173,22 +169,10 @@ def run_experiment(random_state):
     res_list = []
 
     # Estimate using all the clean/noisy labels correspondence
-    T_hat_clean = np.zeros((K, K), dtype=float)
-    for l in range(K):
-        idx = (Y_cal == l)
-        n_l = np.sum(idx)
-        if n_l > 0:
-            counts = np.bincount(Yt_cal[idx], minlength=K)
-            T_hat_clean[:, l] = counts / n_l
-        else:
-            # Fallback if a class i does not appear in Y_train2
-            T_hat_clean[:, l] = np.ones(K) / K
-    col_sums = T_hat_clean.sum(axis=0, keepdims=True)
-    T_hat_clean /= col_sums
-    epsilon_hat = (1-1/K*np.trace(T_hat_clean))*K/(K-1)
-
-    performances = evaluate_estimate(T, T_hat_clean)
-    performances['epsilon_res'] = epsilon_hat - epsilon
+    T_method = TMatrixEstimation(X_train2, Y_train2, Yt_train2, K, estimation_method="empirical")
+    T_hat = T_method.get_estimate()
+    
+    performances = evaluate_estimate(T, T_hat, Y_train2, Y_train2, Yt_train2, K)
     res_update = header.copy()
     res_update = res_update.assign(Method='Clean sample',  gamma_opt=1, **performances)
     res_list.append(res_update)
@@ -200,21 +184,18 @@ def run_experiment(random_state):
 
         # Initialize and apply the method for anchor points
         method = method_func()
-        anchor_points_list, gamma_opt, _ = method.get_ap_()
+        Ya_train2, gamma_opt, _ = method.get_anchor_points()
+        if gamma_opt is None:
+            gamma_opt = 50*K/n_cal
 
         # Use anchor points to estimate T
-        T_method = TMatrixEstimation(X_cal, Yt_cal, K, black_box_pt, anchor_points_list, estimation_method="empirical_parametricRR")
+        T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
         T_hat = T_method.get_estimate()
-        epsilon_hat = (1-T_hat[0,0])*K/(K-1)
-
-        if gamma_opt is None:
-            gamma_opt = 20*K/n_cal
 
         print("Done.")
         sys.stdout.flush()
 
-        performances = evaluate_estimate(T, T_hat, Y_cal, Yt_cal, K, anchor_points_list)
-        performances['epsilon_res'] = epsilon_hat - epsilon
+        performances = evaluate_estimate(T, T_hat, Y_train2, Ya_train2, Yt_train2, K)
         res_update = header.copy()
         res_update = res_update.assign(Method=method_name, gamma_opt=gamma_opt, **performances)
         res_list.append(res_update)
