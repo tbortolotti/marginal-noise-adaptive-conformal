@@ -33,8 +33,8 @@ model_name = 'RFC'
 epsilon = 0.2
 nu = 0
 contamination_model = "uniform"
-n_train0 = 10000
-n_train = 5000
+n_train = 10000
+n = 5000
 seed = 1
 
 # Parse input parameters
@@ -55,8 +55,8 @@ if True:
     epsilon = float(sys.argv[7])
     nu = float(sys.argv[8])
     contamination_model = sys.argv[9]
-    n_train0 = int(sys.argv[10])
-    n_train = int(sys.argv[11])
+    n_train = int(sys.argv[10])
+    n = int(sys.argv[11])
     seed = int(sys.argv[12])
 
 # Define other constant parameters
@@ -109,7 +109,7 @@ else:
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
-                       'signal':[signal], 'n_train':[n_train], 'n_cal':[n_cal],
+                       'signal':[signal], 'n_train':[n_train], 'n':[n],
                        'epsilon':[epsilon], 'nu':[nu], 'contamination':[contamination_model],
                        'model_name':[model_name],
                        'seed':[seed]})
@@ -118,7 +118,7 @@ header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
 outfile_prefix += "_K" + str(K) + "_signal" + str(signal) + "_" + model_name
 outfile_prefix += "_eps" + str(epsilon) + "_nu" + str(nu) + "_" + contamination_model
-outfile_prefix += "_nt" + str(n_train) + "_nc" + str(n_cal) + "_seed" + str(seed)
+outfile_prefix += "_nt" + str(n_train) + "_n" + str(n) + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
@@ -131,7 +131,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     data_distribution.set_seed(random_state+1)
-    X, Y = data_distribution.sample(n_train0+n_train)
+    X, Y = data_distribution.sample(n_train+n)
     print("Done.")
     sys.stdout.flush()
 
@@ -144,7 +144,7 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Separate data into training and calibration
-    X_train1, X_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+3)
+    X_train1, X_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, Y, Yt, test_size=n, random_state=random_state+3)
 
     # Fit the point predictor on the training set
     black_box_pt = copy.deepcopy(black_box)
@@ -153,13 +153,13 @@ def run_experiment(random_state):
     methods = {
         "D2L": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L"),
 
-        "threshold": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n_cal)),
+        "threshold": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n)),
 
         "top3perc": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=0.03),
 
         "D2L filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", ap_filter=True),
 
-        "threshold filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n_cal), ap_filter=True),
+        "threshold filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n), ap_filter=True),
 
         "top3perc filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=0.03, ap_filter=True),
     }
@@ -186,7 +186,7 @@ def run_experiment(random_state):
         method = method_func()
         Ya_train2, gamma_opt, _ = method.get_anchor_points()
         if gamma_opt is None:
-            gamma_opt = 50*K/n_cal
+            gamma_opt = 50*K/n
 
         # Use anchor points to estimate T
         T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")

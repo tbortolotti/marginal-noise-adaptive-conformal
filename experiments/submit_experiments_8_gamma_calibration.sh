@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Parameters
-CONF=803
+CONF=800
 
 if [[ $CONF == 800 ]]; then
-  DATA_LIST=("synthetic1_easy")
+  DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
@@ -12,8 +12,8 @@ if [[ $CONF == 800 ]]; then
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN0_LIST=(10000)
-  N_TRAIN_LIST=(5000)
+  N_TRAIN_LIST=(10000)
+  N_LIST=(5000)
   SEED_LIST=(1)
 
 elif [[ $CONF == 801 ]]; then
@@ -25,8 +25,8 @@ elif [[ $CONF == 801 ]]; then
   EPSILON_LIST=(0.05 0.1 0.15 0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN0_LIST=(10000)
-  N_TRAIN_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  N_TRAIN_LIST=(10000)
+  N_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 802 ]]; then
@@ -38,8 +38,8 @@ elif [[ $CONF == 802 ]]; then
   EPSILON_LIST=(0.05 0.1 0.15 0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN0_LIST=(10000)
-  N_TRAIN_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  N_TRAIN_LIST=(10000)
+  N_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 803 ]]; then
@@ -51,8 +51,8 @@ elif [[ $CONF == 803 ]]; then
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN0_LIST=(10000)
-  N_TRAIN_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  N_TRAIN_LIST=(10000)
+  N_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
   SEED_LIST=$(seq 1 5)
 fi
 
@@ -86,9 +86,9 @@ for SEED in $SEED_LIST; do
             for EPSILON in "${EPSILON_LIST[@]}"; do
 	            for NU in "${NU_LIST[@]}"; do
        		      for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
-                  for N_TRAIN0 in "${N_TRAIN0_LIST[@]}"; do
-                    for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
-                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt0"$N_TRAIN0"_nt"$N_TRAIN"_seed"$SEED
+                  for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
+                    for N in "${N_LIST[@]}"; do
+                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_n"$N"_seed"$SEED
                       OUT_FILE=$OUT_DIR"/"$JOBN".txt"
                       COMPLETE=0
                       #  ls $OUT_FILE
@@ -98,7 +98,7 @@ for SEED in $SEED_LIST; do
 
                       if [[ $COMPLETE -eq 0 ]]; then
                         # Script to be run
-                        SCRIPT="exp_gamma_calibration.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN0 $N_TRAIN $SEED"
+                        SCRIPT="exp_gamma_calibration.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N $SEED"
                         # Define job name
                         OUTF=$LOGS"/"$JOBN".out"
                         ERRF=$LOGS"/"$JOBN".err"
