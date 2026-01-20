@@ -2869,14 +2869,17 @@ init_settings <- function() {
   # shape.scale <<- c(1,0,3,4,5)
   # linetype.scale <<- c(1,1,1,1,1)
   
-  method.values <<- c("Clean sample", "top3perc", "top3perc filtered", "threshold", "threshold filtered")
-  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)", "AP RR (t)", "AP RR (t filt)")
+  # method.values <<- c("Clean sample", "top3perc", "top3perc filtered", "threshold", "threshold filtered")
+  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)", "AP RR (t)", "AP RR (t filt)")
   
   # method.values <<- c("Clean sample", "threshold", "threshold filtered")
   # method.labels <<- c("Clean sample", "AP RR (t)", "AP RR (t filt)")
   
   # method.values <<- c("Clean sample", "D2L", "D2L filtered")
   # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)")
+  
+  method.values <<- c("Clean sample", "top3perc", "top3perc filtered")
+  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)")
 
   color.scale <<- cbPalette[c(1,2,4,5,6)]
   shape.scale <<- c(1,0,3,4,5)
@@ -2903,156 +2906,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 }
 
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4,
-                            plot.contamination="uniform", plot.n_train=10000, plot.signal=1, plot.model_name="RFC",
-                            plot.epsilon, plot.nu=0,
-                            save_plots=FALSE, reload=FALSE) {
-  if(reload) {
-    summary <- load_data(exp.num)
-  }
-  
-  init_settings()
-  
-  df <- summary %>%
-    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K, signal==plot.signal,
-           model_name==plot.model_name,
-           Method %in% method.values,
-           contamination==plot.contamination,
-           nu==plot.nu, epsilon %in% plot.epsilon,
-           n>500)
-  
-  pp <- df %>%
-    mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
-    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~Epsilon, scales="free") +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    scale_x_continuous(trans='log10') +
-    xlab("Number of samples") +
-    ylab("") +
-    theme_bw() +
-    theme(text = element_text(size = 12),
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-          legend.text = element_text(size = 12),
-          legend.title = element_text(size = 12),
-          plot.margin = margin(5, 1, 1, -10))
-  
-  
-  if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s.pdf",
-                         exp.num, plot.data, plot.n_train, plot.K, plot.nu, plot.contamination)
-    ggsave(file=plot.file, height=7.5, width=9, units="in")
-    return(NULL)
-  } else{
-    return(pp)
-  }
-}
-
-exp.num <- 801
-plot.nu <- 0
-plot.epsilon <- c(0.05,0.1,0.15,0.2)
-plot.K <- 4
-plot.data <- "synthetic1"
-plot.contamination <- "uniform"
-plot.n_train <- 10000
-plot.signal <- 1
-plot.model_name <- "RFC"
-
-make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.signal=plot.signal, plot.model_name=plot.model_name,
-                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
-                plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-                save_plots=FALSE, reload=TRUE)
-
-
-#' ---------------------------------------------------------------------------------------------------------------------
-#### Experiment 802: Impact of filtering the anchor points set ------------------------
-
-init_settings <- function() {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
-  # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
-  
-  # method.values <<- c("Clean sample", "D2L", "D2L filtered", "top1perc", "top1perc filtered")
-  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 1%)", "AP RR (top 1% filt)")
-  # 
-  # color.scale <<- cbPalette[c(1,2,4,5,6)]
-  # shape.scale <<- c(1,0,3,4,5)
-  # linetype.scale <<- c(1,1,1,1,1)
-  
-  method.values <<- c("Clean sample", "top1perc", "top1perc filtered")
-  method.labels <<- c("Clean sample", "AP RR (top 1%)", "AP RR (top 1% filt)")
-  
-  color.scale <<- cbPalette[c(1,2,4,5,6)]
-  shape.scale <<- c(1,0,3,4,5)
-  linetype.scale <<- c(1,1,1,1,1)
-}
-
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
-  ifile.list <- list.files(idir, recursive = FALSE) 
-  
-  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
-    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
-  }))    
-  summary <- results %>%
-    pivot_longer(c("epsilon_res", "frobenius_d", "frob_inv_d"), names_to = "Key", values_to = "Value") %>%
-    #pivot_longer(c("gamma_opt", "frobenius_d", "offdiag_mass"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, n_train, n_cal, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
-  return(summary)
-}
-
-
-exp.num <- 802
-plot.nu <- 0
-plot.epsilon <- c(0.05,0.1,0.15,0.2)
-plot.K <- 4
-plot.data <- "synthetic1_easy"
-plot.contamination <- "uniform"
-plot.n_train <- 10000
-plot.signal <- 1
-plot.model_name <- "RFC"
-
-make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.signal=plot.signal, plot.model_name=plot.model_name,
-                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
-                plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-                save_plots=FALSE, reload=TRUE)
-
-#' ---------------------------------------------------------------------------------------------------------------------
-#### Experiment 803: Impact of filtering the anchor points set ------------------------
-
-init_settings <- function() {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
-  # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
-  
-  # method.values <<- c("Clean sample", "D2L", "D2L filtered", "top3perc", "top3perc filtered")
-  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 3%)", "AP RR (top 3% filt)")
-  # method.values <<- c("Clean sample", "D2L", "D2L filtered")
-  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)")
-  method.values <<- c("Clean sample", "top3perc", "top3perc filtered")
-  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)")
-  # method.values <<- c("Clean sample", "threshold", "threshold filtered")
-  # method.labels <<- c("Clean sample", "AP RR (thresh)", "AP RR (threshfilt)")
-  
-  color.scale <<- cbPalette[c(1,2,4,5,6)]
-  shape.scale <<- c(1,0,3,4,5)
-  linetype.scale <<- c(1,1,1,1,1)
-}
-
-
-make_figure_803 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", plot.K=4,
+make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", plot.K=4,
                             plot.contamination="uniform", plot.n_train=10000, plot.signal, plot.model_name="RFC",
                             plot.epsilon=0.2, plot.nu=0,
                             save_plots=FALSE, reload=FALSE) {
@@ -3068,13 +2922,12 @@ make_figure_803 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
            model_name==plot.model_name,
            Method %in% method.values,
            contamination==plot.contamination,
-           nu==plot.nu, epsilon==plot.epsilon)
+           nu==plot.nu, epsilon==plot.epsilon, n>500)
   
   pp <- df %>%
-    mutate(Method = factor(Method, method.values, method.labels),
-           Mean = ifelse( Mean>0.2, NA, Mean)) %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(Signal = sprintf("Sep: %.2f", signal)) %>%
-    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
@@ -3103,19 +2956,27 @@ make_figure_803 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
   }
 }
 
-
-exp.num <- 803
+exp.num <- 801
 plot.nu <- 0
 plot.epsilon <- 0.2
 plot.K <- 4
-plot.data <- "synthetic1_easy"
 plot.contamination <- "uniform"
 plot.n_train <- 10000
 plot.signal <- c(0.3, 0.7, 1.0, 2.0)
 plot.model_name <- "RFC"
 
-make_figure_803(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+plot.data <- "synthetic1"
+make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
+
+plot.data <- "synthetic1_easy"
+make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu,
+                save_plots=FALSE, reload=TRUE)
+
+

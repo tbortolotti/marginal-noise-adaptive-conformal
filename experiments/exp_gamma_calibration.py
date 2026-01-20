@@ -67,7 +67,7 @@ gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dt
 if data_name == "synthetic1":
     data_distribution = data.DataModel_1(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic1_easy":
-    data_distribution = data.DataModel_1(K, num_var, signal=signal, random_state=seed)
+    data_distribution = data.DataModel_1_easy(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic2":
     data_distribution = data.DataModel_2(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic3":
