@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=601
+CONF=603
 
 if [[ $CONF == 600 ]]; then
   DATA_LIST=("synthetic1")
@@ -48,7 +48,7 @@ elif [[ $CONF == 603 ]]; then
   FLIPY_LIST=(0.01)
   EPSILON_LIST=(0.1)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN_LIST=(1000 5000 10000)
+  N_TRAIN_LIST=(5000 10000 50000 100000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 fi
