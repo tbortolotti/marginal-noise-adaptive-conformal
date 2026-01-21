@@ -2856,7 +2856,7 @@ make_figure_706(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 ### Experiments 800: Criterion for gamma calibration ------------------------
 
 
-#### Experiment 801: Impact of Label contamination strength ------------------------
+#### Experiment 801: Impact of classes separation ------------------------
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
@@ -2869,8 +2869,8 @@ init_settings <- function() {
   # shape.scale <<- c(1,0,3,4,5)
   # linetype.scale <<- c(1,1,1,1,1)
   
-  # method.values <<- c("Clean sample", "top3perc", "top3perc filtered", "threshold", "threshold filtered")
-  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)", "AP RR (t)", "AP RR (t filt)")
+  method.values <<- c("Clean sample", "top3perc", "top3perc filtered", "threshold", "threshold filtered", "D2L", "D2L filtered")
+  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)", "AP RR (t)", "AP RR (t filt)", "AP RR (D2L)", "AP RR (D2L filt)")
   
   # method.values <<- c("Clean sample", "threshold", "threshold filtered")
   # method.labels <<- c("Clean sample", "AP RR (t)", "AP RR (t filt)")
@@ -2878,12 +2878,12 @@ init_settings <- function() {
   # method.values <<- c("Clean sample", "D2L", "D2L filtered")
   # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)")
   
-  method.values <<- c("Clean sample", "top3perc", "top3perc filtered")
-  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)")
+  # method.values <<- c("Clean sample", "top3perc", "top3perc filtered")
+  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)")
 
-  color.scale <<- cbPalette[c(1,2,4,5,6)]
-  shape.scale <<- c(1,0,3,4,5)
-  linetype.scale <<- c(1,1,1,1,1)
+  color.scale <<- cbPalette[c(1,2,4,5,6,7,8)]
+  shape.scale <<- c(1,0,3,4,5,6,7)
+  linetype.scale <<- c(1,1,1,1,1,1,1)
 }
 
 

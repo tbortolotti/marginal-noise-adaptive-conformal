@@ -30,8 +30,8 @@ num_var = 20
 K = 4
 signal = 1
 model_name = 'RFC'
+flipy = 0.01
 epsilon = 0.2
-nu = 0
 contamination_model = "uniform"
 n_train = 10000
 n = 5000
@@ -52,14 +52,15 @@ if True:
     K = int(sys.argv[4])
     signal = float(sys.argv[5])
     model_name = sys.argv[6]
-    epsilon = float(sys.argv[7])
-    nu = float(sys.argv[8])
+    flipy = float(sys.argv[7])
+    epsilon = float(sys.argv[8])
     contamination_model = sys.argv[9]
     n_train = int(sys.argv[10])
     n = int(sys.argv[11])
     seed = int(sys.argv[12])
 
 # Define other constant parameters
+nu = 0
 batch_size = 20
 gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dtype=float)
 
@@ -67,7 +68,7 @@ gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dt
 if data_name == "synthetic1":
     data_distribution = data.DataModel_1(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic1_easy":
-    data_distribution = data.DataModel_1_easy(K, num_var, signal=signal, random_state=seed)
+    data_distribution = data.DataModel_1_easy(K, num_var, signal=signal, flipy=flipy, random_state=seed)
 elif data_name == "synthetic2":
     data_distribution = data.DataModel_2(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic3":
@@ -110,14 +111,14 @@ else:
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
                        'signal':[signal], 'n_train':[n_train], 'n':[n],
-                       'epsilon':[epsilon], 'nu':[nu], 'contamination':[contamination_model],
+                       'flipy':[flipy], 'epsilon':[epsilon], 'contamination':[contamination_model],
                        'model_name':[model_name],
                        'seed':[seed]})
 
 # Output file
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
 outfile_prefix += "_K" + str(K) + "_signal" + str(signal) + "_" + model_name
-outfile_prefix += "_eps" + str(epsilon) + "_nu" + str(nu) + "_" + contamination_model
+outfile_prefix += "_flipy" + str(flipy) + "_eps" + str(epsilon) + "_" + contamination_model
 outfile_prefix += "_nt" + str(n_train) + "_n" + str(n) + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()

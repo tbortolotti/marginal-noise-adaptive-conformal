@@ -46,13 +46,13 @@ class DataModel_1(DataModel):
         return X, Y
     
 class DataModel_1_easy(DataModel):
-    def __init__(self, K, p, signal=1, epsilon0=0.01, random_state=None):
+    def __init__(self, K, p, signal=1, flipy=0.01, random_state=None):
         super().__init__(K, p, random_state=random_state)
         self.n_informative = 2
         self.n_redundant = p - self.n_informative
         self.n_clusters_per_class = 1
         self.class_sep = signal
-        self.epsilon0 = epsilon0
+        self.flipy = flipy
 
     def sample(self, n):        
         X, Y = make_classification(n_samples=n,
@@ -60,7 +60,7 @@ class DataModel_1_easy(DataModel):
                                    n_features=self.p, n_informative=self.n_informative,
                                    n_redundant=self.n_redundant,
                                    n_clusters_per_class=self.n_clusters_per_class,
-                                   flip_y=self.epsilon0,
+                                   flip_y=self.flipy,
                                    class_sep=self.class_sep, random_state=self.random_state)
         Y = Y.astype(np.int32)
         return X, Y
