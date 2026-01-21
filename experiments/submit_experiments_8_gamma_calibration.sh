@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=800
+CONF=801
 
 if [[ $CONF == 800 ]]; then
   DATA_LIST=("synthetic1")
@@ -9,7 +9,7 @@ if [[ $CONF == 800 ]]; then
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
-  FLIPY_LIST=(0 0.01)
+  FLIPY_LIST=(0)
   EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(10000)
