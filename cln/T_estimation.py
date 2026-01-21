@@ -1,14 +1,13 @@
 import numpy as np
 import pandas as pd
 import pdb
-from scipy.spatial.distance import jensenshannon
 import copy
 import sys
 
 def tv_matrix_distance(P, Q):
     return np.mean([0.5 * np.sum(np.abs(P[i] - Q[i])) for i in range(P.shape[0])])
 
-def evaluate_estimate(T, T_hat, Y=None, Y_anchor_=None, Yt=None, K=None, verbose=False):
+def evaluate_estimate(T, T_hat, Y=None, Y_anchor_=None, Yt=None, K=None, epsilon0=0.01, verbose=False):
 
     # Accuracy of the set of anchor points
     accuracy = np.sum(Y_anchor_ == Y)/np.sum(Y_anchor_ != -1)
@@ -29,7 +28,8 @@ def evaluate_estimate(T, T_hat, Y=None, Y_anchor_=None, Yt=None, K=None, verbose
     offdiag_mass = 1/K * (np.trace(T) - np.trace(T_hat))
     epsilon_hat = (1-1/K*np.trace(T_hat))*K/(K-1)
     epsilon = (1-1/K*np.trace(T))*K/(K-1)
-    epsilon_res = epsilon_hat - epsilon
+    epsilon_eff = epsilon + epsilon0 - epsilon*epsilon0 
+    epsilon_res = epsilon_hat - epsilon_eff
 
     try:
         W_hat = np.linalg.inv(T_hat)
