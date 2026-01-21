@@ -20,7 +20,7 @@ elif [[ $CONF == 801 ]]; then
   DATA_LIST=("synthetic1" "synthetic1_easy")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  SIGNAL_LIST=(0.3 0.7 1.0 2.0)
+  SIGNAL_LIST=(0.7 1.0 2.0)
   MODEL_LIST=('RFC')
   FLIPY_LIST=(0 0.01)
   EPSILON_LIST=(0.2)
