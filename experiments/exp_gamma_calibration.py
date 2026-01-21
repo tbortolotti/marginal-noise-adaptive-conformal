@@ -173,7 +173,7 @@ def run_experiment(random_state):
     T_method = TMatrixEstimation(X_train2, Y_train2, Yt_train2, K, estimation_method="empirical")
     T_hat = T_method.get_estimate()
     
-    performances = evaluate_estimate(T, T_hat, Y_train2, Y_train2, Yt_train2, K, epsilon0=flipy)
+    performances = evaluate_estimate(T, T_hat, Y_train2, Y_train2, Yt_train2, K, epsilon0=0)
     res_update = header.copy()
     res_update = res_update.assign(Method='Clean sample',  gamma_opt=1, **performances)
     res_list.append(res_update)
