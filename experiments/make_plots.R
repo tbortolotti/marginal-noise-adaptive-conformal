@@ -1848,7 +1848,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   }))    
   summary <- results %>%
     pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, estimate, n_train, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    group_by(data, num_var, K, signal, model_name, contamination, flipy, epsilon, estimate, n_train, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
@@ -1871,20 +1871,21 @@ init_settings <- function(plot.optimistic = FALSE) {
   # linetype.scale <<- c(1,1,1,1,1,1,1,1)
   
   method.values <<- c("Standard",
-                      #"Standard using AP",
-                      "Adaptive optimized+", "Adaptive optimized+ clean",
-                      #"Adaptive optimized+ AP drop1",
-                      "Adaptive optimized+ AP D2L")
+                      "Standard using AP",
+                      "Adaptive optimized+",
+                      "Adaptive optimized+ clean",
+                      "Adaptive optimized+ AP")
                       #"Adaptive optimized+ AP param")
   method.labels <<- c("Standard",
-                      #"Standard (AP)",
-                      "Adaptive+", "Adaptive+ (clean)",
+                      "Standard (AP)",
+                      "Adaptive+",
+                      "Adaptive+ (clean)",
                       #"Adaptive+ (AP drop 1%)",
-                      "Adaptive+ (AP D2L)")
+                      "Adaptive+ (AP)")
                       #"Adaptive+ (AP RRM)")
-  color.scale <<- cbPalette[c(1,3,4,5)]
-  shape.scale <<- c(1,2,3,4)
-  linetype.scale <<- c(1,1,1,1)
+  color.scale <<- cbPalette[c(1,3,4,5,6)]
+  shape.scale <<- c(1,2,3,4,5)
+  linetype.scale <<- c(1,1,1,1,1)
 }
 
 
@@ -1893,7 +1894,8 @@ init_settings <- function(plot.optimistic = FALSE) {
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
 make_figure_601 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                           plot.contamination="uniform",
-                          plot.epsilon, plot.nu=0,
+                          plot.flipy=0,
+                          plot.epsilon,
                           plot.optimistic=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
@@ -1902,17 +1904,17 @@ make_figure_601 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   init_settings(plot.optimistic = plot.optimistic)
   
   df <- summary %>%
-    filter(data==plot.data, num_var==20, n_train==10000, K==plot.K, signal==1, Guarantee==plot.guarantee,
+    filter(data==plot.data, num_var==20, n_train==10000, K==plot.K, signal %in% plot.signal, Guarantee==plot.guarantee,
            Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
            Method %in% method.values,
            contamination==plot.contamination,
-           nu==plot.nu, epsilon %in% plot.epsilon)
+           flipy==plot.flipy, epsilon==plot.epsilon)
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
+    mutate(Signal = sprintf("Sep: %.2f", signal)) %>%
     #        mutate(Label = factor(Label, label.values, label.labels)) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
@@ -1939,8 +1941,8 @@ make_figure_601 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_flipy%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, 10000, plot.K, plot.flipy, plot.guarantee, plot.contamination, plot.optimistic)
     ggsave(file=plot.file, height=4, width=9, units="in")
     return(NULL)
   } else{
@@ -1948,17 +1950,37 @@ make_figure_601 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   }
 }
 
-exp.num <- 601
 plot.alpha <- 0.1
-plot.nu <- 0
-plot.epsilon <- c(0.05,0.1,0.2)
+plot.epsilon <- 0.2
+plot.signal <- c(0.7,1.0,2.0)
 plot.K <- 4
-plot.data <- "synthetic1"
-
 plot.contamination <- "uniform"
+
+exp.num <- 601
+plot.data <- "synthetic1_easy"
+plot.flipy <- 0
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
               plot.contamination=plot.contamination,
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+              plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
+plot.flipy <- 0.01
+make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
+exp.num <- 602
+plot.data <- "synthetic1"
+plot.flipy <- 0
+make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
+plot.flipy <- 0.01
+make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
+
 
 
 # With standard AP

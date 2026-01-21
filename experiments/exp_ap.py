@@ -34,7 +34,6 @@ model_name = 'RFC'
 flipy = 0.01
 epsilon = 0.2
 contamination_model = "uniform"
-n_train0 = 10000
 n_train = 10000
 n_cal = 5000
 seed = 1
@@ -62,6 +61,7 @@ if True:
     seed = int(sys.argv[12])
 
 # Define other constant parameters
+n_train0 = 10000
 estimate = "none"
 n_test = 2000
 batch_size = 10
@@ -150,7 +150,7 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Separate the test set
-    X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+2)
+    X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
 
     # Generate the contaminated labels
     print("Generating contaminated labels...", end=' ')
@@ -172,13 +172,13 @@ def run_experiment(random_state):
 
 
     # Separate data into training and calibration
-    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state)
+    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
 
-    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train, random_state=random_state+1)
+    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train, random_state=random_state+3)
 
     # Fit the point predictor on the training set
     black_box_pt = copy.deepcopy(black_box)
-    black_box_pt.fit(X_train, Yt_train)
+    black_box_pt.fit(X_train1, Yt_train1)
 
     # Estimate T using all the clean/noisy labels correspondence
     T_method = TMatrixEstimation(X_train2, Y_train2, Yt_train2, K, estimation_method="empirical")
@@ -215,19 +215,19 @@ def run_experiment(random_state):
         "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=False, verbose=False,
+                                                                    optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
         "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=False, verbose=False,
+                                                                    optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
         "Adaptive optimized+ AP": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=False, verbose=False,
+                                                                    optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state)
 
     }
