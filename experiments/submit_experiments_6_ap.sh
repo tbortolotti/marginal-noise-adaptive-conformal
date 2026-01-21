@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=600
+CONF=601
 
 if [[ $CONF == 600 ]]; then
   DATA_LIST=("synthetic1")
@@ -22,7 +22,7 @@ elif [[ $CONF == 601 ]]; then
   SIGNAL_LIST=(0.7 1.0 2.0)
   MODEL_LIST=('RFC')
   FLIPY_LIST=(0 0.01)
-  EPSILON_LIST=(0.1)
+  EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
@@ -34,7 +34,7 @@ elif [[ $CONF == 602 ]]; then
   SIGNAL_LIST=(0.7 1.0 2.0)
   MODEL_LIST=('RFC')
   FLIPY_LIST=(0 0.01)
-  EPSILON_LIST=(0.1)
+  EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
