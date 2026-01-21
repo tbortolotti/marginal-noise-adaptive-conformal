@@ -2869,11 +2869,14 @@ init_settings <- function() {
   # shape.scale <<- c(1,0,3,4,5)
   # linetype.scale <<- c(1,1,1,1,1)
   
+  method.values <<- c("Clean sample", "top3perc", "threshold", "D2L")
+  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (t)", "AP RR (D2L)")
+  
   # method.values <<- c("Clean sample", "top3perc", "top3perc filtered", "threshold", "threshold filtered", "D2L", "D2L filtered")
   # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)", "AP RR (t)", "AP RR (t filt)", "AP RR (D2L)", "AP RR (D2L filt)")
-  # 
-  method.values <<- c("Clean sample", "threshold", "threshold filtered")
-  method.labels <<- c("Clean sample", "AP RR (t)", "AP RR (t filt)")
+
+  # method.values <<- c("Clean sample", "threshold", "threshold filtered")
+  # method.labels <<- c("Clean sample", "AP RR (t)", "AP RR (t filt)")
   
   # method.values <<- c("Clean sample", "D2L", "D2L filtered")
   # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)")
@@ -2899,8 +2902,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    #pivot_longer(c("gamma_opt", "epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
-    pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("gamma_opt", "epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
+    #pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, flipy, epsilon, n_train, n, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -2924,8 +2927,10 @@ make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
            model_name==plot.model_name,
            Method %in% method.values,
            contamination==plot.contamination,
-           flipy==plot.flipy, epsilon==plot.epsilon, n>1000)
-  
+           flipy==plot.flipy, epsilon==plot.epsilon)
+  nominal_accuracy <- 1 - (plot.K-1)/plot.K*plot.flipy
+  df.nominal_accuracy <- tibble(Key="accuracy", Mean=nominal_accuracy)
+  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(Signal = sprintf("Sep: %.2f", signal)) %>%
@@ -2934,6 +2939,8 @@ make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
     facet_grid(Key~Signal, scales="free") +
+    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
@@ -2959,13 +2966,20 @@ make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
 }
 
 exp.num <- 801
-plot.flipy <- 0
+plot.flipy <- 0.01
 plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
 plot.n_train <- 10000
-plot.signal <- c(1.0, 2.0)
+plot.signal <- c(0.7, 1.0, 2.0)
 plot.model_name <- "RFC"
+
+plot.data <- "synthetic1"
+make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                save_plots=FALSE, reload=TRUE)
 
 plot.data <- "synthetic1_easy"
 make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,

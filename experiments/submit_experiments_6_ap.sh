@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=601
+CONF=600
 
 if [[ $CONF == 600 ]]; then
   DATA_LIST=("synthetic1")
@@ -9,52 +9,48 @@ if [[ $CONF == 600 ]]; then
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
+  FLIPY_LIST=(0 0.01)
   EPSILON_LIST=(0.2)
-  NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(2000)
   SEED_LIST=(1)
-
 elif [[ $CONF == 601 ]]; then
-  DATA_LIST=("synthetic1")
+  DATA_LIST=("synthetic1_easy")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  SIGNAL_LIST=(1.0)
+  SIGNAL_LIST=(0.7 1.0 2.0)
   MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.05 0.1 0.15 0.2)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform" "block")
+  FLIPY_LIST=(0 0.01)
+  EPSILON_LIST=(0.1)
+  CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
-
 elif [[ $CONF == 602 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  SIGNAL_LIST=(1.0)
+  SIGNAL_LIST=(0.7 1.0 2.0)
   MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.2)
-  NU_LIST=(0 0.25 0.5 0.75  1)
-  CONTAMINATION_LIST=("RRB")
+  FLIPY_LIST=(0 0.01)
+  EPSILON_LIST=(0.1)
+  CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
-
 elif [[ $CONF == 603 ]]; then
-  DATA_LIST=("synthetic3")
+  DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.05 0.1 0.15 0.2)
-  NU_LIST=(0)
+  FLIPY_LIST=(0 0.01)
+  EPSILON_LIST=(0.1)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  N_TRAIN_LIST=(1000 5000 10000)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
-
 fi
 
 
@@ -84,12 +80,12 @@ for SEED in $SEED_LIST; do
       for K in "${K_LIST[@]}"; do
         for SIGNAL in "${SIGNAL_LIST[@]}"; do
           for MODEL in "${MODEL_LIST[@]}"; do
-            for EPSILON in "${EPSILON_LIST[@]}"; do
-	            for NU in "${NU_LIST[@]}"; do
+            for FLIPY in "${FLIPY_LIST[@]}"; do
+	            for EPSILON in "${EPSILON_LIST[@]}"; do
        		      for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
                   for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
                     for N_CAL in "${N_CAL_LIST[@]}"; do
-                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_gamma"$GAMMA"_seed"$SEED
+                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_"$MODEL"_flipy"$FLIPY"_eps"$EPSILON"_"$CONTAMINATION"_nt"$N_TRAIN"_nc"$N_CAL"_gamma"$GAMMA"_seed"$SEED
                       OUT_FILE=$OUT_DIR"/"$JOBN".txt"
                       COMPLETE=0
                       #  ls $OUT_FILE
@@ -99,7 +95,7 @@ for SEED in $SEED_LIST; do
 
                       if [[ $COMPLETE -eq 0 ]]; then
                         # Script to be run
-                        SCRIPT="exp_ap.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CAL $GAMMA $SEED"
+                        SCRIPT="exp_ap.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $FLIPY $EPSILON $CONTAMINATION $N_TRAIN $N_CAL $GAMMA $SEED"
                         # Define job name
                         OUTF=$LOGS"/"$JOBN".out"
                         ERRF=$LOGS"/"$JOBN".err"

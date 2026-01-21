@@ -61,7 +61,7 @@ if True:
 
 # Define other constant parameters
 nu = 0
-batch_size = 20
+batch_size = 10
 gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dtype=float)
 
 # Initialize the data distribution
@@ -163,6 +163,8 @@ def run_experiment(random_state):
         "threshold filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n), ap_filter=True),
 
         "top3perc filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=0.03, ap_filter=True),
+
+        "mixed filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", min_flag=True, ap_filter=True)
     }
 
     # Initialize an empty list to store the evaluation results

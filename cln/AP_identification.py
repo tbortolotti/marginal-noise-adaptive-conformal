@@ -103,6 +103,7 @@ class AnchorPointsIdentification:
                  calibrate_gamma = False,
                  gamma_vec = None,
                  elbow_detection_method="D2L",
+                 min_flag = False,
                  drop = 0.01,
                  ap_filter=False,
                  filter_method="isolation_forest"):
@@ -123,6 +124,7 @@ class AnchorPointsIdentification:
 
         self.elbow_detection_method = elbow_detection_method
         self.drop = drop
+        self.min_flag = min_flag
 
         self.ap_filter = ap_filter
         self.filter_method = filter_method
@@ -147,7 +149,12 @@ class AnchorPointsIdentification:
                 gamma_opt = gamma_by_percent_drop(gamma_vec, accuracy_tilde_vec, drop=self.drop)
             self.gamma_opt = gamma_opt
         else:
-            self.gamma_opt = gamma
+            gamma_opt = gamma
+
+        if self.min_flag:
+            self.gamma_opt = min(gamma_opt,50*self.K/self.n)
+        else:
+            self.gamma_opt = gamma_opt
         
         Y_anchor = self.identify_anchor_points(self.gamma_opt)
         
