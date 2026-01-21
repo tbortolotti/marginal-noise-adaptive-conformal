@@ -156,6 +156,8 @@ def run_experiment(random_state):
 
         "threshold": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n)),
 
+        "mixed": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", min_flag=True),
+
         "top3perc": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=0.03),
 
         "D2L filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", ap_filter=True),
