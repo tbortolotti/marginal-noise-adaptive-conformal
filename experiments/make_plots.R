@@ -2869,8 +2869,11 @@ init_settings <- function() {
   # shape.scale <<- c(1,0,3,4,5)
   # linetype.scale <<- c(1,1,1,1,1)
   
-  method.values <<- c("Clean sample", "top3perc", "threshold", "D2L")
-  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (t)", "AP RR (D2L)")
+  # method.values <<- c("Clean sample", "top3perc", "threshold", "D2L")
+  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (t)", "AP RR (D2L)")
+  
+  method.values <<- c("Clean sample", "threshold filtered", "D2L filtered", "mixed filtered")
+  method.labels <<- c("Clean sample", "AP RR (t filt)", "AP RR (D2L filt)", "AP RR (mixed filt)")
   
   # method.values <<- c("Clean sample", "top3perc", "top3perc filtered", "threshold", "threshold filtered", "D2L", "D2L filtered")
   # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)", "AP RR (t)", "AP RR (t filt)", "AP RR (D2L)", "AP RR (D2L filt)")
