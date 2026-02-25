@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=801
+CONF=802
 
 if [[ $CONF == 800 ]]; then
   DATA_LIST=("syntheticAP")
@@ -57,7 +57,7 @@ elif [[ $CONF == 802 ]]; then
   EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN1_LIST=(10000)
-  N_TRAIN2_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
+  N_TRAIN2_LIST=(50 100 200 500 1000 2000 5000 10000 20000 50000 100000)
   SEED_LIST=$(seq 1 5)
 fi
 
