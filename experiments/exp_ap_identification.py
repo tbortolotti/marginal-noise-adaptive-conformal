@@ -22,57 +22,76 @@ from cln.AP_identification import AnchorPointsIdentification
 from cln.T_estimation import evaluate_estimate, TMatrixEstimation
 from third_party import arc
 
-
 # Define default parameters
 exp_num = 801
-data_name = 'synthetic1'
-num_var = 20
+
+# Data simulation parameters
+data_name = 'syntheticAP'
+num_var = 2
 K = 4
-signal = 1
+pi_easy=1
+delta_shift=0
+center_scale=1
+sigma_easy = 1
+sigma_hard = 1
+R_easy = 1.5
+R_hard = 4.0
+flipy = 0
+
+# Point predictor
 model_name = 'RFC'
-flipy = 0.01
+
+# Contamination parameters
 epsilon = 0.2
 contamination_model = "uniform"
-n_train = 10000
-n = 5000
+
+# Set sizes
+n_train1 = 10000
+n_train2 = 5000
 seed = 1
 
 # Parse input parameters
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 13:
+    if len(sys.argv) != 19:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
-
     exp_num = int(sys.argv[1])
     data_name = sys.argv[2]
     num_var = int(sys.argv[3])
     K = int(sys.argv[4])
-    signal = float(sys.argv[5])
-    model_name = sys.argv[6]
-    flipy = float(sys.argv[7])
-    epsilon = float(sys.argv[8])
-    contamination_model = sys.argv[9]
-    n_train = int(sys.argv[10])
-    n = int(sys.argv[11])
-    seed = int(sys.argv[12])
+    pi_easy = float(sys.argv[5])
+    delta_shift = float(sys.argv[6])
+    center_scale = float(sys.argv[7])
+    sigma_easy = float(sys.argv[8])
+    sigma_hard = float(sys.argv[9])
+    R_easy = float(sys.argv[10])
+    R_hard = float(sys.argv[11])
+    flipy = float(sys.argv[12])
+    model_name = sys.argv[13]
+    epsilon = float(sys.argv[14])
+    contamination_model = sys.argv[15]
+    n_train1 = int(sys.argv[16])
+    n_train2 = int(sys.argv[17])
+    seed = int(sys.argv[18])
 
-# Define other constant parameters
+# Define other parameters
+A_easy = sigma_easy * np.eye(2)
+A_hard = sigma_hard * np.eye(2)
 nu = 0
+
 batch_size = 10
 gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dtype=float)
 
 # Initialize the data distribution
-if data_name == "synthetic1":
-    data_distribution = data.DataModel_1(K, num_var, signal=signal, random_state=seed)
-elif data_name == "synthetic1_easy":
-    data_distribution = data.DataModel_1_easy(K, num_var, signal=signal, flipy=flipy, random_state=seed)
-elif data_name == "synthetic2":
-    data_distribution = data.DataModel_2(K, num_var, signal=signal, random_state=seed)
-elif data_name == "synthetic3":
-    data_distribution = data.DataModel_3(K, num_var, signal=signal, random_state=seed)
+if data_name == "syntheticAP":
+    data_distribution = data.DataModel_AP(K, num_var,
+                                          pi_easy=pi_easy, delta_shift=delta_shift, center_scale=center_scale, epsilon0=flipy,
+                                          distribution_type="truncated_gaussian",
+                                          A_easy=A_easy, R_easy=R_easy, A_hard=A_hard, R_hard=R_hard,
+                                          random_state=seed)
 else:
     print("Unknown data distribution!")
     sys.stdout.flush()
@@ -110,16 +129,21 @@ else:
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
-                       'signal':[signal], 'n_train':[n_train], 'n':[n],
+                       'pi_easy':[pi_easy], 'delta_shift':[delta_shift], 'center_scale':[center_scale],
+                       'sigma_easy':[sigma_easy], 'sigma_hard':[sigma_hard], 'R_easy':[R_easy], 'R_hard':[R_hard],
+                       'n_train1':[n_train1], 'n_train2':[n_train2],
                        'flipy':[flipy], 'epsilon':[epsilon], 'contamination':[contamination_model],
                        'model_name':[model_name],
                        'seed':[seed]})
 
 # Output file
-outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
-outfile_prefix += "_K" + str(K) + "_signal" + str(signal) + "_" + model_name
-outfile_prefix += "_flipy" + str(flipy) + "_eps" + str(epsilon) + "_" + contamination_model
-outfile_prefix += "_nt" + str(n_train) + "_n" + str(n) + "_seed" + str(seed)
+outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var) + "_K" + str(K)
+outfile_prefix += "_pi_easy" + str(pi_easy) + "_dshift" + str(delta_shift) + "_cscale" + str(center_scale)
+outfile_prefix += "_seasy" + str(sigma_easy) + "_shard" + str(sigma_hard) + "_Reasy" + str(R_easy) + "_Rhard" + str(R_hard)
+outfile_prefix += "_flipy" + str(flipy)
+outfile_prefix += "_"  + model_name
+outfile_prefix += "_eps" + str(epsilon) + "_" + contamination_model
+outfile_prefix += "_nt1_" + str(n_train1) + "_nt2_" + str(n_train2) + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
@@ -132,7 +156,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     data_distribution.set_seed(random_state+1)
-    X, Y = data_distribution.sample(n_train+n)
+    X, Y = data_distribution.sample(n_train1+n_train2)
     print("Done.")
     sys.stdout.flush()
 
@@ -145,28 +169,27 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Separate data into training and calibration
-    X_train1, X_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, Y, Yt, test_size=n, random_state=random_state+3)
-
-    # Fit the point predictor on the training set
-    black_box_pt = copy.deepcopy(black_box)
-    black_box_pt.fit(X_train1, Yt_train1)
+    X_train1, X_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, Y, Yt, test_size=n_train2, random_state=random_state+3)
 
     methods = {
-        "D2L": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L"),
+        "benchmark": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+                                            use_classifier=True, black_box=black_box,
+                                            calibrate_gamma=True),
 
-        "threshold": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n)),
+        "EE": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+                                            outlier_detection=True,
+                                            outlier_detection_method="elliptic_envelope",
+                                            selection="accuracy"),
 
-        "mixed": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", min_flag=True),
+        "IF": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+                                                    outlier_detection=True,
+                                                    outlier_detection_method="isolation_forest",
+                                                    selection="accuracy"),
 
-        "top3perc": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=0.03),
-
-        "D2L filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", ap_filter=True),
-
-        "threshold filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=(50*K/n), ap_filter=True),
-
-        "top3perc filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, gamma=0.03, ap_filter=True),
-
-        "mixed filtered": lambda: AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", min_flag=True, ap_filter=True)
+        "LOS": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+                                                    outlier_detection=True,
+                                                    outlier_detection_method="lof",
+                                                    selection="accuracy")
     }
 
     # Initialize an empty list to store the evaluation results
@@ -189,9 +212,7 @@ def run_experiment(random_state):
 
         # Initialize and apply the method for anchor points
         method = method_func()
-        Ya_train2, gamma_opt, _ = method.get_anchor_points()
-        if gamma_opt is None:
-            gamma_opt = 50*K/n
+        Ya_train2, _, _, _ = method.get_anchor_points()
 
         # Use anchor points to estimate T
         T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
@@ -202,7 +223,7 @@ def run_experiment(random_state):
 
         performances = evaluate_estimate(T, T_hat, Y_train2, Ya_train2, Yt_train2, K, epsilon0=flipy)
         res_update = header.copy()
-        res_update = res_update.assign(Method=method_name, gamma_opt=gamma_opt, **performances)
+        res_update = res_update.assign(Method=method_name, n_train1=n_train1, n_train2=n_train2, **performances)
         res_list.append(res_update)
 
     # Combine all results into a single DataFrame

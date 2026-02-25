@@ -1959,24 +1959,24 @@ plot.data <- "synthetic1_easy"
 plot.flipy <- 0
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
               plot.contamination=plot.contamination,
-              plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+              plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 plot.flipy <- 0.01
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 exp.num <- 602
 plot.data <- "synthetic1"
 plot.flipy <- 0
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 plot.flipy <- 0.01
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 
@@ -2062,7 +2062,7 @@ plot.data <- "synthetic1"
 plot.flipy <- 0.01
 make_figure_603(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 ### Experiments 700: Estimating the contamination process ------------------------
@@ -2676,8 +2676,14 @@ init_settings <- function() {
   # method.values <<- c("Clean sample", "top3perc", "threshold", "D2L")
   # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (t)", "AP RR (D2L)")
   
-  method.values <<- c("Clean sample", "top3perc", "D2L", "threshold filtered", "mixed filtered")
-  method.labels <<- c("Clean sample", "AP RR (t filt)", "AP RR (D2L filt)", "AP RR (mixed filt)")
+  # method.values <<- c("Clean sample", "top3perc", "mixed", "mixed filtered")
+  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (mixed)", "AP RR (mixed filt)")
+  
+  method.values <<- c("Clean sample", "top3perc", "D2L", "D2L filtered")
+  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (D2L)", "AP RR (D2L filt)")
+  
+  # method.values <<- c("Clean sample", "top3perc", "D2L", "threshold filtered", "mixed filtered")
+  # method.labels <<- c("Clean sample", "AP RR (t filt)", "AP RR (D2L filt)", "AP RR (mixed filt)")
   
   # method.values <<- c("Clean sample", "threshold filtered", "D2L filtered", "mixed filtered")
   # method.labels <<- c("Clean sample", "AP RR (t filt)", "AP RR (D2L filt)", "AP RR (mixed filt)")
@@ -2712,8 +2718,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("gamma_opt", "epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
-    #pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
+    #pivot_longer(c("gamma_opt", "epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, flipy, epsilon, n_train, n, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -2768,7 +2774,7 @@ make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_flipy%s_%s.png",
                          exp.num, plot.data, plot.n_train, plot.K, plot.flipy, plot.contamination)
-    ggsave(file=plot.file, height=7.5, width=9, units="in")
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -2776,7 +2782,6 @@ make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
 }
 
 exp.num <- 801
-plot.flipy <- 0.01
 plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
@@ -2784,18 +2789,136 @@ plot.n_train <- 10000
 plot.signal <- c(0.7, 1.0, 2.0)
 plot.model_name <- "RFC"
 
+plot.flipy <- 0
 plot.data <- "synthetic1"
 make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 plot.data <- "synthetic1_easy"
 make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.signal=plot.signal, plot.model_name=plot.model_name,
                 plot.contamination=plot.contamination, plot.n_train=plot.n_train,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
+
+plot.flipy <- 0.01
+plot.data <- "synthetic1"
+make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                save_plots=TRUE, reload=TRUE)
+
+plot.data <- "synthetic1_easy"
+make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                save_plots=TRUE, reload=TRUE)
+
+### Prova a far vedere l'effetto del mixed:
+
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
+  # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
+  
+  # method.values <<- c("Clean sample", "D2L", "D2L filtered", "top1perc", "top1perc filtered")
+  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 1%)", "AP RR (top 1% filt)")
+  # 
+  # color.scale <<- cbPalette[c(1,2,4,5,6)]
+  # shape.scale <<- c(1,0,3,4,5)
+  # linetype.scale <<- c(1,1,1,1,1)
+  
+  # method.values <<- c("Clean sample", "top3perc", "threshold", "D2L")
+  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (t)", "AP RR (D2L)")
+  
+  # method.values <<- c("Clean sample", "top3perc", "mixed", "mixed filtered")
+  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (mixed)", "AP RR (mixed filt)")
+  
+  method.values <<- c("Clean sample", "D2L filtered", "threshold filtered", "mixed filtered")
+  method.labels <<- c("Clean sample", "AP RR (D2L filt)", "AP RR (t filt)", "AP RR (mixed filt)")
+  
+  color.scale <<- cbPalette[c(1,5,6,7,8)]
+  shape.scale <<- c(1,4,5,6,7)
+  linetype.scale <<- c(1,1,1,1,1)
+}
+
+
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", plot.K=4,
+                            plot.contamination="uniform", plot.n_train=10000, plot.signal, plot.model_name="RFC",
+                            plot.flipy=0,
+                            plot.epsilon=0.2,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K,
+           signal %in% plot.signal,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           flipy==plot.flipy, epsilon==plot.epsilon)
+  nominal_accuracy <- 1 - (plot.K-1)/plot.K*plot.flipy
+  df.nominal_accuracy <- tibble(Key="accuracy", Mean=nominal_accuracy)
+  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Signal = sprintf("Sep: %.2f", signal)) %>%
+    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Signal, scales="free") +
+    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_flipy%s_%s_bis.png",
+                         exp.num, plot.data, plot.n_train, plot.K, plot.flipy, plot.contamination)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 801
+plot.epsilon <- 0.2
+plot.K <- 4
+plot.contamination <- "uniform"
+plot.n_train <- 10000
+plot.signal <- c(0.7, 1.0, 2.0)
+plot.model_name <- "RFC"
+
+plot.flipy <- 0.01
+plot.data <- "synthetic1_easy"
+make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.signal=plot.signal, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                save_plots=TRUE, reload=TRUE)
+
 
 

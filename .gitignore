@@ -14,6 +14,7 @@
 results
 results_hpc
 figures
+notes
 *.txt
 
 # Ignore dataset in bigearthnet
@@ -21,3 +22,4 @@ third_party/datasets
 **/__init__.py
 **/__pycache__/
 experiments/logs/
+epxeriments/notes/
