@@ -2657,10 +2657,116 @@ make_figure_706(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
-### Experiments 800: Criterion for gamma calibration ------------------------
+### Experiments 800: AP identification ------------------------
+
+#### Experiment 801: Impact of numerosity of the training set -----------------
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+
+  # method.values <<- c("Clean sample", "benchmark", "EE", "IF", "LOS")
+  # method.labels <<- c("Clean sample", "benchmark", "EE", "IF", "LOF")
+  
+  method.values <<- c("Clean sample", "benchmark", "EE", "IF")
+  method.labels <<- c("Clean sample", "benchmark", "EE", "IF")
+  
+  color.scale <<- cbPalette[c(1,2,4,5,6)]
+  shape.scale <<- c(1,0,3,4,5)
+  linetype.scale <<- c(1,1,1,1,1)
+}
 
 
-#### Experiment 801: Impact of classes separation ------------------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("accuracy", "accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, pi_easy, model_name, contamination, flipy, epsilon, n_train1, n_train2, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_801 <- function(exp.num, plot.alpha, plot.data="syntheticAP", plot.K=4,
+                            plot.pi_easy,
+                            plot.contamination="uniform", plot.model_name="RFC",
+                            plot.flipy=0,
+                            plot.epsilon=0.2,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==2, K==plot.K,
+           pi_easy %in% plot.pi_easy,
+           model_name==plot.model_name,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           flipy==plot.flipy, epsilon==plot.epsilon)
+  nominal_accuracy <- 1 - (plot.K-1)/plot.K*plot.flipy
+  df.nominal_accuracy <- tibble(Key="accuracy", Mean=nominal_accuracy)
+  #df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Pi = sprintf("pi: %.2f", pi_easy)) %>%
+    ggplot(aes(x=n_train1, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Pi, scales="free") +
+    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of training samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_flipy%s_%s.png",
+                         exp.num, plot.data, plot.n_train2, plot.K, plot.flipy, plot.contamination)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 801
+plot.epsilon <- 0.2
+plot.K <- 4
+plot.contamination <- "uniform"
+plot.pi_easy <- c(0, 0.25, 0.5, 0.75, 1)
+plot.model_name <- "RFC"
+
+plot.flipy <- 0
+plot.data <- "syntheticAP"
+make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.pi_easy=plot.pi_easy, plot.model_name=plot.model_name,
+                plot.contamination=plot.contamination,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                save_plots=FALSE, reload=TRUE)
+
+
+#### OLD - Experiment 801: Impact of classes separation ------------------------
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")

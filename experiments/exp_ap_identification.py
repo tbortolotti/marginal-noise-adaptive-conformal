@@ -186,7 +186,7 @@ def run_experiment(random_state):
                                                     outlier_detection_method="isolation_forest",
                                                     selection="accuracy"),
 
-        "LOS": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+        "LOF": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
                                                     outlier_detection=True,
                                                     outlier_detection_method="lof",
                                                     selection="accuracy")
