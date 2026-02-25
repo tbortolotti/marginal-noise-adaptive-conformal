@@ -19,7 +19,7 @@ if [[ $CONF == 800 ]]; then
   EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN1_LIST=(10000)
-  N_NTRAIN2_LIST=(5000)
+  N_TRAIN2_LIST=(1000)
   SEED_LIST=(1)
 
 elif [[ $CONF == 801 ]]; then
