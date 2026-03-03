@@ -222,7 +222,7 @@ def run_experiment(random_state):
     method = AnchorPointsIdentification(X_train1, Yt_train1, X_cal, Yt_cal, K,
                                         use_classifier=True, black_box=black_box_SVC,
                                         calibrate_gamma=True)
-    Ya_cal, _, _ = method.get_anchor_points()
+    Ya_cal, _, _, _ = method.get_anchor_points()
     idxs_cal_anchor = (Ya_cal != -1)
     X_anchor = X_cal[idxs_cal_anchor,]
     Y_anchor = Y_cal[idxs_cal_anchor]
