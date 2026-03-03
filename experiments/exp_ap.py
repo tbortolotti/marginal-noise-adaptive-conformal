@@ -27,12 +27,14 @@ from third_party import arc
 # Define default parameters
 exp_num = 601
 data_name = 'synthetic1'
+model_name = 'RFC'
 num_var = 20
 K = 4
 signal = 1
-model_name = 'RFC'
+pi_easy = 1
+center_scale = 1
 flipy = 0.01
-epsilon = 0.2
+epsilon = 0.1
 contamination_model = "uniform"
 n_train = 10000
 n_cal = 5000
@@ -42,26 +44,27 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 13:
+    if len(sys.argv) != 16:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
-
     exp_num = int(sys.argv[1])
-    data_name = sys.argv[2]
-    num_var = int(sys.argv[3])
-    K = int(sys.argv[4])
-    signal = float(sys.argv[5])
-    model_name = sys.argv[6]
-    flipy = float(sys.argv[7])
-    epsilon = float(sys.argv[8])
-    contamination_model = sys.argv[9]
-    n_train = int(sys.argv[10])
-    n_cal = int(sys.argv[11])
-    seed = int(sys.argv[12])
+    model_name = sys.argv[2]
+    data_name = sys.argv[3]
+    num_var = int(sys.argv[4])
+    K = int(sys.argv[5])
+    signal = float(sys.argv[6])
+    pi_easy = float(sys.argv[7])
+    center_scale = float(sys.argv[8])
+    flipy = float(sys.argv[9])
+    epsilon = float(sys.argv[10])
+    contamination_model = sys.argv[11]
+    n_train1 = int(sys.argv[12])
+    n_train2 = int(sys.argv[13])
+    n_cal = int(sys.argv[14])
+    seed = int(sys.argv[15])
 
 # Define other constant parameters
-n_train0 = 10000
 estimate = "none"
 n_test = 2000
 batch_size = 10
@@ -69,7 +72,13 @@ allow_empty = True
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 nu = 0.2
-gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dtype=float)
+
+# Parameters truncated gaussian
+A_easy = 1 * np.eye(2)
+A_hard = 1 * np.eye(2)
+R_easy = 1.5
+R_hard = 4.0
+delta_shift = 0
 
 # Initialize the data distribution
 if data_name == "synthetic1":
@@ -80,6 +89,12 @@ elif data_name == "synthetic2":
     data_distribution = data.DataModel_2(K, num_var, signal=signal, random_state=seed)
 elif data_name == "synthetic3":
     data_distribution = data.DataModel_3(K, num_var, signal=signal, random_state=seed)
+elif data_name == "syntheticAP":
+    data_distribution = data.DataModel_AP(K, num_var,
+                                          pi_easy=pi_easy, delta_shift=delta_shift, center_scale=center_scale, epsilon0=flipy,
+                                          distribution_type="truncated_gaussian",
+                                          A_easy=A_easy, R_easy=R_easy, A_hard=A_hard, R_hard=R_hard,
+                                          random_state=seed)
 else:
     print("Unknown data distribution!")
     sys.stdout.flush()
@@ -121,10 +136,12 @@ else:
     sys.stdout.flush()
     exit(-1)
 
+# Initialize black-box model
+black_box_SVC = arc.black_boxes.SVC(clip_proba_factor = 1e-5)
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
-                       'signal':[signal], 'n_train':[n_train], 'n_cal':[n_cal],
+                       'signal':[signal], 'n_train1':[n_train1], 'n_train2':[n_train2], 'n_cal':[n_cal],
                        'flipy':[flipy], 'epsilon':[epsilon], 'contamination':[contamination_model],
                        'model_name':[model_name], 'estimate':[estimate], 'seed':[seed]})
 
@@ -132,7 +149,7 @@ header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
 outfile_prefix += "_K" + str(K) + "_signal" + str(signal) + "_" + model_name
 outfile_prefix += "_flipy" + str(flipy) + "_eps" + str(epsilon) + "_" + contamination_model
-outfile_prefix += "_nt" + str(n_train) + "_nc" + str(n_cal) + "_est" + estimate + "_seed" + str(seed)
+outfile_prefix += "_nt1_" + str(n_train1) + "_nt2_" + str(n_train2) +"_nc" + str(n_cal) + "_est" + estimate + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
@@ -145,7 +162,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     data_distribution.set_seed(random_state+1)
-    X_all, Y_all = data_distribution.sample(n_train0+n_train+n_cal+n_test)
+    X_all, Y_all = data_distribution.sample(n_train1+n_train2+n_cal+n_test)
     print("Done.")
     sys.stdout.flush()
 
@@ -170,11 +187,10 @@ def run_experiment(random_state):
         sys.stdout.flush()
         exit(-1)
 
-
     # Separate data into training and calibration
     X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
 
-    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train, random_state=random_state+3)
+    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+3)
 
     # Fit the point predictor on the training set
     black_box_pt = copy.deepcopy(black_box)
@@ -184,14 +200,27 @@ def run_experiment(random_state):
     T_method = TMatrixEstimation(X_train2, Y_train2, Yt_train2, K, estimation_method="empirical")
     T_hat_clean = T_method.get_estimate()
 
-    ## Anchor points method for T estimation
-    method = AnchorPointsIdentification(X_train2, Yt_train2, K, black_box_pt, calibrate_gamma=True, gamma_vec=gamma_vec, elbow_detection_method="D2L", min_flag=True, ap_filter=True)
-    Ya_train2, gamma_opt, _ = method.get_anchor_points()
-    T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
-    T_hat = T_method.get_estimate()
+    ## Anchor points method for T estimation, using SVC as classifier
+    method = AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+                                        use_classifier=True, black_box=black_box_SVC,
+                                        calibrate_gamma=True)
+    Ya_train2, _, _, _ = method.get_anchor_points()
+    T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical")
+    T_hat_SVC = T_method.get_estimate()
+
+    ## Anchor points method for T estimation, using combination of outlier detectors as classifier
+    method = AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+                                            outlier_detection=True,
+                                            outlier_detection_method="elliptic_envelope",
+                                            selection="accuracy")
+    Ya_train2, _, _, _ = method.get_anchor_points()
+    T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical")
+    T_hat_EE = T_method.get_estimate()
 
     # Create dataset of sole anchor points
-    method = AnchorPointsIdentification(X_cal, Yt_cal, K, black_box_pt, gamma=gamma_opt, ap_filter=True)
+    method = AnchorPointsIdentification(X_train1, Yt_train1, X_cal, Yt_cal, K,
+                                        use_classifier=True, black_box=black_box_SVC,
+                                        calibrate_gamma=True)
     Ya_cal, _, _ = method.get_anchor_points()
     idxs_cal_anchor = (Ya_cal != -1)
     X_anchor = X_cal[idxs_cal_anchor,]
@@ -224,8 +253,14 @@ def run_experiment(random_state):
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ AP": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
+        "Adaptive optimized+ AP SVC": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+                                                                    epsilon=epsilon, T=T_hat_SVC, rho_tilde=rho_tilde_hat,
+                                                                    allow_empty=allow_empty, method="improved",
+                                                                    optimized=True, optimistic=True, verbose=False,
+                                                                    pre_trained=True, random_state=random_state),
+
+        "Adaptive optimized+ AP EE": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+                                                                    epsilon=epsilon, T=T_hat_EE, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state)

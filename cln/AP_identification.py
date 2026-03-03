@@ -282,7 +282,7 @@ class AnchorPointsIdentification:
             min_log = 3
             log_part = np.logspace(-min_log, -1.0, min_log)
             if rho_k > 0.1:
-                lin_part = np.arange(0.1 + 0.05, rho_k + 1e-12, 0.05)
+                lin_part = np.arange(0.1 + 0.05, 1.0 + 1e-12, 0.05)
                 self.inlier_frac_vec = np.concatenate([log_part, lin_part])
             else:
                 self.inlier_frac_vec = log_part[log_part <= rho_k]
