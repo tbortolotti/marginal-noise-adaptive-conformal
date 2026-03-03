@@ -38,11 +38,8 @@ R_easy = 1.5
 R_hard = 4.0
 flipy = 0
 
-# Point predictor
-model_name = 'RFC'
-
 # Contamination parameters
-epsilon = 0.2
+epsilon = 0.1
 contamination_model = "uniform"
 
 # Set sizes
@@ -54,7 +51,7 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 19:
+    if len(sys.argv) != 18:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -70,12 +67,11 @@ if True:
     R_easy = float(sys.argv[10])
     R_hard = float(sys.argv[11])
     flipy = float(sys.argv[12])
-    model_name = sys.argv[13]
-    epsilon = float(sys.argv[14])
-    contamination_model = sys.argv[15]
-    n_train1 = int(sys.argv[16])
-    n_train2 = int(sys.argv[17])
-    seed = int(sys.argv[18])
+    epsilon = float(sys.argv[13])
+    contamination_model = sys.argv[14]
+    n_train1 = int(sys.argv[15])
+    n_train2 = int(sys.argv[16])
+    seed = int(sys.argv[17])
 
 # Define other parameters
 A_easy = sigma_easy * np.eye(2)
@@ -83,7 +79,6 @@ A_hard = sigma_hard * np.eye(2)
 nu = 0
 
 batch_size = 10
-gamma_vec = np.asarray([0.001, 0.01, 0.02, 0.03, 0.04, 0.05, 0.1, 0.15, 0.2], dtype=float)
 
 # Initialize the data distribution
 if data_name == "syntheticAP":
@@ -107,25 +102,13 @@ elif contamination_model == "RRB":
 elif contamination_model == "random":
     T = contamination.construct_T_matrix_random(K, epsilon, random_state=seed)
 else:
-    print("Unknown contamination (M) model!")
+    print("Unknown contamination model!")
     sys.stdout.flush()
     exit(-1)
 
 # Initialize black-box model
-if model_name == 'RFC':
-    black_box = arc.black_boxes.RFC(n_estimators=100, max_features="sqrt")
-elif model_name == 'SVC':
-    black_box = arc.black_boxes.SVC(clip_proba_factor = 1e-5)
-elif model_name == 'NN':
-    black_box = arc.black_boxes.NNet(max_iter=100)
-elif model_name == 'MF':
-    black_box = DummyClassifier(strategy="most_frequent")
-elif model_name == 'SRC':
-    black_box = DummyClassifier(strategy="stratified")
-else:
-    print("Unknown model!")
-    sys.stdout.flush()
-    exit(-1)
+black_box_RFC = arc.black_boxes.RFC(n_estimators=100, max_features="sqrt")
+black_box_SVC = arc.black_boxes.SVC(clip_proba_factor = 1e-5)
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
@@ -133,7 +116,6 @@ header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
                        'sigma_easy':[sigma_easy], 'sigma_hard':[sigma_hard], 'R_easy':[R_easy], 'R_hard':[R_hard],
                        'n_train1':[n_train1], 'n_train2':[n_train2],
                        'flipy':[flipy], 'epsilon':[epsilon], 'contamination':[contamination_model],
-                       'model_name':[model_name],
                        'seed':[seed]})
 
 # Output file
@@ -141,7 +123,6 @@ outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var) + "_
 outfile_prefix += "_pi_easy" + str(pi_easy) + "_dshift" + str(delta_shift) + "_cscale" + str(center_scale)
 outfile_prefix += "_seasy" + str(sigma_easy) + "_shard" + str(sigma_hard) + "_Reasy" + str(R_easy) + "_Rhard" + str(R_hard)
 outfile_prefix += "_flipy" + str(flipy)
-outfile_prefix += "_"  + model_name
 outfile_prefix += "_eps" + str(epsilon) + "_" + contamination_model
 outfile_prefix += "_nt1_" + str(n_train1) + "_nt2_" + str(n_train2) + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
@@ -172,8 +153,12 @@ def run_experiment(random_state):
     X_train1, X_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, Y, Yt, test_size=n_train2, random_state=random_state+3)
 
     methods = {
-        "benchmark": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
-                                            use_classifier=True, black_box=black_box,
+        "RFC": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+                                            use_classifier=True, black_box=black_box_RFC,
+                                            calibrate_gamma=True),
+
+        "SVC": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+                                            use_classifier=True, black_box=black_box_SVC,
                                             calibrate_gamma=True),
 
         "EE": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,

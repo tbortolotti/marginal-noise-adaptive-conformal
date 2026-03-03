@@ -97,48 +97,11 @@ def _fit_detector(X_train, method,
 
     return clf
 
-def _select_inliers_from_scores(scores, selection="fixed", inlier_frac=0.8, gmm_random_state=None):
-    """
-    Convert anomaly scores to an inlier mask.
-
-    scores: array, larger = more anomalous
-    selection:
-      - "fixed": keep the lowest `inlier_frac` fraction
-      - "accuracy": select the optimal threshold at the elbow of accuracy
-      - "gmm": fit 2-component GMM; keep points assigned to the low-mean component
-    """
-
-    if selection == "fixed":
-        if not (0.0 < inlier_frac <= 1.0):
-            raise ValueError("inlier_frac must be in (0, 1].")
-        thr = np.quantile(scores, inlier_frac)
-        inlier_mask = scores <= thr
-        return inlier_mask, thr, inlier_mask.mean()
-
-    if selection == "gmm":
-        # Data-driven split: two groups with different score distributions
-        # Inliers are expected to have LOWER anomaly scores.
-        gmm = GaussianMixture(n_components=2, random_state=gmm_random_state)
-        gmm.fit(scores.reshape(-1, 1))
-
-        means = gmm.means_.ravel()
-        inlier_comp = np.argmin(means)
-
-        post = gmm.predict_proba(scores.reshape(-1, 1))[:, inlier_comp]
-        inlier_mask = post >= 0.5
-
-        # A “threshold” in score space is not unique under GMM, but we can report the
-        # max score among selected inliers as an operational cutoff.
-        thr = np.max(scores[inlier_mask]) if np.any(inlier_mask) else np.min(scores)
-        return inlier_mask, thr, inlier_mask.mean()
-
-    raise ValueError(f"Unknown selection='{selection}'")
-
-
 def outlier_detection_(X1_, Y1_, X2_, Y2_, K_,
                        outlier_detection_method="isolation_forest",
                        n_estimators=100, n_neighbors=5, max_features=None,
                        selection="fixed",
+                       ci_method="wilson",
                        threshold_vec=None,
                        inlier_frac_vec=None,
                        random_state=None):
@@ -198,30 +161,38 @@ def outlier_detection_(X1_, Y1_, X2_, Y2_, K_,
                     continue
                 inlier_thr[k] = np.quantile(col, threshold_vec_i[k])
 
+                # anchor_k = col <= inlier_thr[k]
+                # Y2_hat[anchor_k] = k
+
             # Condition: An observation is anchor if it is inlier for exactly one class
             is_inlier = scores <= inlier_thr[None, :]      # (n2_, K_)
             unique_inlier = (is_inlier.sum(axis=1) == 1)
             anchor = valid_row & unique_inlier
+            # anchor = valid_row & is_inlier
             Y2_hat_[anchor] = np.argmin(scores[anchor, :], axis=1)
 
-            accuracy_tilde_vec[i] = np.sum(Y2_hat_==Y2_)/np.sum(Y2_hat_ != -1)
-            size_vec[i] = np.sum(Y2_hat_!=-1)
+            if np.sum(Y2_hat_ != -1) > 0:
+                accuracy_tilde_vec[i] = np.sum(Y2_hat_==Y2_)/np.sum(Y2_hat_ != -1)
+                size_vec[i] = np.sum(Y2_hat_!=-1)
 
-            # Build confidence interval for proportion under Gaussian approximation
-            alpha = 0.05
-            z = norm.ppf(1 - alpha / 2)
-            ci_method="wald"
-            if ci_method=="wald":
-                se = np.sqrt(accuracy_tilde_vec[i] * (1 - accuracy_tilde_vec[i]) / size_vec[i])
-                accuracy_tilde_vec_lower[i] = max(0.0, accuracy_tilde_vec[i] - z * se)
-                accuracy_tilde_vec_upper[i] = min(1.0, accuracy_tilde_vec[i] + z * se)
-            elif ci_method=="wilson":
-                denom = 1 + z*z/size_vec[i]
-                center = (accuracy_tilde_vec[i] + z*z/(2*size_vec[i])) / denom
-                half = (z / denom) * np.sqrt(accuracy_tilde_vec[i]*(1-accuracy_tilde_vec[i])/size_vec[i] + z*z/(4*size_vec[i]*size_vec[i]))
-                accuracy_tilde_vec_lower[i] = max(0.0, center - half)
-                accuracy_tilde_vec_upper[i] = min(1.0, center + half)
-
+                # Build confidence interval for proportion under Gaussian approximation
+                alpha = 0.05
+                z = norm.ppf(1 - alpha / 2)
+                if ci_method=="wald":
+                    se = np.sqrt(accuracy_tilde_vec[i] * (1 - accuracy_tilde_vec[i]) / size_vec[i])
+                    accuracy_tilde_vec_lower[i] = max(0.0, accuracy_tilde_vec[i] - z * se)
+                    accuracy_tilde_vec_upper[i] = min(1.0, accuracy_tilde_vec[i] + z * se)
+                elif ci_method=="wilson":
+                    denom = 1 + z*z/size_vec[i]
+                    center = (accuracy_tilde_vec[i] + z*z/(2*size_vec[i])) / denom
+                    half = (z / denom) * np.sqrt(accuracy_tilde_vec[i]*(1-accuracy_tilde_vec[i])/size_vec[i] + z*z/(4*size_vec[i]*size_vec[i]))
+                    accuracy_tilde_vec_lower[i] = max(0.0, center - half)
+                    accuracy_tilde_vec_upper[i] = min(1.0, center + half)
+            else:
+                accuracy_tilde_vec[i] = 0
+                size_vec[i] = 0
+                accuracy_tilde_vec_lower[i] = 0.0
+                accuracy_tilde_vec_upper[i] = 1.0
 
         #idx = len(accuracy_tilde_vec) - 1 - np.argmax(accuracy_tilde_vec[::-1])
         idx = np.argmax(accuracy_tilde_vec_lower)
@@ -236,10 +207,14 @@ def outlier_detection_(X1_, Y1_, X2_, Y2_, K_,
             continue
         inlier_thr[k] = np.quantile(col, threshold_vec[k])
 
-        # Condition: An observation is anchor if it is inlier for exactly one class
-        is_inlier = scores <= inlier_thr[None, :]      # (n2_, K_)
-        unique_inlier = (is_inlier.sum(axis=1) == 1)
-        anchor = valid_row & unique_inlier
+        # anchor_k = col <= inlier_thr[k]
+        # Y2_hat[anchor_k] = k
+
+    # Condition: An observation is anchor if it is inlier for exactly one class
+    is_inlier = scores <= inlier_thr[None, :]      # (n2_, K_)
+    unique_inlier = (is_inlier.sum(axis=1) == 1)
+    anchor = valid_row & unique_inlier
+    # anchor = valid_row & is_inlier # anchor contiene gli indici delle osservazioni che sono anchor
 
     # NOTE: the following code is needed if one wants to add a margin
     # Winner (smallest score) and runner-up for margin test
@@ -290,7 +265,7 @@ class AnchorPointsIdentification:
         if gamma_vec is not None:
             self.gamma_vec = gamma_vec
         else:
-            self.gamma_vec = np.arange(0.1, 0.89 + 1e-12, 0.05)
+            self.gamma_vec = np.arange(0.1, 1.0 + 1e-12, 0.05)
 
         self.outlier_detection = outlier_detection
         self.outlier_detection_method = outlier_detection_method
@@ -323,47 +298,27 @@ class AnchorPointsIdentification:
             p_hat = black_box_pt.predict_proba(X2)
             if not isinstance(p_hat, np.ndarray):
                 p_hat = np.asarray(p_hat)
-            self.p_hat = p_hat
+            self.scores = p_hat
 
             # Estimate the contamination process by identifying anchor points
             if self.calibrate_gamma:
-                alpha = 0.05
-                size_vec = np.zeros(len(self.gamma_vec))
-                accuracy_tilde_vec = np.zeros(len(self.gamma_vec))
-                accuracy_tilde_vec_upper = np.zeros(len(self.gamma_vec))
-                accuracy_tilde_vec_lower = np.zeros(len(self.gamma_vec))
-
-                for i, gamma in enumerate(self.gamma_vec):
-                    Y_anchor_gamma = self.new_identify_anchor_points(gamma)
-                    accuracy_tilde_vec[i] = np.sum(Y_anchor_gamma==Yt2)/np.sum(Y_anchor_gamma!=-1)
-                    size_vec[i] = np.sum(Y_anchor_gamma!=-1)
-
-                    # Build confidence interval for proportion under Gaussian approximation
-                    z = norm.ppf(1 - alpha / 2)
-                    se = np.sqrt(accuracy_tilde_vec[i] * (1 - accuracy_tilde_vec[i]) / size_vec[i])
-                    accuracy_tilde_vec_lower[i] = max(0.0, accuracy_tilde_vec[i] - z * se)
-                    accuracy_tilde_vec_upper[i] = min(1.0, accuracy_tilde_vec[i] + z * se)
-
-                self.accuracy_tilde_vec = accuracy_tilde_vec
-
-                idx = np.argmax(accuracy_tilde_vec_lower)
-                gamma_opt = self.gamma_vec[idx]
+                gamma_opt = self.calibrate_threshold_gamma(Yt2)
                 self.gamma_opt = gamma_opt
             else:
                 self.gamma_opt = gamma
             
-            self.Y_anchor = self.new_identify_anchor_points(self.gamma_opt)
-            self.scores = p_hat
+            #self.Y_anchor = self.new_identify_anchor_points(self.gamma_opt)
+            #self.Y_anchor = self.identify_anchor_points(self.gamma_opt)
+            self.Y_anchor = self.identify_anchor_points_threshold(self.gamma_opt)
         
         if self.outlier_detection:
             if self.use_classifier:
                 Yt2_ = self.Y_anchor
             else:
                 Yt2_ = Yt2.copy()
+
             # Operate class-wise outlier detection
             # Parameters
-            # n_estimators=100, n_neighbors=20, max_features=None, random_state=None,
-            # selection="fixed", inlier_frac=0.8
             Yt2_inliers, scores = outlier_detection_(X1, Yt1, X2, Yt2_, self.K,
                                                     outlier_detection_method=outlier_detection_method,
                                                     n_neighbors=self.n_neighbors,
@@ -373,13 +328,42 @@ class AnchorPointsIdentification:
             self.Y_anchor = Yt2_inliers
             self.scores = scores
 
+    def calibrate_threshold_gamma(self, Yt2_, alpha=0.05):
+        size_vec = np.zeros(len(self.gamma_vec))
+        accuracy_tilde_vec = np.zeros(len(self.gamma_vec))
+        accuracy_tilde_vec_upper = np.zeros(len(self.gamma_vec))
+        accuracy_tilde_vec_lower = np.zeros(len(self.gamma_vec))
+
+        for i, gamma in enumerate(self.gamma_vec):
+            Y_anchor_gamma = self.identify_anchor_points_threshold(gamma)
+            if np.sum(Y_anchor_gamma!=-1) > 0:
+                accuracy_tilde_vec[i] = np.sum(Y_anchor_gamma==Yt2_)/np.sum(Y_anchor_gamma!=-1)
+                size_vec[i] = np.sum(Y_anchor_gamma!=-1)
+                # Build confidence interval for proportion under Gaussian approximation
+                z = norm.ppf(1 - alpha / 2)
+                se = np.sqrt(accuracy_tilde_vec[i] * (1 - accuracy_tilde_vec[i]) / size_vec[i])
+                accuracy_tilde_vec_lower[i] = max(0.0, accuracy_tilde_vec[i] - z * se)
+                accuracy_tilde_vec_upper[i] = min(1.0, accuracy_tilde_vec[i] + z * se)
+            else:
+                accuracy_tilde_vec[i] = 0
+                size_vec[i] = np.sum(Y_anchor_gamma!=-1)
+                accuracy_tilde_vec_lower[i] = 0.0
+                accuracy_tilde_vec_upper[i] = 1.0
+
+        self.accuracy_tilde_vec = accuracy_tilde_vec
+
+        idx = np.argmax(accuracy_tilde_vec_lower)
+        gamma_opt = self.gamma_vec[idx]
+
+        return gamma_opt
+
     def identify_anchor_points(self, gamma):
         # Identify the set of anchor points with threshold gamma%
         anchor_points = []
         m = max(1, int(np.ceil(gamma * self.n2)))
 
         for l in range(self.K):
-            scores_l = self.p_hat[:, l]
+            scores_l = self.scores[:, l]
             top_idx = np.argsort(scores_l)[::-1][:m]
             anchor_points.append(top_idx)
 
@@ -391,7 +375,7 @@ class AnchorPointsIdentification:
 
         for l in range(self.K):
             idx = anchor_points[l]
-            probs = self.p_hat[idx, l]
+            probs = self.scores[idx, l]
 
             mask = probs > best_prob[idx]
             Y_anchor_[idx[mask]] = l
@@ -402,12 +386,22 @@ class AnchorPointsIdentification:
     def new_identify_anchor_points(self, threshold):
         # Identify the set of anchor points with threshold
         # score[i,k] = p_hat[i,k] - sum_{l!=k} p_hat[i,l] = 2*p_hat[i,k] - sum_j p[i,j]
-        row_sum = self.p_hat.sum(axis=1, keepdims=True)
-        scores = 2.0 * self.p_hat - row_sum
+        row_sum = self.scores.sum(axis=1, keepdims=True)
+        scores = 2.0 * self.scores - row_sum
 
         # best class per observation
         best_k = np.argmax(scores, axis=1)
-        best_score = scores[np.arange(self.p_hat.shape[0]), best_k]
+        best_score = scores[np.arange(self.scores.shape[0]), best_k]
+
+        Y_anchor_ = -np.ones(self.n2, dtype=np.int32)
+        Y_anchor_[best_score > threshold] = best_k[best_score > threshold]
+
+        return Y_anchor_
+    
+    def identify_anchor_points_threshold(self, threshold):
+        # best class per observation
+        best_k = np.argmax(self.scores, axis=1)
+        best_score = self.scores[np.arange(self.scores.shape[0]), best_k]
 
         Y_anchor_ = -np.ones(self.n2, dtype=np.int32)
         Y_anchor_[best_score > threshold] = best_k[best_score > threshold]
@@ -420,6 +414,40 @@ class AnchorPointsIdentification:
             return self.Y_anchor, self.gamma_opt, self.accuracy_tilde_vec, self.scores
         else:
             return self.Y_anchor, None, None, self.scores
+        
+
+"""
+# OLD NOTES on AP identification via outlier detection, might delete later
+
+            od_scores = np.full((self.n2, self.K), np.nan, dtype=float)
+
+            # Fit classifier as combination of outlier detectors
+            for k in range(self.K):
+                # Fit oulier detector on training_1 observations with class k
+                idx_train = (Yt1 == k)
+                X1_k = X1[idx_train]
+
+                # Score X2_k (higher score = more anomalous)
+                clf_k = _fit_detector(X_train=X1_k,
+                                      method=outlier_detection_method,
+                                      n_estimators=100, n_neighbors=n_neighbors, max_features=None,
+                                      random_state=None)
+                
+                # Use outlier detector on training_2 observations
+                sk = -clf_k.score_samples(X2)
+                sk = np.asarray(sk).reshape(-1)
+                od_scores[:, k] = sk
+            od_scores_normalized = od_scores / np.sum(od_scores, axis=1, keepdims=True)
+            self.scores = od_scores_normalized
+
+            # Estimate the contamination process by identifying anchor points
+            if self.calibrate_gamma:
+                gamma_opt = self.calibrate_threshold_gamma(Yt2)
+                self.gamma_opt = gamma_opt
+            else:
+                self.gamma_opt = gamma
+            self.Y_anchor = self.identify_anchor_points_threshold(self.gamma_opt)
+"""
 
 """
 class AnchorPointsIdentification:

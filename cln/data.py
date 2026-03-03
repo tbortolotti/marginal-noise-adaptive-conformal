@@ -8,6 +8,43 @@ from cln import contamination
 def sigmoid(x):
     return(1/(1 + np.exp(-x)))
 
+
+"""
+def sample_raised_cosine(n, R=1.0, A=None, mu=None, batch_size=50000, random_state=None):
+    rng = np.random.default_rng(random_state)
+
+    out = np.empty((n, 2), dtype=float)
+    filled = 0
+
+    while filled < n:
+        m = min(batch_size, (n - filled) * 10)
+        u1 = rng.random(m)
+        u2 = rng.random(m)
+
+        r = R * np.sqrt(u1)
+        theta = 2.0 * np.pi * u2
+
+        u = np.stack([r * np.cos(theta), r * np.sin(theta)], axis=1)
+
+        accept_prob = 0.5 * (1.0 + np.cos(np.pi * r / R))
+        accept = rng.random(m) < accept_prob
+
+        accepted_u = u[accept]
+        k = accepted_u.shape[0]
+        if k == 0:
+            continue
+
+        take = min(k, n - filled)
+        U_take = accepted_u[:take]
+
+        X_take = (U_take @ A.T) + mu[filled:filled + take]
+        out[filled:filled + take] = X_take
+        filled += take
+
+    return out
+"""
+
+
 def sample_truncated_gaussian(n, R=1.0, A=None, mu=None, batch_size=50000, random_state=None):
     rng = np.random.default_rng(random_state)
 
