@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=604
+CONF=600
 
 if [[ $CONF == 600 ]]; then
   MODEL_LIST=('RFC')
@@ -9,7 +9,7 @@ if [[ $CONF == 600 ]]; then
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
-  PI_EASY_LIST=(1.0)
+  PI_LIST=(1.0)
   C_SCALE_LIST=(1)
   FLIPY_LIST=(0)
   EPSILON_LIST=(0.1)
@@ -25,7 +25,7 @@ elif [[ $CONF == 601 ]]; then
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   SIGNAL_LIST=(0.7 1.0 2.0)
-  PI_EASY_LIST=(1.0)
+  PI_LIST=(1.0)
   C_SCALE_LIST=(1)
   FLIPY_LIST=(0 0.01)
   EPSILON_LIST=(0.1)
@@ -41,7 +41,7 @@ elif [[ $CONF == 602 ]]; then
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   SIGNAL_LIST=(0.7 1.0 2.0)
-  PI_EASY_LIST=(1.0)
+  PI_LIST=(1.0)
   C_SCALE_LIST=(1)
   FLIPY_LIST=(0 0.01)
   EPSILON_LIST=(0.1)
@@ -57,7 +57,7 @@ elif [[ $CONF == 603 ]]; then
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
-  PI_EASY_LIST=(1.0)
+  PI_LIST=(1.0)
   C_SCALE_LIST=(1)
   FLIPY_LIST=(0 0.01)
   EPSILON_LIST=(0.1)
@@ -73,7 +73,7 @@ elif [[ $CONF == 604 ]]; then
   NUM_VAR_LIST=(2)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
-  PI_EASY_LIST=(1.0)
+  PI_LIST=(1.0)
   C_SCALE_LIST=(1)
   FLIPY_LIST=(0)
   EPSILON_LIST=(0.1)
@@ -89,7 +89,7 @@ elif [[ $CONF == 605 ]]; then
   NUM_VAR_LIST=(2)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
-  PI_EASY_LIST=(1.0)
+  PI_LIST=(1.0)
   C_SCALE_LIST=(0.5 0.75 1)
   FLIPY_LIST=(0)
   EPSILON_LIST=(0.1 0.2)
@@ -98,7 +98,7 @@ elif [[ $CONF == 605 ]]; then
   N_TRAIN2_LIST=(5000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
-  
+
 fi
 
 
@@ -136,7 +136,7 @@ for SEED in $SEED_LIST; do
                       for N_TRAIN1 in "${N_TRAIN1_LIST[@]}"; do
                         for N_TRAIN2 in "${N_TRAIN2_LIST[@]}"; do
                           for N_CAL in "${N_CAL_LIST[@]}"; do
-                            JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_PI"$PI"_CSCALE"$C_SCALE"_"$MODEL"_flipy"$FLIPY"_eps"$EPSILON"_"$CONTAMINATION"_nt1_"$N_TRAIN1"_nt2_"$N_TRAIN2"_nc"$N_CAL"_gamma"$GAMMA"_seed"$SEED
+                            JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_PI"$PI"_CSCALE"$C_SCALE"_"$MODEL"_flipy"$FLIPY"_eps"$EPSILON"_"$CONTAMINATION"_nt1_"$N_TRAIN1"_nt2_"$N_TRAIN2"_nc"$N_CAL"_seed"$SEED
                             OUT_FILE=$OUT_DIR"/"$JOBN".txt"
                             COMPLETE=0
                             #  ls $OUT_FILE
@@ -146,7 +146,7 @@ for SEED in $SEED_LIST; do
 
                             if [[ $COMPLETE -eq 0 ]]; then
                               # Script to be run
-                              SCRIPT="exp_ap.sh $CONF $MODEL $DATA $NUM_VAR $K $SIGNAL $PI $C_SCALE $FLIPY $EPSILON $CONTAMINATION $N_TRAIN1 $N_TRAIN2 $N_CAL $GAMMA $SEED"
+                              SCRIPT="exp_ap.sh $CONF $MODEL $DATA $NUM_VAR $K $SIGNAL $PI $C_SCALE $FLIPY $EPSILON $CONTAMINATION $N_TRAIN1 $N_TRAIN2 $N_CAL $SEED"
                               # Define job name
                               OUTF=$LOGS"/"$JOBN".out"
                               ERRF=$LOGS"/"$JOBN".err"
@@ -160,6 +160,8 @@ for SEED in $SEED_LIST; do
                               #./$SCRIPT
                             fi
                           done
+
+
                         done
                       done
                     done

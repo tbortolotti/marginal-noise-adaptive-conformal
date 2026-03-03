@@ -36,7 +36,8 @@ center_scale = 1
 flipy = 0.01
 epsilon = 0.1
 contamination_model = "uniform"
-n_train = 10000
+n_train1 = 10000
+n_train2 = 10000
 n_cal = 5000
 seed = 1
 
