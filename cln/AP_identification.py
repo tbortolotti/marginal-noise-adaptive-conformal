@@ -336,9 +336,11 @@ class AnchorPointsIdentification:
 
         for i, gamma in enumerate(self.gamma_vec):
             Y_anchor_gamma = self.identify_anchor_points_threshold(gamma)
-            if np.sum(Y_anchor_gamma!=-1) > 0:
+            size_vec[i] = np.sum(Y_anchor_gamma!=-1)
+
+            if size_vec[i] > 0:
                 accuracy_tilde_vec[i] = np.sum(Y_anchor_gamma==Yt2_)/np.sum(Y_anchor_gamma!=-1)
-                size_vec[i] = np.sum(Y_anchor_gamma!=-1)
+                
                 # Build confidence interval for proportion under Gaussian approximation
                 z = norm.ppf(1 - alpha / 2)
                 se = np.sqrt(accuracy_tilde_vec[i] * (1 - accuracy_tilde_vec[i]) / size_vec[i])

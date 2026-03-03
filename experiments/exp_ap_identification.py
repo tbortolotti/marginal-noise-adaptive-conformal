@@ -181,13 +181,13 @@ def run_experiment(random_state):
     res = pd.DataFrame({})
     res_list = []
 
-    # Estimate using all the clean/noisy labels correspondence
+    # Clean sample - Estimate using all the clean/noisy labels correspondence
     T_method = TMatrixEstimation(X_train2, Y_train2, Yt_train2, K, estimation_method="empirical")
     T_hat = T_method.get_estimate()
     
     performances = evaluate_estimate(T, T_hat, Y_train2, Y_train2, Yt_train2, K, epsilon0=0)
     res_update = header.copy()
-    res_update = res_update.assign(Method='Clean sample',  gamma_opt=1, **performances)
+    res_update = res_update.assign(Method='Clean sample', n_train1=n_train1, n_train2=n_train2, size=np.sum(Y_train2!=-1), **performances)
     res_list.append(res_update)
 
     # Loop through the methods, apply them, and evaluate the results
@@ -208,7 +208,7 @@ def run_experiment(random_state):
 
         performances = evaluate_estimate(T, T_hat, Y_train2, Ya_train2, Yt_train2, K, epsilon0=flipy)
         res_update = header.copy()
-        res_update = res_update.assign(Method=method_name, n_train1=n_train1, n_train2=n_train2, **performances)
+        res_update = res_update.assign(Method=method_name, n_train1=n_train1, n_train2=n_train2, size=np.sum(Ya_train2!=-1), **performances)
         res_list.append(res_update)
 
     # Combine all results into a single DataFrame
