@@ -18,6 +18,7 @@ if [[ $CONF == 600 ]]; then
   N_TRAIN2_LIST=(10000)
   N_CAL_LIST=(2000)
   SEED_LIST=(1)
+
 elif [[ $CONF == 601 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("synthetic1_easy")
@@ -33,6 +34,7 @@ elif [[ $CONF == 601 ]]; then
   N_TRAIN2_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
+
 elif [[ $CONF == 602 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("synthetic1")
@@ -48,6 +50,7 @@ elif [[ $CONF == 602 ]]; then
   N_TRAIN2_LIST=(5000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
+
 elif [[ $CONF == 603 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("synthetic1")
@@ -63,6 +66,7 @@ elif [[ $CONF == 603 ]]; then
   N_TRAIN2_LIST=(100 500 1000 5000 10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
+
 elif [[ $CONF == 604 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("syntheticAP")
@@ -78,6 +82,7 @@ elif [[ $CONF == 604 ]]; then
   N_TRAIN2_LIST=(500 1000 5000 10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
+
 elif [[ $CONF == 605 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("syntheticAP")
@@ -93,6 +98,7 @@ elif [[ $CONF == 605 ]]; then
   N_TRAIN2_LIST=(5000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
+  
 fi
 
 
