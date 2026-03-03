@@ -2756,7 +2756,7 @@ plot.pi_easy <- c(0, 0.25, 0.5, 0.75, 1)
 
 plot.flipy <- 0
 plot.data <- "syntheticAP"
-make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+make_figure_801(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
@@ -2785,7 +2785,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
 make_figure_802 <- function(exp.num, plot.alpha, plot.data="syntheticAP", plot.K=4,
                             plot.pi_easy,
-                            plot.contamination="uniform", plot.model_name="RFC",
+                            plot.contamination="uniform",
                             plot.flipy=0,
                             plot.epsilon=0.2,
                             save_plots=FALSE, reload=FALSE) {
@@ -2846,13 +2846,13 @@ plot.pi_easy <- c(0, 0.25, 0.5, 0.75, 1)
 
 plot.flipy <- 0
 plot.data <- "syntheticAP"
-make_figure_802(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+make_figure_802(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
                 save_plots=FALSE, reload=TRUE)
 
-#### Experiment 803: Impact of numerosity of the training set -----------------
+#### Experiment 803: Impact of the contamination strength -----------------
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -2935,18 +2935,117 @@ plot.flipy <- 0
 plot.data <- "syntheticAP"
 
 plot.pi_easy <- 1
-make_figure_803(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+make_figure_803(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
                 save_plots=FALSE, reload=TRUE)
 
 plot.pi_easy <- 0.75
-make_figure_803(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+make_figure_803(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
                 save_plots=FALSE, reload=TRUE)
+
+#### Experiment 804: Impact of the contamination strength -----------------
+# Performance indexes displayed as function of size of the set for T estimation
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("accuracy", "epsilon_res", "frobenius_d"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, pi_easy, contamination, flipy, epsilon, n_train1, n_train2, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_804 <- function(exp.num, plot.alpha, plot.data="syntheticAP", plot.K=4,
+                            plot.pi_easy=1,
+                            plot.contamination="uniform",
+                            plot.flipy=0,
+                            plot.epsilon,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==2, K==plot.K,
+           pi_easy==plot.pi_easy,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           flipy==plot.flipy, epsilon %in% plot.epsilon)
+  nominal_accuracy <- 1 - (plot.K-1)/plot.K*plot.flipy
+  df.nominal_accuracy <- tibble(Key="accuracy", Mean=nominal_accuracy)
+  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
+    ggplot(aes(x=n_train2, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Epsilon, scales="free") +
+    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of training samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_K%d_flipy%s_%s_pi%s.png",
+                         exp.num, plot.data, plot.K, plot.flipy, plot.contamination, plot.pi_easy)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 804
+plot.epsilon <- c(0, 0.05, 0.1, 0.2)
+plot.K <- 4
+plot.contamination <- "uniform"
+plot.flipy <- 0
+plot.data <- "syntheticAP"
+
+plot.pi_easy <- 1
+make_figure_804(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
+                plot.pi_easy=plot.pi_easy,
+                plot.contamination=plot.contamination,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                save_plots=FALSE, reload=TRUE)
+
+plot.pi_easy <- 0.75
+make_figure_804(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
+                plot.pi_easy=plot.pi_easy,
+                plot.contamination=plot.contamination,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                save_plots=FALSE, reload=TRUE)
+
+
 
 #### OLD - Experiment 801: Impact of classes separation ------------------------
 init_settings <- function() {
