@@ -110,14 +110,14 @@ def scores_to_weights(scores,
     return weights
 
 class TMatrixEstimation:
-    def __init__(self, X, Y_anchor, Yt, K,
+    def __init__(self, Y_anchor, Yt, K,
                  weights=None,
                  estimation_method="empirical",
                  verbose=False):
         
         self.K = K
         self.method = estimation_method
-        self.n = X.shape[0]
+        self.n = len(Yt)
 
         if weights is None:
             weights = np.ones(self.n)

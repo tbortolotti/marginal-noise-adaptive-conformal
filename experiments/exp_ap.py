@@ -198,7 +198,7 @@ def run_experiment(random_state):
     black_box_pt.fit(X_train1, Yt_train1)
 
     # Estimate T using all the clean/noisy labels correspondence
-    T_method = TMatrixEstimation(X_train2, Y_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
+    T_method = TMatrixEstimation(Y_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     T_hat_clean = T_method.get_estimate()
 
     ## Anchor points method for T estimation, using SVC as classifier
@@ -206,7 +206,7 @@ def run_experiment(random_state):
                                         use_classifier=True, black_box=black_box_SVC,
                                         calibrate_gamma=True)
     Ya_train2, _, _, _ = method.get_anchor_points()
-    T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
+    T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     T_hat_SVC = T_method.get_estimate()
 
     ## Anchor points method for T estimation, using combination of outlier detectors as classifier
@@ -215,7 +215,7 @@ def run_experiment(random_state):
                                             outlier_detection_method="elliptic_envelope",
                                             selection="accuracy")
     Ya_train2, _, _, _ = method.get_anchor_points()
-    T_method = TMatrixEstimation(X_train2, Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
+    T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     T_hat_EE = T_method.get_estimate()
 
     # Create dataset of sole anchor points
