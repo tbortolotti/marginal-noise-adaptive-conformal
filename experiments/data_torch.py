@@ -12,7 +12,7 @@ from torchvision.datasets import CIFAR10
 import sys, os
 
 import_path = "/home/tb_214/code/PyTorch_CIFAR10"
-sys.path.append(import_path)    
+sys.path.append(import_path)
 
 from cifar10_models.resnet import resnet18
 
