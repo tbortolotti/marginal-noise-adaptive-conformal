@@ -61,8 +61,8 @@ asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
 # Set default directories
-data_dir = "/home/tb_214/data/cifar10"
-noisy_data_dir = "/home/tb_214/data/cifar10h"
+data_dir = "/home1/tb_214/data/cifar10"
+noisy_data_dir = "/home1/tb_214/data/cifar10h"
 
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
