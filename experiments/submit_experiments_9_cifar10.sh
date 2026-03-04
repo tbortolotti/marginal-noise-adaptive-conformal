@@ -56,9 +56,9 @@ for SEED in $SEED_LIST; do
       for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
         for N_TRAIN1 in "${N_TRAIN1_LIST[@]}"; do
           for N_TRAIN2 in "${N_TRAIN2_LIST[@]}"; do
-            JOBN="exp"$CONF"/cifar10_n"$BATCH_SIZE
-            JOBN=$JOBN"_encl"$EPSILON_N_CLEAN"_enco"$EPSILON_N_CORR
-            JOBN=$JOBN"_est"$ESTIMATE"_"$SEED
+            JOBN="exp"$CONF"/cifar10_eps"$EPSILON
+            JOBN=$JOBN"_nu"$NU"_"$CONTAMINATION
+            JOBN=$JOBN"_nt1_"$N_TRAIN1"_nt2_"$N_TRAIN2"_"$SEED
             OUT_FILE=$OUT_DIR"/"$JOBN".txt"
             COMPLETE=0
             if [[ -f $OUT_FILE ]]; then
