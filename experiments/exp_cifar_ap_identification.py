@@ -56,7 +56,7 @@ if True:
 batch_size = n_train1 + n_train2
 data_name = "cifar10"
 K = 10
-num_exp = 1
+num_exp = 5
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
