@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=600
+CONF=604
 
 if [[ $CONF == 600 ]]; then
   MODEL_LIST=('RFC')
