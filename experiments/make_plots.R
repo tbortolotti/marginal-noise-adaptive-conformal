@@ -3139,6 +3139,107 @@ make_figure_805(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
                 save_plots=FALSE, reload=TRUE)
 
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
+### Experiments 900: AP identification in CIFAR-10 dataset ------------------------
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  
+  # method.values <<- c("Clean sample", "benchmark", "EE", "IF", "LOF")
+  # method.labels <<- c("Clean sample", "benchmark", "EE", "IF", "LOF")
+  
+  method.values <<- c("Clean sample", "SVC", "RFC", "IF")
+  method.labels <<- c("Clean sample", "SVC", "RFC", "IF")
+  
+  color.scale <<- cbPalette[c(1,2,4,6)]
+  shape.scale <<- c(1,0,3,5)
+  linetype.scale <<- c(1,1,1,1)
+}
+
+
+#### Experiment 901: Impact of numerosity of the training set -----------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("size","accuracy","accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_901 <- function(exp.num,plot.data="cifar10",
+                            plot.contamination="uniform",
+                            plot.epsilon=0.1,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==2,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon)
+  df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
+  #df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Pi = sprintf("pi: %.2f", pi_easy)) %>%
+    ggplot(aes(x=n_train1, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Pi, scales="free") +
+    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of samples in the training set") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_K%d_eps%s_%s.png",
+                         exp.num, plot.data, plot.espilon, plot.contamination)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 901
+plot.epsilon <- 0.1
+plot.contamination <- "uniform"
+
+plot.data <- "cifar10"
+make_figure_801(exp.num=exp.num, plot.data=plot.data,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                save_plots=FALSE, reload=TRUE)
+
+
+
 #### OLD - Experiment 801: Impact of classes separation ------------------------
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
