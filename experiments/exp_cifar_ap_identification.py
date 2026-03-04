@@ -141,10 +141,11 @@ def run_experiment(random_state):
                                                     pretrained=True,
                                                     calibrate_gamma=True),
 
-        "EE": lambda: AnchorPointsIdentification(X_train1_detach, Yt_train1, X_train2_detach, Yt_train2, K,
-                                            outlier_detection=True,
-                                            outlier_detection_method="elliptic_envelope",
-                                            selection="accuracy"),
+        #"EE": lambda: AnchorPointsIdentification(X_train1_detach, Yt_train1, X_train2_detach, #Yt_train2, K,
+        #                                    outlier_detection=True,
+        #                                    outlier_detection_method="elliptic_envelope",
+        #                                    selection="accuracy"),
+        
 
         "IF": lambda: AnchorPointsIdentification(X_train1_detach, Yt_train1, X_train2_detach, Yt_train2, K,
                                                     outlier_detection=True,
