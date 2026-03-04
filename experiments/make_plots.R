@@ -2065,6 +2065,194 @@ make_figure_603(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
+#' ---------------------------------------------------------------------------------------------------------------------
+#### Experiment 604: Simulations with real Anchor Points ------------------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, contamination, flipy, epsilon, estimate, n_train1, n_train2, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+
+init_settings <- function(plot.optimistic = FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  
+  method.values <<- c("Standard",
+                      "Standard using AP",
+                      "Adaptive optimized+",
+                      "Adaptive optimized+ clean",
+                      "Adaptive optimized+ AP SVC")
+  #"Adaptive optimized+ AP param")
+  method.labels <<- c("Standard",
+                      "Standard (AP)",
+                      "Adaptive+",
+                      "Adaptive+ (clean)",
+                      "Adaptive+ (AP)")
+  #"Adaptive+ (AP RRM)")
+  color.scale <<- cbPalette[c(1,3,4,5,6)]
+  shape.scale <<- c(1,2,3,4,5)
+  linetype.scale <<- c(1,1,1,1,1)
+}
+
+#' Plot marginal coverage as function of the number of calibration samples, increasing the class separation
+make_figure_604a <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal",
+                             plot.contamination="uniform",
+                             plot.flipy=0,
+                             plot.epsilon=0.1,
+                             plot.n_train1,
+                             plot.n_train2=10000,
+                             plot.optimistic=TRUE,
+                             save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic = plot.optimistic)
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==2, n_train2==plot.n_train2, K==plot.K, Guarantee==plot.guarantee,
+           Label=="marginal", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           flipy==plot.flipy, epsilon==plot.epsilon, n_train1 %in% plot.n_train1)
+  
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Signal = factor(sprintf("N train: %d", n_train1), 
+                           levels = sprintf("N train: %d", c(500, 1000, 5000, 10000)), 
+                           labels = c("N train: 500", "N train: 1000", "N train: 5000", "N train: 10000"))) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Signal, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_nt2_%d_K%d_flipy%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train2, plot.K, plot.flipy, plot.guarantee, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 604
+plot.data <- "syntheticAP"
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.K <- 4
+plot.contamination <- "uniform"
+plot.flipy <- 0
+
+
+plot.n_train1 <- c(500,1000,5000,10000)
+plot.n_train2 <- 500
+make_figure_604a(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
+                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+
+make_figure_604b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal",
+                             plot.contamination="uniform",
+                             plot.flipy=0,
+                             plot.epsilon=0.1,
+                             plot.n_train1=10000,
+                             plot.n_train2,
+                             plot.optimistic=TRUE,
+                             save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic = plot.optimistic)
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==2, n_train1==plot.n_train1, K==plot.K, Guarantee==plot.guarantee,
+           Label=="marginal", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           flipy==plot.flipy, epsilon==plot.epsilon, n_train2 %in% plot.n_train2)
+  
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Signal = factor(sprintf("N AP-sel. set: %d", n_train2), 
+                          levels = sprintf("N AP-sel. set: %d", c(500, 1000, 5000, 10000)), 
+                          labels = c("N AP-sel. set: 500", "N AP-sel. set: 1000", "N AP-sel. set: 5000", "N AP-sel. set: 10000"))) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Signal, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_nt1_%d_K%d_flipy%s_%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train1, plot.K, plot.flipy, plot.guarantee, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+plot.n_train1 <- 500
+plot.n_train2 <- c(500,1000,5000,10000)
+make_figure_604b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+                 plot.contamination=plot.contamination,
+                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                 plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
+                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+
 ### Experiments 700: Estimating the contamination process ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -2686,14 +2874,14 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("size","accuracy", "accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("size","accuracy"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, pi_easy, contamination, flipy, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_801 <- function(exp.num, plot.alpha, plot.data="syntheticAP", plot.K=4,
+make_figure_801 <- function(exp.num, plot.data="syntheticAP", plot.K=4,
                             plot.pi_easy,
                             plot.contamination="uniform",
                             plot.flipy=0,
@@ -2752,7 +2940,7 @@ exp.num <- 801
 plot.epsilon <- 0.1
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.pi_easy <- c(0, 0.25, 0.5, 0.75, 1)
+plot.pi_easy <- c(0.25, 0.5, 0.75, 1)
 
 plot.flipy <- 0
 plot.data <- "syntheticAP"
@@ -2760,7 +2948,7 @@ make_figure_801(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 802: Impact of size of the set for T estimation -----------------
@@ -2776,14 +2964,14 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("accuracy", "epsilon_res", "frobenius_d"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("accuracy", "epsilon_res"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, pi_easy, contamination, flipy, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_802 <- function(exp.num, plot.alpha, plot.data="syntheticAP", plot.K=4,
+make_figure_802 <- function(exp.num, plot.data="syntheticAP", plot.K=4,
                             plot.pi_easy,
                             plot.contamination="uniform",
                             plot.flipy=0,
@@ -2842,7 +3030,7 @@ exp.num <- 802
 plot.epsilon <- 0.1
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.pi_easy <- c(0, 0.25, 0.5, 0.75, 1)
+plot.pi_easy <- c(0.25, 0.5, 0.75, 1)
 
 plot.flipy <- 0
 plot.data <- "syntheticAP"
@@ -2850,7 +3038,7 @@ make_figure_802(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 803: Impact of the contamination strength -----------------
 load_data <- function(exp.num, from_cluster=TRUE) {
@@ -2865,14 +3053,14 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("size","accuracy", "accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("size","accuracy"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, pi_easy, contamination, flipy, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_803 <- function(exp.num, plot.alpha, plot.data="syntheticAP", plot.K=4,
+make_figure_803 <- function(exp.num, plot.data="syntheticAP", plot.K=4,
                             plot.pi_easy=1,
                             plot.contamination="uniform",
                             plot.flipy=0,
@@ -2939,14 +3127,14 @@ make_figure_803(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 plot.pi_easy <- 0.75
 make_figure_803(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 804: Impact of the contamination strength -----------------
 # Performance indexes displayed as function of size of the set for T estimation
@@ -2962,14 +3150,14 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("accuracy", "epsilon_res", "frobenius_d"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("accuracy", "epsilon_res"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, pi_easy, contamination, flipy, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_804 <- function(exp.num, plot.alpha, plot.data="syntheticAP", plot.K=4,
+make_figure_804 <- function(exp.num, plot.data="syntheticAP", plot.K=4,
                             plot.pi_easy=1,
                             plot.contamination="uniform",
                             plot.flipy=0,
@@ -3036,14 +3224,14 @@ make_figure_804(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 plot.pi_easy <- 0.75
 make_figure_804(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 805: Impact of the contamination strength -----------------
 load_data <- function(exp.num, from_cluster=TRUE) {
@@ -3058,14 +3246,14 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("size","accuracy", "accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("size","accuracy"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, pi_easy, center_scale, contamination, flipy, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_805 <- function(exp.num, plot.alpha, plot.data="syntheticAP", plot.K=4,
+make_figure_805 <- function(exp.num, plot.data="syntheticAP", plot.K=4,
                             plot.pi_easy=1,
                             plot.contamination="uniform",
                             plot.flipy=0,
@@ -3115,7 +3303,7 @@ make_figure_805 <- function(exp.num, plot.alpha, plot.data="syntheticAP", plot.K
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_K%d_flipy%f_%s_pi%s.png",
                          exp.num, plot.data, plot.K, plot.flipy, plot.contamination, plot.pi_easy)
-    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    ggsave(file=plot.file, height=4.5, width=7.5, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -3130,16 +3318,13 @@ plot.data <- "syntheticAP"
 plot.pi_easy <- 1
 plot.center_scale <- c(0.5, 0.75, 1)
 
-
 plot.epsilon <- 0.1
 make_figure_805(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.center_scale=plot.center_scale,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
-
-
+                save_plots=TRUE, reload=TRUE)
 
 #' ---------------------------------------------------------------------------------------------------------------------
 ### Experiments 900: AP identification in CIFAR-10 dataset ------------------------
@@ -3149,8 +3334,8 @@ init_settings <- function() {
   # method.values <<- c("Clean sample", "benchmark", "EE", "IF", "LOF")
   # method.labels <<- c("Clean sample", "benchmark", "EE", "IF", "LOF")
   
-  method.values <<- c("Clean sample", "SVC", "RFC", "IF")
-  method.labels <<- c("Clean sample", "SVC", "RFC", "IF")
+  method.values <<- c("Clean sample", "SVC", "ResNet18", "IF")
+  method.labels <<- c("Clean sample", "SVC", "ResNet18", "IF")
   
   color.scale <<- cbPalette[c(1,2,4,6)]
   shape.scale <<- c(1,0,3,5)
@@ -3172,7 +3357,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   }))    
   summary <- results %>%
     pivot_longer(c("size","accuracy","accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
+    group_by(data, K, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
@@ -3180,7 +3365,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
 make_figure_901 <- function(exp.num,plot.data="cifar10",
                             plot.contamination="uniform",
-                            plot.epsilon=0.1,
+                            plot.epsilon,
+                            plot.n_train2=5000,
                             save_plots=FALSE, reload=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
@@ -3189,20 +3375,19 @@ make_figure_901 <- function(exp.num,plot.data="cifar10",
   init_settings()
   
   df <- summary %>%
-    filter(data==plot.data, num_var==2,
-           Method %in% method.values,
+    filter(data==plot.data, Method %in% method.values,
            contamination==plot.contamination,
-           epsilon==plot.epsilon)
+           epsilon%in%plot.epsilon,
+           n_train2==plot.n_train2)
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
-  #df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Pi = sprintf("pi: %.2f", pi_easy)) %>%
+    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
     ggplot(aes(x=n_train1, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~Pi, scales="free") +
+    facet_grid(Key~Epsilon, scales="free") +
     geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
@@ -3219,8 +3404,8 @@ make_figure_901 <- function(exp.num,plot.data="cifar10",
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_K%d_eps%s_%s.png",
-                         exp.num, plot.data, plot.espilon, plot.contamination)
+    plot.file <- sprintf("figures/exp%d_%s_K%d_%s_nt2_%d.png",
+                         exp.num, plot.data, plot.contamination, plot.n_train2)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
@@ -3229,63 +3414,19 @@ make_figure_901 <- function(exp.num,plot.data="cifar10",
 }
 
 exp.num <- 901
-plot.epsilon <- 0.1
+plot.epsilon <- c(0.05, 0.1, 0.2)
 plot.contamination <- "uniform"
+plot.n_train2 <- 5000
 
 plot.data <- "cifar10"
-make_figure_801(exp.num=exp.num, plot.data=plot.data,
+make_figure_901(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
+                plot.n_train2=plot.n_train2,
                 save_plots=FALSE, reload=TRUE)
 
 
-
-#### OLD - Experiment 801: Impact of classes separation ------------------------
-init_settings <- function() {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
-  # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
-  
-  # method.values <<- c("Clean sample", "D2L", "D2L filtered", "top1perc", "top1perc filtered")
-  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 1%)", "AP RR (top 1% filt)")
-  # 
-  # color.scale <<- cbPalette[c(1,2,4,5,6)]
-  # shape.scale <<- c(1,0,3,4,5)
-  # linetype.scale <<- c(1,1,1,1,1)
-  
-  # method.values <<- c("Clean sample", "top3perc", "threshold", "D2L")
-  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (t)", "AP RR (D2L)")
-  
-  # method.values <<- c("Clean sample", "top3perc", "mixed", "mixed filtered")
-  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (mixed)", "AP RR (mixed filt)")
-  
-  method.values <<- c("Clean sample", "top3perc", "D2L", "D2L filtered")
-  method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (D2L)", "AP RR (D2L filt)")
-  
-  # method.values <<- c("Clean sample", "top3perc", "D2L", "threshold filtered", "mixed filtered")
-  # method.labels <<- c("Clean sample", "AP RR (t filt)", "AP RR (D2L filt)", "AP RR (mixed filt)")
-  
-  # method.values <<- c("Clean sample", "threshold filtered", "D2L filtered", "mixed filtered")
-  # method.labels <<- c("Clean sample", "AP RR (t filt)", "AP RR (D2L filt)", "AP RR (mixed filt)")
-  
-  # method.values <<- c("Clean sample", "top3perc", "top3perc filtered", "threshold", "threshold filtered", "D2L", "D2L filtered")
-  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)", "AP RR (t)", "AP RR (t filt)", "AP RR (D2L)", "AP RR (D2L filt)")
-
-  # method.values <<- c("Clean sample", "threshold", "threshold filtered")
-  # method.labels <<- c("Clean sample", "AP RR (t)", "AP RR (t filt)")
-  
-  # method.values <<- c("Clean sample", "D2L", "D2L filtered")
-  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)")
-  
-  # method.values <<- c("Clean sample", "top3perc", "top3perc filtered")
-  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (top 3% filt)")
-
-  color.scale <<- cbPalette[c(1,2,4,5,6,7,8)]
-  shape.scale <<- c(1,0,3,4,5,6,7)
-  linetype.scale <<- c(1,1,1,1,1,1,1)
-}
-
-
+#### Experiment 902: Impact of numerosity of the training set -----------------
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -3298,18 +3439,17 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    #pivot_longer(c("gamma_opt", "epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
-    pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, signal, model_name, contamination, flipy, epsilon, n_train, n, Method, Key) %>%
+    pivot_longer(c("accuracy", "epsilon_res","frobenius_d"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, K, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", plot.K=4,
-                            plot.contamination="uniform", plot.n_train=10000, plot.signal, plot.model_name="RFC",
-                            plot.flipy=0,
-                            plot.epsilon=0.1,
+make_figure_902 <- function(exp.num,plot.data="cifar10",
+                            plot.contamination="uniform",
+                            plot.epsilon,
+                            plot.n_train1=5000,
                             save_plots=FALSE, reload=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
@@ -3318,30 +3458,27 @@ make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
   init_settings()
   
   df <- summary %>%
-    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K,
-           signal %in% plot.signal,
-           model_name==plot.model_name,
-           Method %in% method.values,
+    filter(data==plot.data, Method %in% method.values,
            contamination==plot.contamination,
-           flipy==plot.flipy, epsilon==plot.epsilon)
-  nominal_accuracy <- 1 - (plot.K-1)/plot.K*plot.flipy
-  df.nominal_accuracy <- tibble(Key="accuracy", Mean=nominal_accuracy)
-  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+           epsilon%in%plot.epsilon,
+           n_train1==plot.n_train1)
+  df.nominal_error <- tibble(Key="epsilon_res", Mean=0)
+  df.nominal_error2 <- tibble(Key="frobenius_d", Mean=0)
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Signal = sprintf("Sep: %.2f", signal)) %>%
-    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
+    ggplot(aes(x=n_train2, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~Signal, scales="free") +
-    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
+    facet_grid(Key~Epsilon, scales="free") +
+    geom_hline(data=df.nominal_error, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.nominal_error2, aes(yintercept=Mean), linetype="dashed") +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of samples") +
+    xlab("Number of samples in the anchor-selection set") +
     ylab("") +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -3352,8 +3489,8 @@ make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_flipy%s_%s.png",
-                         exp.num, plot.data, plot.n_train, plot.K, plot.flipy, plot.contamination)
+    plot.file <- sprintf("figures/exp%d_%s_K%d_%s_nt1_%d.png",
+                         exp.num, plot.data, plot.contamination, plot.n_train1)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
@@ -3361,144 +3498,16 @@ make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", pl
   }
 }
 
-exp.num <- 801
-plot.epsilon <- 0.2
-plot.K <- 4
+exp.num <- 902
+plot.epsilon <- c(0.05, 0.1, 0.2)
 plot.contamination <- "uniform"
-plot.n_train <- 10000
-plot.signal <- c(0.7, 1.0, 2.0)
-plot.model_name <- "RFC"
-
-plot.flipy <- 0
-plot.data <- "synthetic1"
-make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.signal=plot.signal, plot.model_name=plot.model_name,
-                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
-
-plot.data <- "synthetic1_easy"
-make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.signal=plot.signal, plot.model_name=plot.model_name,
-                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
-
-plot.flipy <- 0.01
-plot.data <- "synthetic1"
-make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.signal=plot.signal, plot.model_name=plot.model_name,
-                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
-
-plot.data <- "synthetic1_easy"
-make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.signal=plot.signal, plot.model_name=plot.model_name,
-                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
-
-### Prova a far vedere l'effetto del mixed:
-
-init_settings <- function() {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  # method.values <<- c("Clean sample", "AP D2L", "AP drop1", "AP threshold")
-  # method.labels <<- c("Clean sample", "AP (D2L)", "AP (drop)", "AP threshold")
-  
-  # method.values <<- c("Clean sample", "D2L", "D2L filtered", "top1perc", "top1perc filtered")
-  # method.labels <<- c("Clean sample", "AP RR (D2L)", "AP RR (D2L filt)", "AP RR (top 1%)", "AP RR (top 1% filt)")
-  # 
-  # color.scale <<- cbPalette[c(1,2,4,5,6)]
-  # shape.scale <<- c(1,0,3,4,5)
-  # linetype.scale <<- c(1,1,1,1,1)
-  
-  # method.values <<- c("Clean sample", "top3perc", "threshold", "D2L")
-  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (t)", "AP RR (D2L)")
-  
-  # method.values <<- c("Clean sample", "top3perc", "mixed", "mixed filtered")
-  # method.labels <<- c("Clean sample", "AP RR (top 3%)", "AP RR (mixed)", "AP RR (mixed filt)")
-  
-  method.values <<- c("Clean sample", "D2L filtered", "threshold filtered", "mixed filtered")
-  method.labels <<- c("Clean sample", "AP RR (D2L filt)", "AP RR (t filt)", "AP RR (mixed filt)")
-  
-  color.scale <<- cbPalette[c(1,5,6,7,8)]
-  shape.scale <<- c(1,4,5,6,7)
-  linetype.scale <<- c(1,1,1,1,1)
-}
-
-
-#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_801 <- function(exp.num, plot.alpha, plot.data="synthetic1_easy", plot.K=4,
-                            plot.contamination="uniform", plot.n_train=10000, plot.signal, plot.model_name="RFC",
-                            plot.flipy=0,
-                            plot.epsilon=0.1,
-                            save_plots=FALSE, reload=FALSE) {
-  if(reload) {
-    summary <- load_data(exp.num)
-  }
-  
-  init_settings()
-  
-  df <- summary %>%
-    filter(data==plot.data, num_var==20, n_train==plot.n_train, K==plot.K,
-           signal %in% plot.signal,
-           model_name==plot.model_name,
-           Method %in% method.values,
-           contamination==plot.contamination,
-           flipy==plot.flipy, epsilon==plot.epsilon)
-  nominal_accuracy <- 1 - (plot.K-1)/plot.K*plot.flipy
-  df.nominal_accuracy <- tibble(Key="accuracy", Mean=nominal_accuracy)
-  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
-  pp <- df %>%
-    mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Signal = sprintf("Sep: %.2f", signal)) %>%
-    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~Signal, scales="free") +
-    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    scale_x_continuous(trans='log10') +
-    xlab("Number of samples") +
-    ylab("") +
-    theme_bw() +
-    theme(text = element_text(size = 12),
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-          legend.text = element_text(size = 12),
-          legend.title = element_text(size = 12),
-          plot.margin = margin(5, 1, 1, -10))
-  
-  
-  if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_flipy%s_%s_bis.png",
-                         exp.num, plot.data, plot.n_train, plot.K, plot.flipy, plot.contamination)
-    ggsave(file=plot.file, height=4.5, width=9, units="in")
-    return(NULL)
-  } else{
-    return(pp)
-  }
-}
-
-exp.num <- 801
-plot.epsilon <- 0.2
-plot.K <- 4
-plot.contamination <- "uniform"
-plot.n_train <- 10000
-plot.signal <- c(0.7, 1.0, 2.0)
-plot.model_name <- "RFC"
-
-plot.flipy <- 0.01
-plot.data <- "synthetic1_easy"
-make_figure_801(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.signal=plot.signal, plot.model_name=plot.model_name,
-                plot.contamination=plot.contamination, plot.n_train=plot.n_train,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+plot.n_train1 <- 5000
+plot.data <- "cifar10"
+make_figure_902(exp.num=exp.num, plot.data=plot.data,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                plot.n_train1=plot.n_train1,
+                save_plots=FALSE, reload=TRUE)
 
 
 
