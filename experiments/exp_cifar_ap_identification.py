@@ -61,15 +61,8 @@ asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 
 # Set default directories
-data_dir = "/project/sesia_1123/cifar-10/cifar-10h/cifar-10-python"
-noisy_data_dir = "/project/sesia_1123/cifar-10/cifar-10h/data"
-
-# Check if the directories exist, if not, ask for alternate paths
-if not os.path.exists(data_dir):
-    data_dir = "/media/msesia/Samsung1/data/cifar-10h/cifar-10-python"
-
-if not os.path.exists(noisy_data_dir):
-    noisy_data_dir = "/media/msesia/Samsung1/data/cifar-10h/data"
+data_dir = "/home/tb_214/data/cifar10"
+noisy_data_dir = "/home/tb_214/data/cifar10h"
 
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
@@ -145,6 +138,7 @@ def run_experiment(random_state):
 
         "ResNet18": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
                                                     use_classifier=True, black_box=black_box_RN18,
+                                                    pretrained=True,
                                                     calibrate_gamma=True),
 
         "EE": lambda: AnchorPointsIdentification(X_train1_detach, Yt_train1, X_train2_detach, Yt_train2, K,

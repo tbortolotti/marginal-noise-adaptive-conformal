@@ -237,6 +237,7 @@ class AnchorPointsIdentification:
     def __init__(self, X1, Yt1, X2, Yt2, K,
                  use_classifier = False,
                  black_box = None,
+                 pretrained = False,
                  gamma = None,
                  calibrate_gamma = False,
                  gamma_vec = None,
@@ -292,7 +293,8 @@ class AnchorPointsIdentification:
         if self.use_classifier:
             # Fit the point predictor on the training set
             black_box_pt = copy.deepcopy(black_box)
-            black_box_pt.fit(X1, Yt1)
+            if not pretrained:
+                black_box_pt.fit(X1, Yt1)
 
             # Calculate the probabilities on the set for which you want to identify anchor points
             p_hat = black_box_pt.predict_proba(X2)

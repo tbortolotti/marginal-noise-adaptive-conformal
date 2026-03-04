@@ -11,14 +11,10 @@ from torchvision.datasets import CIFAR10
 
 import sys, os
 
-import_path = "/project/sesia_1123/cifar-10/pytorch-cifar10/"
-if not os.path.exists(import_path):
-    import_path = "/media/msesia/Samsung1/data/pytorch-cifar10/"
+import_path = "/home/tb_214/code/PyTorch_CIFAR10"
 sys.path.append(import_path)    
 
-# https://github.com/huyvnphan/PyTorch_CIFAR10
 from cifar10_models.resnet import resnet18
-
 
 import pickle
 def unpickle(file):
