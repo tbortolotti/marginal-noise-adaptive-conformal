@@ -67,7 +67,7 @@ for SEED in $SEED_LIST; do
 
             if [[ $COMPLETE -eq 0 ]]; then
               # Script to be run
-              SCRIPT="exp_cifar_ap_identification.sh $CONF $EPSILON $NU $CONTAMINATION $N_TRAIN1 $N_TRAIN2"
+              SCRIPT="exp_cifar_ap_identification.sh $CONF $EPSILON $NU $CONTAMINATION $N_TRAIN1 $N_TRAIN2 $SEED"
               # Define job name
               OUTF=$LOGS"/"$JOBN".out"
               ERRF=$LOGS"/"$JOBN".err"
