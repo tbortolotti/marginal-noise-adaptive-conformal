@@ -3356,7 +3356,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("size","accuracy","accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("size","accuracy"), names_to = "Key", values_to = "Value") %>%
     group_by(data, K, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -3404,7 +3404,7 @@ make_figure_901 <- function(exp.num,plot.data="cifar10",
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_K%d_%s_nt2_%d.png",
+    plot.file <- sprintf("figures/exp%d_%s_%s_nt2_%d.png",
                          exp.num, plot.data, plot.contamination, plot.n_train2)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
@@ -3414,7 +3414,7 @@ make_figure_901 <- function(exp.num,plot.data="cifar10",
 }
 
 exp.num <- 901
-plot.epsilon <- c(0.05, 0.1, 0.2)
+plot.epsilon <- c(0, 0.05, 0.1, 0.2)
 plot.contamination <- "uniform"
 plot.n_train2 <- 5000
 
@@ -3423,7 +3423,7 @@ make_figure_901(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train2=plot.n_train2,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 902: Impact of numerosity of the training set -----------------
@@ -3439,7 +3439,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("accuracy", "epsilon_res","frobenius_d"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("accuracy", "epsilon_res"), names_to = "Key", values_to = "Value") %>%
     group_by(data, K, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -3463,7 +3463,7 @@ make_figure_902 <- function(exp.num,plot.data="cifar10",
            epsilon%in%plot.epsilon,
            n_train1==plot.n_train1)
   df.nominal_error <- tibble(Key="epsilon_res", Mean=0)
-  df.nominal_error2 <- tibble(Key="frobenius_d", Mean=0)
+  #df.nominal_error2 <- tibble(Key="frobenius_d", Mean=0)
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
@@ -3473,7 +3473,7 @@ make_figure_902 <- function(exp.num,plot.data="cifar10",
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
     facet_grid(Key~Epsilon, scales="free") +
     geom_hline(data=df.nominal_error, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_error2, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.nominal_error2, aes(yintercept=Mean), linetype="dashed") +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
@@ -3489,7 +3489,7 @@ make_figure_902 <- function(exp.num,plot.data="cifar10",
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_K%d_%s_nt1_%d.png",
+    plot.file <- sprintf("figures/exp%d_%s_%s_nt1_%d.png",
                          exp.num, plot.data, plot.contamination, plot.n_train1)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
@@ -3499,7 +3499,7 @@ make_figure_902 <- function(exp.num,plot.data="cifar10",
 }
 
 exp.num <- 902
-plot.epsilon <- c(0.05, 0.1, 0.2)
+plot.epsilon <- c(0, 0.05, 0.1, 0.2)
 plot.contamination <- "uniform"
 plot.n_train1 <- 5000
 plot.data <- "cifar10"
@@ -3507,7 +3507,7 @@ make_figure_902(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train1=plot.n_train1,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 

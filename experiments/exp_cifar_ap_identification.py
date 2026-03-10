@@ -23,7 +23,8 @@ from cln.AP_identification import AnchorPointsIdentification
 from cln.T_estimation import evaluate_estimate, TMatrixEstimation
 from third_party import arc
 
-from data_torch import Cifar10DataSet, ResNet18
+#from data_torch import Cifar10DataSet, ResNet18
+from data_torch import Cifar10ImageNetDataSet
 from torch.utils.data import DataLoader
 
 # Define default parameters
@@ -67,12 +68,15 @@ noisy_data_dir = "/home1/tb_214/data/cifar10h"
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
 
-dataset = Cifar10DataSet(data_dir, noisy_data_dir, normalize=True, random_state=2026)
+#dataset = Cifar10DataSet(data_dir, noisy_data_dir, normalize=True, random_state=2026)
 #dataset = Cifar10DataSet(data_dir, normalize=True, random_state=2026)
-loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
+#loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
+
+dataset = Cifar10ImageNetDataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2026)
+loader = DataLoader(dataset, batch_size=256, shuffle=False, num_workers=1)
 
 # Initialize the black-box model
-black_box_RN18 = ResNet18()
+#black_box_RN18 = ResNet18()
 black_box_SVC = arc.black_boxes.SVC(clip_proba_factor = 1e-5)
 
 # Initialize noise contamination process
@@ -136,10 +140,10 @@ def run_experiment(random_state):
                                                     use_classifier=True, black_box=black_box_SVC,
                                                     calibrate_gamma=True),
 
-        "ResNet18": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
-                                                    use_classifier=True, black_box=black_box_RN18,
-                                                    pretrained=True,
-                                                    calibrate_gamma=True),
+        #"ResNet18": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+        #                                            use_classifier=True, black_box=black_box_RN18,
+        #                                            pretrained=True,
+        #                                            calibrate_gamma=True),
 
         #"EE": lambda: AnchorPointsIdentification(X_train1_detach, Yt_train1, X_train2_detach, #Yt_train2, K,
         #                                    outlier_detection=True,
