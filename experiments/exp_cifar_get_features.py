@@ -86,7 +86,7 @@ idx_all = np.concatenate(idx_list)
 print(X_features.shape, Y_clean.shape, Y_noisy.shape)
 sys.stdout.flush()
 
-print("\Training the black box...", end=' ')
+print("\nTraining the black box...", end=' ')
 sys.stdout.flush()
 black_box_SVC.fit(X_features, Y_noisy)
 
@@ -94,6 +94,6 @@ p_hat = black_box_SVC.predict_proba(X_features)
 print(p_hat.shape)
 sys.stdout.flush()
 
-print("\No error.... nice!", end=' ')
+print("\nNo error.... nice", end=' ')
 sys.stdout.flush()
 
