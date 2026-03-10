@@ -124,10 +124,6 @@ class ImageNetResNet18Features:
             p.requires_grad = False
 
     def transform(self, X):
-        """
-        X: torch tensor of shape (N, 3, H, W)
-        returns: torch tensor of shape (N, 512)
-        """
         X = X.to(self.device)
         with torch.no_grad():
             feats = self.backbone(X)              # (N, 512, 1, 1)

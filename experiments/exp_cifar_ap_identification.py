@@ -24,7 +24,7 @@ from cln.T_estimation import evaluate_estimate, TMatrixEstimation
 from third_party import arc
 
 #from data_torch import Cifar10DataSet, ResNet18
-from data_torch import Cifar10ImageNetDataSet
+from data_torch import Cifar10ImageNetDataSet, ImageNetResNet18Features
 from torch.utils.data import DataLoader
 
 # Define default parameters
@@ -73,7 +73,8 @@ print(f"Noisy Data Directory: {noisy_data_dir}")
 #loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
 
 dataset = Cifar10ImageNetDataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2026)
-loader = DataLoader(dataset, batch_size=256, shuffle=False, num_workers=1)
+loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=1)
+feature_extractor = ImageNetResNet18Features()
 
 # Initialize the black-box model
 #black_box_RN18 = ResNet18()
@@ -115,9 +116,10 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     #X_batch, Y_batch, Y_lab_batch, Yt_batch, Yt_lab_batch, idx_batch = next(iter(loader))
-    X, Y, Y_lab, _, _, idx_batch = next(iter(loader))
+    X, Y, _, _, _, _ = next(iter(loader))
+    X_features = feature_extractor.transform(X)
+    X_features = X_features.numpy()
     
-    X_detach = X.detach().cpu().numpy().reshape(X.shape[0], -1)
     Y = Y.detach().numpy()
 
     # Generate the contaminated labels
@@ -133,10 +135,12 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Separate data into first-stage training and anchor-selection set
-    X_train1, X_train2, X_train1_detach, X_train2_detach, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, X_detach, Y, Yt, test_size=n_train2, random_state=random_state+2)
+    #X_train1, X_train2, X_features_train1, X_features_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, X_features, Y, Yt, test_size=n_train2, random_state=random_state+2)
+
+    X_features_train1, X_features_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_features, Y, Yt, test_size=n_train2, random_state=random_state+2)
 
     methods = {
-        "SVC": lambda: AnchorPointsIdentification(X_train1_detach, Yt_train1, X_train2_detach, Yt_train2, K,
+        "SVC": lambda: AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, Yt_train2, K,
                                                     use_classifier=True, black_box=black_box_SVC,
                                                     calibrate_gamma=True),
 
@@ -145,13 +149,13 @@ def run_experiment(random_state):
         #                                            pretrained=True,
         #                                            calibrate_gamma=True),
 
-        #"EE": lambda: AnchorPointsIdentification(X_train1_detach, Yt_train1, X_train2_detach, #Yt_train2, K,
+        #"EE": lambda: AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, #Yt_train2, K,
         #                                    outlier_detection=True,
         #                                    outlier_detection_method="elliptic_envelope",
         #                                    selection="accuracy"),
         
 
-        "IF": lambda: AnchorPointsIdentification(X_train1_detach, Yt_train1, X_train2_detach, Yt_train2, K,
+        "IF": lambda: AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, Yt_train2, K,
                                                     outlier_detection=True,
                                                     outlier_detection_method="isolation_forest",
                                                     selection="accuracy")
