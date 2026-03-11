@@ -3526,7 +3526,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   }))    
   summary <- results %>%
     pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, signal, contamination, flipy, epsilon, estimate, n_train1, n_train2, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    group_by(data, contamination, epsilon, n_train1, n_train2, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
@@ -3554,89 +3554,11 @@ init_settings <- function(plot.optimistic = FALSE) {
   linetype.scale <<- c(1,1,1,1,1)
 }
 
-#' Plot marginal coverage as function of the number of calibration samples, increasing the class separation
-make_figure_1001a <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal",
+
+make_figure_1001 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.guarantee="marginal",
                              plot.contamination="uniform",
-                             plot.flipy=0,
                              plot.epsilon=0.1,
-                             plot.n_train1,
-                             plot.n_train2=10000,
-                             plot.optimistic=TRUE,
-                             save_plots=FALSE, reload=FALSE) {
-  if(reload) {
-    summary <- load_data(exp.num)
-  }
-  
-  init_settings(plot.optimistic = plot.optimistic)
-  
-  df <- summary %>%
-    filter(data==plot.data, num_var==2, n_train2==plot.n_train2, K==plot.K, Guarantee==plot.guarantee,
-           Label=="marginal", Alpha==plot.alpha,
-           Method %in% method.values,
-           contamination==plot.contamination,
-           flipy==plot.flipy, epsilon==plot.epsilon, n_train1 %in% plot.n_train1)
-  
-  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
-  
-  pp <- df %>%
-    mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Signal = factor(sprintf("N train: %d", n_train1), 
-                           levels = sprintf("N train: %d", c(500, 1000, 5000, 10000)), 
-                           labels = c("N train: 500", "N train: 1000", "N train: 5000", "N train: 10000"))) %>%
-    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~Signal, scales="free") +
-    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
-    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    scale_x_continuous(trans='log10') +
-    xlab("Number of calibration samples") +
-    ylab("") +
-    theme_bw() +
-    theme(text = element_text(size = 12),
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-          legend.text = element_text(size = 12),
-          legend.title = element_text(size = 12),
-          plot.margin = margin(5, 1, 1, -10))
-  
-  if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_nt2_%d_K%d_flipy%s_%s_%s_optimistic%s.pdf",
-                         exp.num, plot.data, plot.n_train2, plot.K, plot.flipy, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=4, width=9, units="in")
-    return(NULL)
-  } else{
-    return(pp)
-  }
-}
-
-exp.num <- 1001
-plot.data <- "syntheticAP"
-plot.alpha <- 0.1
-plot.epsilon <- 0.1
-plot.K <- 4
-plot.contamination <- "uniform"
-plot.flipy <- 0
-
-
-plot.n_train1 <- c(500,1000,5000,10000)
-plot.n_train2 <- 500
-make_figure_1000a(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
-                 plot.contamination=plot.contamination,
-                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                 plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
-                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
-
-
-make_figure_1001b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal",
-                             plot.contamination="uniform",
-                             plot.flipy=0,
-                             plot.epsilon=0.1,
-                             plot.n_train1=10000,
+                             plot.n_train1=1000,
                              plot.n_train2,
                              plot.optimistic=TRUE,
                              save_plots=FALSE, reload=FALSE) {
@@ -3647,19 +3569,19 @@ make_figure_1001b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.
   init_settings(plot.optimistic = plot.optimistic)
   
   df <- summary %>%
-    filter(data==plot.data, num_var==2, n_train1==plot.n_train1, K==plot.K, Guarantee==plot.guarantee,
+    filter(data==plot.data, n_train1==plot.n_train1, Guarantee==plot.guarantee,
            Label=="marginal", Alpha==plot.alpha,
            Method %in% method.values,
            contamination==plot.contamination,
-           flipy==plot.flipy, epsilon==plot.epsilon, n_train2 %in% plot.n_train2)
+           epsilon==plot.epsilon, n_train2 %in% plot.n_train2)
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(Signal = factor(sprintf("N AP-sel. set: %d", n_train2), 
-                           levels = sprintf("N AP-sel. set: %d", c(500, 1000, 5000, 10000)), 
-                           labels = c("N AP-sel. set: 500", "N AP-sel. set: 1000", "N AP-sel. set: 5000", "N AP-sel. set: 10000"))) %>%
+                           levels = sprintf("N AP-sel. set: %d", c(1000, 2000, 3000)), 
+                           labels = c("N AP-sel. set: 1000", "N AP-sel. set: 2000", "N AP-sel. set: 3000"))) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
@@ -3681,8 +3603,8 @@ make_figure_1001b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.
           plot.margin = margin(5, 1, 1, -10))
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_nt1_%d_K%d_flipy%s_%s_%s_optimistic%s.pdf",
-                         exp.num, plot.data, plot.n_train1, plot.K, plot.flipy, plot.guarantee, plot.contamination, plot.optimistic)
+    plot.file <- sprintf("figures/exp%d_%s_nt1_%d_eps%s_nu%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train1, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
     ggsave(file=plot.file, height=4, width=9, units="in")
     return(NULL)
   } else{
@@ -3690,11 +3612,17 @@ make_figure_1001b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.
   }
 }
 
-plot.n_train1 <- 500
-plot.n_train2 <- c(500,1000,5000,10000)
-make_figure_1000b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
+exp.num <- 1001
+plot.data <- "cifar10"
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.contamination <- "uniform"
+
+plot.n_train1 <- 1000
+plot.n_train2 <- c(1000,2000,3000)
+make_figure_1001(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
                  plot.contamination=plot.contamination,
-                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                 plot.epsilon=plot.epsilon,
                  plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
                  save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 

@@ -26,6 +26,7 @@ from third_party import arc
 #from data_torch import ResNet18
 from data_torch import Cifar10DataSet, ImageNetResNet18Features
 from torch.utils.data import DataLoader
+import gc
 
 # Define default parameters
 exp_num = 901
@@ -116,6 +117,7 @@ def run_experiment(random_state):
     X, Y, _, _, _, _ = next(iter(loader))
     X_features = feature_extractor.transform(X)
     X_features = X_features.numpy()
+    del X; torch.cuda.empty_cache()
     
     Y = Y.detach().numpy()
 
@@ -135,6 +137,7 @@ def run_experiment(random_state):
     #X_train1, X_train2, X_features_train1, X_features_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, X_features, Y, Yt, test_size=n_train2, random_state=random_state+2)
 
     X_features_train1, X_features_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_features, Y, Yt, test_size=n_train2, random_state=random_state+2)
+    del X_features
 
     methods = {
         "SVC": lambda: AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, Yt_train2, K,

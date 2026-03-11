@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Parameters
-CONF=901
+CONF=900
 
 if [[ $CONF == 900 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN1_LIST=(1000)
-  N_TRAIN2_LIST=(1000)
+  N_TRAIN1_LIST=(5000)
+  N_TRAIN2_LIST=(5000)
   SEED_LIST=(1)
 
 elif [[ $CONF == 901 ]]; then
@@ -20,10 +20,11 @@ elif [[ $CONF == 901 ]]; then
   SEED_LIST=$(seq 1 10)
 
 elif [[ $CONF == 902 ]]; then
-  EPSILON_LIST=(0 0.05 0.1 0.2)
+  #EPSILON_LIST=(0 0.05 0.1 0.2)
+  EPSILON_LIST=(0.15)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN1_LIST=(1000)
+  N_TRAIN1_LIST=(5000)
   N_TRAIN2_LIST=(500 1000 2000 5000)
   SEED_LIST=$(seq 1 10)
 
