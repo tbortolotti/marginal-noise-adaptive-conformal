@@ -26,6 +26,8 @@ from third_party import arc
 from data_torch import Cifar10DataSet, ImageNetResNet18Features, ResNet18
 from torch.utils.data import DataLoader
 
+import gc
+
 
 # Define default parameters
 exp_num = 1001
@@ -212,6 +214,22 @@ def run_experiment(random_state):
     
     print("Done.")
     sys.stdout.flush()
+
+    # Force garbage collection
+    gc.collect()
+    torch.cuda.empty_cache()
+
+    # Print memory state
+    print(f"RAM used: {torch.cuda.memory_allocated()/1e9:.2f} GB")
+    print(f"RAM reserved: {torch.cuda.memory_reserved()/1e9:.2f} GB")
+
+    # Print all live tensors
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                print(f"Tensor: {type(obj).__name__}, size={obj.size()}, device={obj.device}")
+        except:
+            pass
 
     alpha = 0.1
     guarantee = 'marginal'
