@@ -79,7 +79,7 @@ print(f"Noisy Data Directory: {noisy_data_dir}")
 
 dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, imagenet_flag=True, random_state=2026)
 
-print("\nOverall numerosity of dataset {len(dataset)}")
+print(f"\nOverall numerosity of dataset {len(dataset)}")
 sys.stdout.flush()
 
 loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
