@@ -146,6 +146,8 @@ def run_experiment(random_state):
     # Separate data into training and calibration
     X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
 
+    print("Preparing dataset for T estimation...", end=' ')
+    sys.stdout.flush()
     # Split training set in two, as it'll be needed to estimate T
     X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+3)
 
@@ -155,7 +157,11 @@ def run_experiment(random_state):
 
     X_features_train2 = feature_extractor.transform(X_train2)
     X_features_train2 = X_features_train2.numpy()
+    print("Done.")
+    sys.stdout.flush()
 
+    print("Estimating contamination matrix...", end=' ')
+    sys.stdout.flush()
     # Estimate T using all the clean/noisy labels correspondence
     T_method = TMatrixEstimation(Y_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     T_hat_clean = T_method.get_estimate()
@@ -176,9 +182,13 @@ def run_experiment(random_state):
     # Ya_train2, _, _, _ = method.get_anchor_points()
     # T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     # T_hat_EE = T_method.get_estimate()
-
+    
     del X_features_train2
+    print("Done.")
+    sys.stdout.flush()
 
+    print("Identifying set of anchor points...", end=' ')
+    sys.stdout.flush()
     X_features_cal = feature_extractor.transform(X_cal)
     X_features_cal = X_features_cal.numpy()
 
@@ -192,6 +202,8 @@ def run_experiment(random_state):
     Y_anchor = Y_cal[idxs_cal_anchor]
 
     del X_features_train1, X_features_cal
+    print("Done.")
+    sys.stdout.flush()
 
     alpha = 0.1
     guarantee = 'marginal'
