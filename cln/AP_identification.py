@@ -232,7 +232,7 @@ def outlier_detection_(X1_, Y1_, X2_, Y2_, K_,
     return Y2_hat, scores
 
 ## _________________________________________________________________________________________
-# ANCHOR POINTS INDENTIFICATION CLASS
+# ANCHOR POINTS IDENTIFICATION CLASS
 class AnchorPointsIdentification:
     def __init__(self, X1, Yt1, X2, Yt2, K,
                  use_classifier = False,
@@ -246,7 +246,9 @@ class AnchorPointsIdentification:
                  n_neighbors=100,
                  selection="fixed",
                  threshold_vec=None,
-                 inlier_frac_vec=None):
+                 inlier_frac_vec=None,
+                 optimal_method=False,
+                 X3=None, Yt3=None):
         
         # This function produces Y_anchor.
         # Y_anchor is a vector of length equal to the length of Y.
@@ -290,6 +292,57 @@ class AnchorPointsIdentification:
         else:
             self.inlier_frac_vec=inlier_frac_vec
 
+        self.optimal_method=optimal_method
+
+        if self.optimal_method:
+            # Identify anchor points with classifier
+            black_box_pt = copy.deepcopy(black_box)
+            if not pretrained:
+                black_box_pt.fit(X1, Yt1)
+            p_hat = black_box_pt.predict_proba(X3)
+            if not isinstance(p_hat, np.ndarray):
+                p_hat = np.asarray(p_hat)
+            scores_class = p_hat
+
+            gamma_opt = self.calibrate_threshold_gamma(Yt3, scores_class)
+            Y_anchor_class = self.identify_anchor_points_threshold(scores_class, gamma_opt)
+
+            # Identify anchor points with elliptic envelope
+            Y_anchor_EE, _ = outlier_detection_(X1, Yt1, X3, Yt3, self.K,
+                                                    outlier_detection_method="elliptic_envelope",
+                                                    n_neighbors=self.n_neighbors,
+                                                    selection=self.selection,
+                                                    threshold_vec=self.threshold_vec,
+                                                    inlier_frac_vec=self.inlier_frac_vec)
+
+            # Identify anchor points with isolation forest
+            Y_anchor_IF, _ = outlier_detection_(X1, Yt1, X3, Yt3, self.K,
+                                                    outlier_detection_method="isolation_forest",
+                                                    n_neighbors=self.n_neighbors,
+                                                    selection=self.selection,
+                                                    threshold_vec=self.threshold_vec,
+                                                    inlier_frac_vec=self.inlier_frac_vec)
+            
+            # Select method that maximizes accuracy tilde of the identified anchor points set
+            a_tilde_values = {
+                'class': np.sum(Y_anchor_class == Yt3)/np.sum(Y_anchor_class != -1),
+                'IF':    np.sum(Y_anchor_IF == Yt3)/np.sum(Y_anchor_IF != -1),
+                'EE':    np.sum(Y_anchor_EE == Yt3)/np.sum(Y_anchor_EE != -1)
+            }
+            best = max(a_tilde_values, key=a_tilde_values.get)
+            if best == 'class':
+                self.use_classifier       = True
+                self.outlier_detection    = False
+                self.outlier_detection_method = None
+            elif best == 'IF':
+                self.use_classifier       = False
+                self.outlier_detection    = True
+                self.outlier_detection_method = "isolation_forest"
+            elif best == 'EE':
+                self.use_classifier       = False
+                self.outlier_detection    = True
+                self.outlier_detection_method = "elliptic_envelope"
+
         if self.use_classifier:
             # Fit the point predictor on the training set
             black_box_pt = copy.deepcopy(black_box)
@@ -300,44 +353,40 @@ class AnchorPointsIdentification:
             p_hat = black_box_pt.predict_proba(X2)
             if not isinstance(p_hat, np.ndarray):
                 p_hat = np.asarray(p_hat)
-            self.scores = p_hat
+            scores = p_hat
 
             # Estimate the contamination process by identifying anchor points
             if self.calibrate_gamma:
-                gamma_opt = self.calibrate_threshold_gamma(Yt2)
+                gamma_opt = self.calibrate_threshold_gamma(Yt2, scores)
                 self.gamma_opt = gamma_opt
             else:
                 self.gamma_opt = gamma
             
-            #self.Y_anchor = self.new_identify_anchor_points(self.gamma_opt)
-            #self.Y_anchor = self.identify_anchor_points(self.gamma_opt)
-            self.Y_anchor = self.identify_anchor_points_threshold(self.gamma_opt)
+            #self.Y_anchor = self.new_identify_anchor_points(scores, self.gamma_opt)
+            #self.Y_anchor = self.identify_anchor_points(scores, self.gamma_opt)
+            self.Y_anchor = self.identify_anchor_points_threshold(scores, self.gamma_opt)
+            self.scores = scores
         
         if self.outlier_detection:
-            if self.use_classifier:
-                Yt2_ = self.Y_anchor
-            else:
-                Yt2_ = Yt2.copy()
-
             # Operate class-wise outlier detection
             # Parameters
-            Yt2_inliers, scores = outlier_detection_(X1, Yt1, X2, Yt2_, self.K,
+            Yt2_inliers, scores = outlier_detection_(X1, Yt1, X2, Yt2, self.K,
                                                     outlier_detection_method=outlier_detection_method,
                                                     n_neighbors=self.n_neighbors,
-                                                     selection=self.selection,
-                                                     threshold_vec=self.threshold_vec,
-                                                     inlier_frac_vec=self.inlier_frac_vec)
+                                                    selection=self.selection,
+                                                    threshold_vec=self.threshold_vec,
+                                                    inlier_frac_vec=self.inlier_frac_vec)
             self.Y_anchor = Yt2_inliers
             self.scores = scores
 
-    def calibrate_threshold_gamma(self, Yt2_, alpha=0.05):
+    def calibrate_threshold_gamma(self, Yt2_, scores_, alpha=0.05):
         size_vec = np.zeros(len(self.gamma_vec))
         accuracy_tilde_vec = np.zeros(len(self.gamma_vec))
         accuracy_tilde_vec_upper = np.zeros(len(self.gamma_vec))
         accuracy_tilde_vec_lower = np.zeros(len(self.gamma_vec))
 
         for i, gamma in enumerate(self.gamma_vec):
-            Y_anchor_gamma = self.identify_anchor_points_threshold(gamma)
+            Y_anchor_gamma = self.identify_anchor_points_threshold(scores_, gamma)
             size_vec[i] = np.sum(Y_anchor_gamma!=-1)
 
             if size_vec[i] > 0:
@@ -361,13 +410,13 @@ class AnchorPointsIdentification:
 
         return gamma_opt
 
-    def identify_anchor_points(self, gamma):
+    def identify_anchor_points(self, scores_, gamma):
         # Identify the set of anchor points with threshold gamma%
         anchor_points = []
         m = max(1, int(np.ceil(gamma * self.n2)))
 
         for l in range(self.K):
-            scores_l = self.scores[:, l]
+            scores_l = scores_[:, l]
             top_idx = np.argsort(scores_l)[::-1][:m]
             anchor_points.append(top_idx)
 
@@ -379,7 +428,7 @@ class AnchorPointsIdentification:
 
         for l in range(self.K):
             idx = anchor_points[l]
-            probs = self.scores[idx, l]
+            probs = scores_[idx, l]
 
             mask = probs > best_prob[idx]
             Y_anchor_[idx[mask]] = l
@@ -387,25 +436,25 @@ class AnchorPointsIdentification:
 
         return Y_anchor_
     
-    def new_identify_anchor_points(self, threshold):
+    def new_identify_anchor_points(self, scores_, threshold):
         # Identify the set of anchor points with threshold
         # score[i,k] = p_hat[i,k] - sum_{l!=k} p_hat[i,l] = 2*p_hat[i,k] - sum_j p[i,j]
-        row_sum = self.scores.sum(axis=1, keepdims=True)
-        scores = 2.0 * self.scores - row_sum
+        row_sum = scores_.sum(axis=1, keepdims=True)
+        scores = 2.0 * scores_ - row_sum
 
         # best class per observation
         best_k = np.argmax(scores, axis=1)
-        best_score = scores[np.arange(self.scores.shape[0]), best_k]
+        best_score = scores[np.arange(scores_.shape[0]), best_k]
 
         Y_anchor_ = -np.ones(self.n2, dtype=np.int32)
         Y_anchor_[best_score > threshold] = best_k[best_score > threshold]
 
         return Y_anchor_
     
-    def identify_anchor_points_threshold(self, threshold):
+    def identify_anchor_points_threshold(self, scores_, threshold):
         # best class per observation
-        best_k = np.argmax(self.scores, axis=1)
-        best_score = self.scores[np.arange(self.scores.shape[0]), best_k]
+        best_k = np.argmax(scores_, axis=1)
+        best_score = scores_[np.arange(scores_.shape[0]), best_k]
 
         Y_anchor_ = -np.ones(self.n2, dtype=np.int32)
         Y_anchor_[best_score > threshold] = best_k[best_score > threshold]

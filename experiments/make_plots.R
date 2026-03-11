@@ -3502,12 +3502,15 @@ exp.num <- 902
 plot.epsilon <- c(0, 0.05, 0.1, 0.2)
 plot.contamination <- "uniform"
 plot.n_train1 <- 3000
+#plot.epsilon <- c(0.2)
+#plot.n_train1 <- 4000
+
 plot.data <- "cifar10"
 make_figure_902(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train1=plot.n_train1,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
