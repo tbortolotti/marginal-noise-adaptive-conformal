@@ -8,8 +8,8 @@ if [[ $CONF == 1000 ]]; then
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN1_LIST=(2000)
-  N_TRAIN2_LIST=(2000)
-  N_CAL_LIST=(5000)
+  N_TRAIN2_LIST=(5000)
+  N_CAL_LIST=(10000)
   SEED_LIST=(1)
 
 elif [[ $CONF == 1001 ]]; then
@@ -19,7 +19,7 @@ elif [[ $CONF == 1001 ]]; then
   N_TRAIN1_LIST=(2000)
   N_TRAIN2_LIST=(1000 2000 5000)
   N_CAL_LIST=(500 1000 2000 5000 10000)
-  SEED_LIST=$(seq 1 20)
+  SEED_LIST=$(seq 1 7)
 
 fi
 
