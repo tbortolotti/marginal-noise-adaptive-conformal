@@ -256,7 +256,7 @@ def run_experiment(random_state):
         "Standard": lambda: arc.methods.SplitConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
                                                        pre_trained=True, random_state=random_state),
 
-        "Standard using AP": lambda: arc.methods.SplitConformal(X_features_anchor, Y_anchor, black_box, K, alpha, n_cal=-1,
+        "Standard using AP": lambda: arc.methods.SplitConformal(X_features_anchor, Y_anchor, black_box_MLP, K, alpha, n_cal=-1,
                                                                 pre_trained=True, random_state=random_state),
 
         "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
