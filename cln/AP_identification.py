@@ -379,7 +379,7 @@ class AnchorPointsIdentification:
             self.Y_anchor = Yt2_inliers
             self.scores = scores
 
-    def calibrate_threshold_gamma(self, Yt2_, scores_, alpha=0.05):
+    def calibrate_threshold_gamma(self, _Yt_, scores_, alpha=0.05):
         size_vec = np.zeros(len(self.gamma_vec))
         accuracy_tilde_vec = np.zeros(len(self.gamma_vec))
         accuracy_tilde_vec_upper = np.zeros(len(self.gamma_vec))
@@ -390,7 +390,7 @@ class AnchorPointsIdentification:
             size_vec[i] = np.sum(Y_anchor_gamma!=-1)
 
             if size_vec[i] > 0:
-                accuracy_tilde_vec[i] = np.sum(Y_anchor_gamma==Yt2_)/np.sum(Y_anchor_gamma!=-1)
+                accuracy_tilde_vec[i] = np.sum(Y_anchor_gamma==_Yt_)/np.sum(Y_anchor_gamma!=-1)
                 
                 # Build confidence interval for proportion under Gaussian approximation
                 z = norm.ppf(1 - alpha / 2)
@@ -413,7 +413,7 @@ class AnchorPointsIdentification:
     def identify_anchor_points(self, scores_, gamma):
         # Identify the set of anchor points with threshold gamma%
         anchor_points = []
-        m = max(1, int(np.ceil(gamma * self.n2)))
+        m = max(1, int(np.ceil(gamma * scores_.shape[0])))
 
         for l in range(self.K):
             scores_l = scores_[:, l]
@@ -423,8 +423,8 @@ class AnchorPointsIdentification:
         # For every observation, Y_anchor_ stores the class for which the observation is anchor point. Y_anchor_[idx]=-1 if idx is never an anchor point.
         # In doing so, possibe duplicates are resolved:
         # if an observation is anchor point for more than one class, we keep it as anchor point for the class for which it has the highest predicted probability
-        Y_anchor_ = -np.ones(self.n2, dtype=np.int32)
-        best_prob = -np.inf * np.ones(self.n2)
+        Y_anchor_ = -np.ones(scores_.shape[0], dtype=np.int32)
+        best_prob = -np.inf * np.ones(scores_.shape[0])
 
         for l in range(self.K):
             idx = anchor_points[l]
@@ -446,7 +446,7 @@ class AnchorPointsIdentification:
         best_k = np.argmax(scores, axis=1)
         best_score = scores[np.arange(scores_.shape[0]), best_k]
 
-        Y_anchor_ = -np.ones(self.n2, dtype=np.int32)
+        Y_anchor_ = -np.ones(scores_.shape[0], dtype=np.int32)
         Y_anchor_[best_score > threshold] = best_k[best_score > threshold]
 
         return Y_anchor_
@@ -456,7 +456,7 @@ class AnchorPointsIdentification:
         best_k = np.argmax(scores_, axis=1)
         best_score = scores_[np.arange(scores_.shape[0]), best_k]
 
-        Y_anchor_ = -np.ones(self.n2, dtype=np.int32)
+        Y_anchor_ = -np.ones(scores_.shape[0], dtype=np.int32)
         Y_anchor_[best_score > threshold] = best_k[best_score > threshold]
 
         return Y_anchor_
