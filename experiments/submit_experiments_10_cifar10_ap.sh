@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=1000
+CONF=1001
 
 if [[ $CONF == 1000 ]]; then
   EPSILON_LIST=(0.1)
@@ -19,7 +19,7 @@ elif [[ $CONF == 1001 ]]; then
   N_TRAIN1_LIST=(1000)
   N_TRAIN2_LIST=(1000 2000 3000)
   N_CAL_LIST=(500 1000 2000 5000)
-  SEED_LIST=$(seq 1 7)
+  SEED_LIST=$(seq 1 20)
 
 fi
 
