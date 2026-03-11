@@ -25,13 +25,18 @@ fi
 
 
 # Slurm parameters
-MEMO=64G
-TIME=00-04:00:00
-CORE=1
+#MEMO=64G
+#TIME=00-04:00:00
+#CORE=1
 
 # Assemble order prefix
-ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
 #ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=main"
+
+MEMO=32G 
+TIME=00-04:00:00
+CORE=1
+ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=gpu --gres=gpu:p100:1"
 
 # Create directory for log files
 LOGS="logs"

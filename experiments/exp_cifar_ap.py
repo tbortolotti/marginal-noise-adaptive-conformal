@@ -273,7 +273,7 @@ def run_experiment(random_state):
         # Append the result to the results list
         res_list.append(res_new)
 
-    del X_cal, Y_cal, Yt_cal, X_anchor, Y_anchor, T_hat_clean, T_hat_SVC
+    del X_cal, X_anchor
 
     # Combine all results into a single DataFrame
     res = pd.concat(res_list)
