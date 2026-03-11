@@ -221,7 +221,7 @@ def run_experiment(random_state):
     Ya_cal, _, _, _ = method.get_anchor_points()
     idxs_cal_anchor = (Ya_cal != -1)
     X_features_anchor = X_features_cal[idxs_cal_anchor,]
-    del X_features_train1, X_features_cal
+    del X_features_train1
     Y_anchor = Y_cal[idxs_cal_anchor]
     print("Done.")
     sys.stdout.flush()
