@@ -79,8 +79,8 @@ print(f"Noisy Data Directory: {noisy_data_dir}")
 
 dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, imagenet_flag=True, random_state=2026)
 
-print(f"\nOverall numerosity of dataset {len(dataset)}")
-sys.stdout.flush()
+#print(f"\nOverall numerosity of dataset {len(dataset)}")
+#sys.stdout.flush()
 
 loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
 feature_extractor = ImageNetResNet18Features()
