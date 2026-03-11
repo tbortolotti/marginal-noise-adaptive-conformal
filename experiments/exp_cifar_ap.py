@@ -27,6 +27,7 @@ from data_torch import Cifar10DataSet, ImageNetResNet18Features, ResNet18
 from torch.utils.data import DataLoader
 
 import gc
+import copy
 
 
 # Define default parameters
@@ -95,7 +96,8 @@ else:
     exit(-1)
 
 # Initialize black-box model
-black_box = ResNet18()
+#black_box = ResNet18()
+black_box = arc.black_boxes.MLPBlackBox(clip_proba_factor=1e-5)
 
 # Initialize the black-box model
 black_box_SVC = arc.black_boxes.SVC(clip_proba_factor = 1e-5)
@@ -117,10 +119,6 @@ sys.stdout.flush()
 def run_experiment(random_state):
     print("\nRunning experiment in batch {:d}...".format(random_state))
     sys.stdout.flush()
-
-    # Generate the dataset used to estimate T
-
-    # Free space
 
     # Generate dataset for calibration and test
     # Generate a large data set
@@ -150,22 +148,42 @@ def run_experiment(random_state):
     X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
     del X, Y, Yt
 
-    print("Preparing dataset for T estimation...", end=' ')
+    # Extract features
+    print("Extract features for T estimation...", end=' ')
     sys.stdout.flush()
     # Split training set in two, as it'll be needed to estimate T
     X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+3)
     del X_train, Y_train, Yt_train
 
     # Operate transformation of X to fit SVC and identify anchor points
-    X_features_train1 = feature_extractor.transform(X_train1)
-    X_features_train1 = X_features_train1.numpy()
+    X_features_train1 = feature_extractor.transform(X_train1).numpy()
     del X_train1; torch.cuda.empty_cache()
 
-    X_features_train2 = feature_extractor.transform(X_train2)
-    X_features_train2 = X_features_train2.numpy()
+    X_features_train2 = feature_extractor.transform(X_train2).numpy()
     del X_train2; torch.cuda.empty_cache()
+
+    X_features_cal = feature_extractor.transform(X_cal).numpy()
+    del X_cal; torch.cuda.empty_cache()
+
+    X_features_test = feature_extractor.transform(X_test).numpy()
+    del X_test; torch.cuda.empty_cache()
+
     print("Done.")
     sys.stdout.flush()
+
+    # Train MLP black box on the training set
+    print("Training MLP black box...", end=' ')
+    sys.stdout.flush()
+    X_features_train_all = np.concatenate([X_features_train1, X_features_train2])
+    Y_train_all = np.concatenate([Yt_train1, Yt_train2])
+
+    black_box_MLP = copy.deepcopy(black_box)
+    black_box_MLP.fit(X_features_train_all, Y_train_all)
+    del X_features_train_all, Y_train_all
+    torch.cuda.empty_cache()
+    print("Done.")
+    sys.stdout.flush()
+
 
     print("Estimating contamination matrix...", end=' ')
     sys.stdout.flush()
@@ -196,22 +214,15 @@ def run_experiment(random_state):
 
     print("Identifying set of anchor points...", end=' ')
     sys.stdout.flush()
-    X_features_cal = feature_extractor.transform(X_cal)
-    X_features_cal = X_features_cal.numpy()
-    torch.cuda.empty_cache()
-
     # Create dataset of sole anchor points
     method = AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_cal, Yt_cal, K,
                                         use_classifier=True, black_box=black_box_SVC,
                                         calibrate_gamma=True)
     Ya_cal, _, _, _ = method.get_anchor_points()
     del X_features_train1, X_features_cal
-
     idxs_cal_anchor = (Ya_cal != -1)
-    X_anchor = X_cal[idxs_cal_anchor,]
+    X_features_anchor = X_features_cal[idxs_cal_anchor,]
     Y_anchor = Y_cal[idxs_cal_anchor]
-
-    
     print("Done.")
     sys.stdout.flush()
 
@@ -219,6 +230,7 @@ def run_experiment(random_state):
     gc.collect()
     torch.cuda.empty_cache()
 
+    """
     # Print memory state
     print(f"RAM used: {torch.cuda.memory_allocated()/1e9:.2f} GB")
     print(f"RAM reserved: {torch.cuda.memory_reserved()/1e9:.2f} GB")
@@ -230,6 +242,7 @@ def run_experiment(random_state):
                 print(f"Tensor: {type(obj).__name__}, size={obj.size()}, device={obj.device}")
         except:
             pass
+    """
 
     alpha = 0.1
     guarantee = 'marginal'
@@ -240,25 +253,25 @@ def run_experiment(random_state):
 
     # Define a dictionary of methods with their names and corresponding initialization parameters
     methods = {
-        "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+        "Standard": lambda: arc.methods.SplitConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
                                                        pre_trained=True, random_state=random_state),
 
-        "Standard using AP": lambda: arc.methods.SplitConformal(X_anchor, Y_anchor, black_box, K, alpha, n_cal=-1,
+        "Standard using AP": lambda: arc.methods.SplitConformal(X_features_anchor, Y_anchor, black_box, K, alpha, n_cal=-1,
                                                                 pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+        "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+        "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ AP SVC": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+        "Adaptive optimized+ AP SVC": lambda: MarginalLabelNoiseConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T_hat_SVC, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
@@ -290,8 +303,6 @@ def run_experiment(random_state):
 
         # Append the result to the results list
         res_list.append(res_new)
-
-    del X_cal, X_anchor
 
     # Combine all results into a single DataFrame
     res = pd.concat(res_list)
