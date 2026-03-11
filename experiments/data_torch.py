@@ -72,12 +72,24 @@ class ImageNetResNet18Features:
         for p in self.backbone.parameters():
             p.requires_grad = False
 
-    def transform(self, X):
-        X = X.to(self.device)
-        with torch.no_grad():
-            feats = self.backbone(X)              # (N, 512, 1, 1)
-            feats = feats.view(feats.size(0), -1) # (N, 512)
-        return feats.cpu()
+    #def transform(self, X):
+    #    X = X.to(self.device)
+    #    with torch.no_grad():
+    #        feats = self.backbone(X)              # (N, 512, 1, 1)
+    #        feats = feats.view(feats.size(0), -1) # (N, 512)
+    #    return feats.cpu()
+            
+    def transform(self, X, batch_size=256):
+        all_feats = []
+        for i in range(0, len(X), batch_size):
+            X_batch = X[i:i+batch_size].to(self.device)
+            with torch.no_grad():
+                feats = self.backbone(X_batch)
+                feats = feats.view(feats.size(0), -1)
+            all_feats.append(feats.cpu())
+            del X_batch, feats
+            torch.cuda.empty_cache()
+        return torch.cat(all_feats, dim=0)
 
 class Cifar10DataSet:
     def __init__(self, data_dir, noisy_data_dir, imagenet_flag=False, random_state=2026):
