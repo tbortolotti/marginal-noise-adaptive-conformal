@@ -131,6 +131,7 @@ def run_experiment(random_state):
 
     # Separate the test set
     X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
+    del X_all, Y_all
 
     # Generate the contaminated labels
     print("Generating contaminated labels...", end=' ')
@@ -145,18 +146,22 @@ def run_experiment(random_state):
 
     # Separate data into training and calibration
     X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
+    del X, Y, Yt
 
     print("Preparing dataset for T estimation...", end=' ')
     sys.stdout.flush()
     # Split training set in two, as it'll be needed to estimate T
     X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+3)
+    del X_train, Y_train, Yt_train
 
     # Operate transformation of X to fit SVC and identify anchor points
     X_features_train1 = feature_extractor.transform(X_train1)
     X_features_train1 = X_features_train1.numpy()
+    del X_train1; torch.cuda.empty_cache()
 
     X_features_train2 = feature_extractor.transform(X_train2)
     X_features_train2 = X_features_train2.numpy()
+    del X_train2; torch.cuda.empty_cache()
     print("Done.")
     sys.stdout.flush()
 
@@ -182,7 +187,7 @@ def run_experiment(random_state):
     # Ya_train2, _, _, _ = method.get_anchor_points()
     # T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     # T_hat_EE = T_method.get_estimate()
-    
+
     del X_features_train2
     print("Done.")
     sys.stdout.flush()
@@ -191,17 +196,20 @@ def run_experiment(random_state):
     sys.stdout.flush()
     X_features_cal = feature_extractor.transform(X_cal)
     X_features_cal = X_features_cal.numpy()
+    torch.cuda.empty_cache()
 
     # Create dataset of sole anchor points
     method = AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_cal, Yt_cal, K,
                                         use_classifier=True, black_box=black_box_SVC,
                                         calibrate_gamma=True)
     Ya_cal, _, _, _ = method.get_anchor_points()
+    del X_features_train1, X_features_cal
+
     idxs_cal_anchor = (Ya_cal != -1)
     X_anchor = X_cal[idxs_cal_anchor,]
     Y_anchor = Y_cal[idxs_cal_anchor]
 
-    del X_features_train1, X_features_cal
+    
     print("Done.")
     sys.stdout.flush()
 
@@ -265,6 +273,8 @@ def run_experiment(random_state):
         # Append the result to the results list
         res_list.append(res_new)
 
+    del X_cal, Y_cal, Yt_cal, X_anchor, Y_anchor, T_hat_clean, T_hat_SVC
+
     # Combine all results into a single DataFrame
     res = pd.concat(res_list)
 
@@ -274,7 +284,7 @@ def run_experiment(random_state):
 
 # Run all experiments
 results = pd.DataFrame({})
-for batch in np.arange(1,batch_size+1):
+for batch in np.arange(1,num_exp+1):
     res = run_experiment(1000*seed+batch-1000)
     results = pd.concat([results, res])
 
