@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=900
+CONF=902
 
 if [[ $CONF == 900 ]]; then
   EPSILON_LIST=(0.1)
@@ -24,7 +24,7 @@ elif [[ $CONF == 902 ]]; then
   EPSILON_LIST=(0.15)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN1_LIST=(5000)
+  N_TRAIN1_LIST=(4000)
   N_TRAIN2_LIST=(500 1000 2000 5000)
   SEED_LIST=$(seq 1 10)
 
