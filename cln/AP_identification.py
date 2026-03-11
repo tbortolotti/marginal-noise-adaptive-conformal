@@ -332,16 +332,19 @@ class AnchorPointsIdentification:
             best = max(a_tilde_values, key=a_tilde_values.get)
             if best == 'class':
                 self.use_classifier       = True
+                self.calibrate_gamma      = True
                 self.outlier_detection    = False
                 self.outlier_detection_method = None
             elif best == 'IF':
                 self.use_classifier       = False
                 self.outlier_detection    = True
                 self.outlier_detection_method = "isolation_forest"
+                self.selection            = "accuracy"
             elif best == 'EE':
                 self.use_classifier       = False
                 self.outlier_detection    = True
                 self.outlier_detection_method = "elliptic_envelope"
+                self.selection            = "accuracy"
 
         if self.use_classifier:
             # Fit the point predictor on the training set
