@@ -219,9 +219,9 @@ def run_experiment(random_state):
                                         use_classifier=True, black_box=black_box_SVC,
                                         calibrate_gamma=True)
     Ya_cal, _, _, _ = method.get_anchor_points()
-    del X_features_train1, X_features_cal
     idxs_cal_anchor = (Ya_cal != -1)
     X_features_anchor = X_features_cal[idxs_cal_anchor,]
+    del X_features_train1, X_features_cal
     Y_anchor = Y_cal[idxs_cal_anchor]
     print("Done.")
     sys.stdout.flush()
@@ -289,13 +289,13 @@ def run_experiment(random_state):
 
         # Initialize and apply the method
         method = method_func()
-        predictions = method.predict(X_test)
+        predictions = method.predict(X_features_test)
 
         print("Done.")
         sys.stdout.flush()
 
         # Evaluate the method
-        res_new = evaluate_predictions(predictions, X_test, Y_test, K, verbose=False)
+        res_new = evaluate_predictions(predictions, X_features_test, Y_test, K, verbose=False)
         res_new['Method'] = method_name
         res_new['Guarantee'] = guarantee
         res_new['Alpha'] = alpha
