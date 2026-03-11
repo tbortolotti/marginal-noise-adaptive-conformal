@@ -41,57 +41,6 @@ def draw_images(images, labels, rows=5, columns = 5):
     plt.show()
 
 
-class Cifar10DataSet:
-
-    def __init__(self, data_dir, noisy_data_dir, normalize=True, random_state=2023):
-
-        self.rng = np.random.default_rng(seed=random_state)
-
-        MEAN = [0.4914, 0.4822, 0.4465]
-        STD = [0.2471, 0.2435, 0.2616]
-
-        if normalize:
-            transform = T.Compose(
-                [
-                    T.ToTensor(),
-                    T.Normalize(MEAN, STD),
-                ]
-            )
-        else:
-            transform = T.Compose(
-                [
-                    T.ToTensor(),
-                ]
-            )
-
-        self.cifar10 = CIFAR10(root=data_dir, train=False, transform=transform)
-
-        meta_file = data_dir + "/cifar-10-batches-py/batches.meta"
-        meta_data = unpickle(meta_file)
-        self.label_names = np.array(meta_data['label_names'])
-
-        # Load noisy labels
-        noisy_label_file = noisy_data_dir + "/cifar10h-counts.npy"
-        self.noisy_label_data = np.load(noisy_label_file)
-
-    def generate_noisy_labels(self, index):
-        weights = self.noisy_label_data[index]
-        n,K = weights.shape
-        weights = weights / np.sum(weights,1).reshape(n,1)
-        noisy_labels = [self.rng.choice(K, replace=True, p=weights[i]) for i in range(n)]
-        noisy_labels_name = self.label_names[noisy_labels]
-        return noisy_labels[0], list(noisy_labels_name)[0]
-
-    def __getitem__(self, index):
-        data, label = self.cifar10[index]
-        label_name = self.label_names[label]
-        noisy_label, noisy_label_name = self.generate_noisy_labels([index])
-        return data, label, label_name, noisy_label, noisy_label_name, index
-
-    def __len__(self):
-        return len(self.cifar10)
-
-
 class ResNet18:
     def __init__(self):
         self.black_box = cifar_resnet18(pretrained=True)
@@ -130,19 +79,26 @@ class ImageNetResNet18Features:
             feats = feats.view(feats.size(0), -1) # (N, 512)
         return feats.cpu()
 
-class Cifar10ImageNetDataSet:
-    def __init__(self, data_dir, noisy_data_dir, random_state=2026):
+class Cifar10DataSet:
+    def __init__(self, data_dir, noisy_data_dir, imagenet_flag=False, random_state=2026):
         self.rng = np.random.default_rng(seed=random_state)
 
-        # ImageNet preprocessing
-        self.transform = T.Compose([
-            T.Resize((224, 224)),
-            T.ToTensor(),
-            T.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225]
-            ),
-        ])
+        if imagenet_flag:
+            # ImageNet preprocessing
+            self.transform = T.Compose([
+                T.Resize((224, 224)),
+                T.ToTensor(),
+                T.Normalize(
+                    mean=[0.485, 0.456, 0.406],
+                    std=[0.229, 0.224, 0.225]),
+                    ])
+        else:
+            self.transform = T.Compose([
+                T.ToTensor(),
+                T.Normalize(
+                    mean=[0.4914, 0.4822, 0.4465],
+                    std=[0.2471, 0.2435, 0.2616]),
+                    ])
 
         self.cifar10 = CIFAR10(root=data_dir, train=False, transform=self.transform)
 
@@ -169,3 +125,4 @@ class Cifar10ImageNetDataSet:
 
     def __len__(self):
         return len(self.cifar10)
+

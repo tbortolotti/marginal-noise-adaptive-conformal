@@ -2874,7 +2874,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("size","accuracy"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("size","accuracy","accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, pi_easy, contamination, flipy, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -2948,7 +2948,7 @@ make_figure_801(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 #### Experiment 802: Impact of size of the set for T estimation -----------------
@@ -3331,15 +3331,15 @@ make_figure_805(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   
-  # method.values <<- c("Clean sample", "benchmark", "EE", "IF", "LOF")
-  # method.labels <<- c("Clean sample", "benchmark", "EE", "IF", "LOF")
+  # method.values <<- c("Clean sample", "SVC", "ResNet18", "IF")
+  # method.labels <<- c("Clean sample", "SVC", "ResNet18", "IF")
   
-  method.values <<- c("Clean sample", "SVC", "ResNet18", "IF")
-  method.labels <<- c("Clean sample", "SVC", "ResNet18", "IF")
+  method.values <<- c("Clean sample", "SVC", "IF")
+  method.labels <<- c("Clean sample", "SVC", "IF")
   
-  color.scale <<- cbPalette[c(1,2,4,6)]
-  shape.scale <<- c(1,0,3,5)
-  linetype.scale <<- c(1,1,1,1)
+  color.scale <<- cbPalette[c(1,2,6)]
+  shape.scale <<- c(1,0,5)
+  linetype.scale <<- c(1,1,1)
 }
 
 
@@ -3416,7 +3416,7 @@ make_figure_901 <- function(exp.num,plot.data="cifar10",
 exp.num <- 901
 plot.epsilon <- c(0, 0.05, 0.1, 0.2)
 plot.contamination <- "uniform"
-plot.n_train2 <- 5000
+plot.n_train2 <- 1000
 
 plot.data <- "cifar10"
 make_figure_901(exp.num=exp.num, plot.data=plot.data,
@@ -3501,7 +3501,7 @@ make_figure_902 <- function(exp.num,plot.data="cifar10",
 exp.num <- 902
 plot.epsilon <- c(0, 0.05, 0.1, 0.2)
 plot.contamination <- "uniform"
-plot.n_train1 <- 5000
+plot.n_train1 <- 3000
 plot.data <- "cifar10"
 make_figure_902(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,

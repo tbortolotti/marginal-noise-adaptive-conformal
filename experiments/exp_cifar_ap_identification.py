@@ -23,8 +23,8 @@ from cln.AP_identification import AnchorPointsIdentification
 from cln.T_estimation import evaluate_estimate, TMatrixEstimation
 from third_party import arc
 
-#from data_torch import Cifar10DataSet, ResNet18
-from data_torch import Cifar10ImageNetDataSet, ImageNetResNet18Features
+#from data_torch import ResNet18
+from data_torch import Cifar10DataSet, ImageNetResNet18Features
 from torch.utils.data import DataLoader
 
 # Define default parameters
@@ -68,12 +68,9 @@ noisy_data_dir = "/home1/tb_214/data/cifar10h"
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
 
-#dataset = Cifar10DataSet(data_dir, noisy_data_dir, normalize=True, random_state=2026)
-#dataset = Cifar10DataSet(data_dir, normalize=True, random_state=2026)
-#loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
-
-dataset = Cifar10ImageNetDataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2026)
-loader = DataLoader(dataset, batch_size=batch_size, shuffle=False, num_workers=1)
+#dataset = Cifar10DataSet(data_dir, noisy_data_dir, random_state=2026)
+dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, imagenet_flag=True, random_state=2026)
+loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
 feature_extractor = ImageNetResNet18Features()
 
 # Initialize the black-box model

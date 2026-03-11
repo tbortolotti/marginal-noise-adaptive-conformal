@@ -31,9 +31,9 @@ fi
 
 
 # Slurm parameters
-MEMO=64G                             # Memory required (20 GB)
-TIME=00-03:00:00                    # Time required (1 h 20 m)
-CORE=1                              # Cores required (1)
+MEMO=64G
+TIME=00-03:00:00
+CORE=1
 
 # Assemble order prefix
 ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
