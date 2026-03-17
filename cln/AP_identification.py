@@ -248,7 +248,8 @@ class AnchorPointsIdentification:
                  selection="fixed",
                  threshold_vec=None,
                  inlier_frac_vec=None,
-                 optimal_method=False):
+                 optimal_method=False,
+                 random_state=None):
         
         # This function produces Y_anchor.
         # Y_anchor is a vector of length equal to the length of Y.
@@ -301,7 +302,7 @@ class AnchorPointsIdentification:
                 black_box_pt.fit(X1, Yt1)
 
             n_train3 = self.n2//2
-            X2_, X3_, Yt2_, Yt3_ = train_test_split(X2, Yt2, test_size=n_train3)
+            X2_, X3_, Yt2_, Yt3_ = train_test_split(X2, Yt2, test_size=n_train3, random_state=random_state)
             p_hat = black_box_pt.predict_proba(X3_)
             if not isinstance(p_hat, np.ndarray):
                 p_hat = np.asarray(p_hat)
