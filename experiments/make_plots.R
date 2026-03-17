@@ -2095,7 +2095,7 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Standard using AP",
                       "Adaptive optimized+",
                       "Adaptive optimized+ clean",
-                      "Adaptive optimized+ AP SVC")
+                      "Adaptive optimized+ AP opt")
   #"Adaptive optimized+ AP param")
   method.labels <<- c("Standard",
                       "Standard (AP)",
@@ -2183,7 +2183,7 @@ make_figure_604a(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
                 plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
-                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
 
 make_figure_604b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal",
@@ -2250,7 +2250,7 @@ make_figure_604b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                  plot.contamination=plot.contamination,
                  plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
                  plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
-                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+                 save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
 
 ### Experiments 700: Estimating the contamination process ------------------------
@@ -3632,5 +3632,5 @@ make_figure_1001(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon,
                  plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
-                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+                 save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 

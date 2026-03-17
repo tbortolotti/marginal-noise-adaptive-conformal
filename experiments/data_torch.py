@@ -154,7 +154,6 @@ class Cifar10DataSet:
     def __len__(self):
         return len(self.cifar10)
 
-
 """
 def draw_images(images, labels, rows=5, columns = 5):
     images = images.detach().numpy()

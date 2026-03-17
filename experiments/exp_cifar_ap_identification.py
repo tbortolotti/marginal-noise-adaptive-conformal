@@ -158,7 +158,12 @@ def run_experiment(random_state):
         "IF": lambda: AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, Yt_train2, K,
                                                     outlier_detection=True,
                                                     outlier_detection_method="isolation_forest",
-                                                    selection="accuracy")
+                                                    selection="accuracy"),
+
+        "optimal": lambda: AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, Yt_train2, K,
+                                        black_box=black_box_SVC,
+                                        optimal_method=True,
+                                        random_state=random_state+3)
     }
 
     # Initialize an empty list to store the evaluation results

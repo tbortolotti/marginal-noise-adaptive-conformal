@@ -21,6 +21,17 @@ import torch.nn.functional as F
 
 log = logging.getLogger(__name__)
 
+class BigEarthNetFeatureExtractor:
+    # Wraps the pretrained BigEarthNetModule to extract penultimate-layer features.
+
+    def __init__(self, model):
+        self.model = model
+
+    def transform(self, X):
+        with torch.no_grad():
+            features = self.model.extract_features(X)
+        return features.cpu()
+
 
 class BigEarthNetModule(pl.LightningModule):
     """Base class for Pytorch Lightning model."""

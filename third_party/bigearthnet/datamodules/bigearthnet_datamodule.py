@@ -81,7 +81,7 @@ def map_labels_to_single(hub_labels, mapping_dict):
         return 4 # Other
     else:
         return 5 # Mix of two or more
-
+    
 class BigEarthNetHubDataset(torch.utils.data.dataset.Dataset):
     """Dataset class used to iterate over the BigEarthNet-S2 data."""
 
@@ -228,22 +228,36 @@ class BigEarthNetDataModule(pl.LightningDataModule):
                 label_mapping=self.label_mapping,
                 transforms=self.transforms,
             )
-
+    """
     def create_sampler(self, dataset_size: int, shuffle: bool = False):
-        """Create a sampler for shuffling or deterministic sampling."""
+        # Create a sampler for shuffling or deterministic sampling.
         indices = list(range(dataset_size))
         if shuffle:
             generator = torch.Generator().manual_seed(self.random_seed)
             return SubsetRandomSampler(indices=indices, generator=generator)
         else:
             return SequentialSampler(indices)
+    """
+    
+    def create_sampler(self, dataset_size, shuffle=False):
+        indices = list(range(dataset_size))
+        if shuffle:
+            generator = torch.Generator().manual_seed(self.random_seed)
+            shuffled = torch.randperm(dataset_size, generator=generator).tolist()
+            self.last_train_indices = shuffled
+            return SubsetRandomSampler(indices=shuffled, generator=None)
+        else:
+            return SequentialSampler(indices)
+    
 
-    def train_dataloader(self) -> torch.utils.data.dataloader.DataLoader:
+    def train_dataloader(self, seed=None) -> torch.utils.data.dataloader.DataLoader:
         """Creates the training dataloader using the training dataset."""
         assert self.train_dataset is not None, "must call 'setup' first!"
 
+        actual_seed = seed if seed is not None else self.random_seed
+
         # Create the sampler to shuffle the data
-        sampler = self.create_sampler(len(self.train_dataset), shuffle=True)
+        sampler = self.create_sampler(len(self.train_dataset), shuffle=True, seed=actual_seed)
 
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.train_dataset,
@@ -259,7 +273,7 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         assert self.valid_dataset is not None, "must call 'setup' first!"
 
         # Create the sampler to shuffle the data
-        sampler = self.create_sampler(len(self.train_dataset), shuffle=True)
+        sampler = self.create_sampler(len(self.valid_dataset), shuffle=True)
 
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.valid_dataset,
@@ -275,7 +289,7 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         assert self.test_dataset is not None, "must call 'setup' first!"
 
         # Create the sampler to shuffle the data
-        sampler = self.create_sampler(len(self.train_dataset), shuffle=True)
+        sampler = self.create_sampler(len(self.test_dataset), shuffle=True)
 
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.test_dataset,
