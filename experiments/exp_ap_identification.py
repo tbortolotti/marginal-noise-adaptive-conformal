@@ -79,7 +79,6 @@ A_hard = sigma_hard * np.eye(2)
 nu = 0
 
 batch_size = 10
-n_train3 = 2000
 
 # Initialize the data distribution
 if data_name == "syntheticAP":
@@ -138,7 +137,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     data_distribution.set_seed(random_state+1)
-    X_all, Y_all = data_distribution.sample(n_train1+n_train2+n_train3)
+    X, Y = data_distribution.sample(n_train1+n_train2+n_train3)
     print("Done.")
     sys.stdout.flush()
 
@@ -146,13 +145,9 @@ def run_experiment(random_state):
     print("Generating contaminated labels...", end=' ')
     sys.stdout.flush()
     contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+2)
-    Yt_all = contamination_process.sample_labels(Y_all)
+    Yt = contamination_process.sample_labels(Y)
     print("Done.")
     sys.stdout.flush()
-
-    # Separate data into first-stage training and anchor-selection set
-    X, X_train3, Y, Y_train3, Yt, Yt_train3 = train_test_split(X_all, Y_all, Yt_all, test_size=n_train3, random_state=random_state+3)
-
 
     # Separate data into first-stage training and anchor-selection set
     X_train1, X_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, Y, Yt, test_size=n_train2, random_state=random_state+4)
@@ -177,7 +172,7 @@ def run_experiment(random_state):
                                                     selection="accuracy"),
 
         "optimal": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
-                                                      black_box=black_box_SVC,optimal_method=True, X3=X_train3, Yt3=Yt_train3)
+                                                      black_box=black_box_SVC,optimal_method=True)
 
         #"LOF": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
         #                                            outlier_detection=True,

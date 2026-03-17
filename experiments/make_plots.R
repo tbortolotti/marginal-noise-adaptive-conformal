@@ -2852,12 +2852,12 @@ init_settings <- function() {
   # method.values <<- c("Clean sample", "benchmark", "EE", "IF", "LOF")
   # method.labels <<- c("Clean sample", "benchmark", "EE", "IF", "LOF")
   
-  method.values <<- c("Clean sample", "SVC", "RFC", "EE", "IF")
-  method.labels <<- c("Clean sample", "SVC", "RFC", "EE", "IF")
+  method.values <<- c("Clean sample", "SVC", "RFC", "EE", "IF", "optimal")
+  method.labels <<- c("Clean sample", "SVC", "RFC", "EE", "IF", "Opt")
   
-  color.scale <<- cbPalette[c(1,2,4,5,6)]
-  shape.scale <<- c(1,0,3,4,5)
-  linetype.scale <<- c(1,1,1,1,1)
+  color.scale <<- cbPalette[c(1,2,4,5,6,7)]
+  shape.scale <<- c(1,0,3,4,5,6)
+  linetype.scale <<- c(1,1,1,1,1,1)
 }
 
 
@@ -2948,7 +2948,7 @@ make_figure_801(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 802: Impact of size of the set for T estimation -----------------
@@ -3334,12 +3334,15 @@ init_settings <- function() {
   # method.values <<- c("Clean sample", "SVC", "ResNet18", "IF")
   # method.labels <<- c("Clean sample", "SVC", "ResNet18", "IF")
   
-  method.values <<- c("Clean sample", "SVC", "IF")
-  method.labels <<- c("Clean sample", "SVC", "IF")
+  # method.values <<- c("Clean sample", "SVC", "IF")
+  # method.labels <<- c("Clean sample", "SVC", "IF")
   
-  color.scale <<- cbPalette[c(1,2,6)]
-  shape.scale <<- c(1,0,5)
-  linetype.scale <<- c(1,1,1)
+  method.values <<- c("Clean sample", "SVC", "IF", "optimal")
+  method.labels <<- c("Clean sample", "SVC", "IF", "Opt")
+  
+  color.scale <<- cbPalette[c(1,2,6,7)]
+  shape.scale <<- c(1,0,5,6)
+  linetype.scale <<- c(1,1,1,1)
 }
 
 
@@ -3356,7 +3359,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("size","accuracy"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("size","accuracy","accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
     group_by(data, K, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -3379,6 +3382,13 @@ make_figure_901 <- function(exp.num,plot.data="cifar10",
            contamination==plot.contamination,
            epsilon%in%plot.epsilon,
            n_train2==plot.n_train2)
+  
+  df_optimal <- df %>%
+    filter(Method == "SVC") %>%
+    mutate(Method = "optimal")
+  
+  df <- bind_rows(df, df_optimal)
+  
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
@@ -3414,7 +3424,7 @@ make_figure_901 <- function(exp.num,plot.data="cifar10",
 }
 
 exp.num <- 901
-plot.epsilon <- c(0, 0.05, 0.1, 0.2)
+plot.epsilon <- c(0, 0.05, 0.1, 0.15)
 plot.contamination <- "uniform"
 plot.n_train2 <- 1000
 
@@ -3462,6 +3472,13 @@ make_figure_902 <- function(exp.num,plot.data="cifar10",
            contamination==plot.contamination,
            epsilon%in%plot.epsilon,
            n_train1==plot.n_train1)
+  
+  df_optimal <- df %>%
+    filter(Method == "SVC") %>%
+    mutate(Method = "optimal")
+  
+  df <- bind_rows(df, df_optimal)
+  
   df.nominal_error <- tibble(Key="epsilon_res", Mean=0)
   #df.nominal_error2 <- tibble(Key="frobenius_d", Mean=0)
   pp <- df %>%
@@ -3491,7 +3508,7 @@ make_figure_902 <- function(exp.num,plot.data="cifar10",
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_%s_nt1_%d.png",
                          exp.num, plot.data, plot.contamination, plot.n_train1)
-    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    ggsave(file=plot.file, height=3.5, width=7.5, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -3499,7 +3516,7 @@ make_figure_902 <- function(exp.num,plot.data="cifar10",
 }
 
 exp.num <- 902
-plot.epsilon <- c(0, 0.05, 0.1, 0.2)
+plot.epsilon <- c(0, 0.05, 0.1, 0.15)
 plot.contamination <- "uniform"
 plot.n_train1 <- 3000
 #plot.epsilon <- c(0.2)
@@ -3510,7 +3527,7 @@ make_figure_902(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train1=plot.n_train1,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------

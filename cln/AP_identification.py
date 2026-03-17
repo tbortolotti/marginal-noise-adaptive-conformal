@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.model_selection import train_test_split
 #from sklearn.covariance import LedoitWolf, OAS
 from sklearn.mixture import GaussianMixture
 from sklearn.ensemble import IsolationForest
@@ -247,8 +248,7 @@ class AnchorPointsIdentification:
                  selection="fixed",
                  threshold_vec=None,
                  inlier_frac_vec=None,
-                 optimal_method=False,
-                 X3=None, Yt3=None):
+                 optimal_method=False):
         
         # This function produces Y_anchor.
         # Y_anchor is a vector of length equal to the length of Y.
@@ -299,16 +299,19 @@ class AnchorPointsIdentification:
             black_box_pt = copy.deepcopy(black_box)
             if not pretrained:
                 black_box_pt.fit(X1, Yt1)
-            p_hat = black_box_pt.predict_proba(X3)
+
+            n_train3 = self.n2//2
+            X2_, X3_, Yt2_, Yt3_ = train_test_split(X2, Yt2, test_size=n_train3)
+            p_hat = black_box_pt.predict_proba(X3_)
             if not isinstance(p_hat, np.ndarray):
                 p_hat = np.asarray(p_hat)
             scores_class = p_hat
 
-            gamma_opt = self.calibrate_threshold_gamma(Yt3, scores_class)
+            gamma_opt = self.calibrate_threshold_gamma(Yt3_, scores_class)
             Y_anchor_class = self.identify_anchor_points_threshold(scores_class, gamma_opt)
 
             # Identify anchor points with elliptic envelope
-            Y_anchor_EE, _ = outlier_detection_(X1, Yt1, X3, Yt3, self.K,
+            Y_anchor_EE, _ = outlier_detection_(X1, Yt1, X3_, Yt3_, self.K,
                                                     outlier_detection_method="elliptic_envelope",
                                                     n_neighbors=self.n_neighbors,
                                                     selection=self.selection,
@@ -316,7 +319,7 @@ class AnchorPointsIdentification:
                                                     inlier_frac_vec=self.inlier_frac_vec)
 
             # Identify anchor points with isolation forest
-            Y_anchor_IF, _ = outlier_detection_(X1, Yt1, X3, Yt3, self.K,
+            Y_anchor_IF, _ = outlier_detection_(X1, Yt1, X3_, Yt3_, self.K,
                                                     outlier_detection_method="isolation_forest",
                                                     n_neighbors=self.n_neighbors,
                                                     selection=self.selection,
@@ -325,9 +328,9 @@ class AnchorPointsIdentification:
             
             # Select method that maximizes accuracy tilde of the identified anchor points set
             a_tilde_values = {
-                'class': np.sum(Y_anchor_class == Yt3)/np.sum(Y_anchor_class != -1),
-                'IF':    np.sum(Y_anchor_IF == Yt3)/np.sum(Y_anchor_IF != -1),
-                'EE':    np.sum(Y_anchor_EE == Yt3)/np.sum(Y_anchor_EE != -1)
+                'class': np.sum(Y_anchor_class == Yt3_)/np.sum(Y_anchor_class != -1),
+                'IF':    np.sum(Y_anchor_IF == Yt3_)/np.sum(Y_anchor_IF != -1),
+                'EE':    np.sum(Y_anchor_EE == Yt3_)/np.sum(Y_anchor_EE != -1)
             }
             best = max(a_tilde_values, key=a_tilde_values.get)
             if best == 'class':
@@ -345,6 +348,9 @@ class AnchorPointsIdentification:
                 self.outlier_detection    = True
                 self.outlier_detection_method = "elliptic_envelope"
                 self.selection            = "accuracy"
+        else:
+            X2_ = X2.copy()
+            Yt2_ = Yt2.copy()
 
         if self.use_classifier:
             # Fit the point predictor on the training set
@@ -353,14 +359,14 @@ class AnchorPointsIdentification:
                 black_box_pt.fit(X1, Yt1)
 
             # Calculate the probabilities on the set for which you want to identify anchor points
-            p_hat = black_box_pt.predict_proba(X2)
+            p_hat = black_box_pt.predict_proba(X2_)
             if not isinstance(p_hat, np.ndarray):
                 p_hat = np.asarray(p_hat)
             scores = p_hat
 
             # Estimate the contamination process by identifying anchor points
             if self.calibrate_gamma:
-                gamma_opt = self.calibrate_threshold_gamma(Yt2, scores)
+                gamma_opt = self.calibrate_threshold_gamma(Yt2_, scores)
                 self.gamma_opt = gamma_opt
             else:
                 self.gamma_opt = gamma
@@ -373,7 +379,7 @@ class AnchorPointsIdentification:
         if self.outlier_detection:
             # Operate class-wise outlier detection
             # Parameters
-            Yt2_inliers, scores = outlier_detection_(X1, Yt1, X2, Yt2, self.K,
+            Yt2_inliers, scores = outlier_detection_(X1, Yt1, X2_, Yt2_, self.K,
                                                     outlier_detection_method=outlier_detection_method,
                                                     n_neighbors=self.n_neighbors,
                                                     selection=self.selection,
