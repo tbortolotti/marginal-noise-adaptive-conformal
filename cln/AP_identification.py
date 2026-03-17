@@ -302,7 +302,12 @@ class AnchorPointsIdentification:
                 black_box_pt.fit(X1, Yt1)
 
             n_train3 = self.n2//2
-            X2_, X3_, Yt2_, Yt3_ = train_test_split(X2, Yt2, test_size=n_train3, random_state=random_state)
+            indexes_vec = np.arange(0,self.n2)
+            indexes_2,indexes_3 = train_test_split(indexes_vec, test_size=n_train3, random_state=random_state)
+
+            X3_ = X2[indexes_3,]
+            Yt3_ = Yt2[indexes_3]
+
             p_hat = black_box_pt.predict_proba(X3_)
             if not isinstance(p_hat, np.ndarray):
                 p_hat = np.asarray(p_hat)
@@ -350,8 +355,12 @@ class AnchorPointsIdentification:
                 self.outlier_detection_method = "elliptic_envelope"
                 self.selection            = "accuracy"
         else:
-            X2_ = X2.copy()
-            Yt2_ = Yt2.copy()
+            indexes_2 = np.arange(0,self.n2)
+        
+        X2_ = X2[indexes_2,]
+        Yt2_ = Yt2[indexes_2]
+        Y_anchor = -np.ones(self.n2, dtype=int)
+        scores = np.full((self.n2, self.K), np.nan)
 
         if self.use_classifier:
             # Fit the point predictor on the training set
@@ -363,30 +372,33 @@ class AnchorPointsIdentification:
             p_hat = black_box_pt.predict_proba(X2_)
             if not isinstance(p_hat, np.ndarray):
                 p_hat = np.asarray(p_hat)
-            scores = p_hat
 
             # Estimate the contamination process by identifying anchor points
             if self.calibrate_gamma:
-                gamma_opt = self.calibrate_threshold_gamma(Yt2_, scores)
+                gamma_opt = self.calibrate_threshold_gamma(Yt2_, p_hat)
                 self.gamma_opt = gamma_opt
             else:
                 self.gamma_opt = gamma
             
             #self.Y_anchor = self.new_identify_anchor_points(scores, self.gamma_opt)
             #self.Y_anchor = self.identify_anchor_points(scores, self.gamma_opt)
-            self.Y_anchor = self.identify_anchor_points_threshold(scores, self.gamma_opt)
+            Y_anchor[indexes_2] = self.identify_anchor_points_threshold(p_hat, self.gamma_opt)
+            self.Y_anchor = Y_anchor
+            scores[indexes_2,] = p_hat
             self.scores = scores
         
         if self.outlier_detection:
             # Operate class-wise outlier detection
             # Parameters
-            Yt2_inliers, scores = outlier_detection_(X1, Yt1, X2_, Yt2_, self.K,
+            Yt2_inliers, scores_ = outlier_detection_(X1, Yt1, X2_, Yt2_, self.K,
                                                     outlier_detection_method=outlier_detection_method,
                                                     n_neighbors=self.n_neighbors,
                                                     selection=self.selection,
                                                     threshold_vec=self.threshold_vec,
                                                     inlier_frac_vec=self.inlier_frac_vec)
-            self.Y_anchor = Yt2_inliers
+            Y_anchor[indexes_2] = Yt2_inliers
+            self.Y_anchor = Y_anchor
+            scores[indexes_2,] = scores_
             self.scores = scores
 
     def calibrate_threshold_gamma(self, _Yt_, scores_, alpha=0.05):

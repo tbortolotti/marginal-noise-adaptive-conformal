@@ -204,20 +204,14 @@ def run_experiment(random_state):
         method = method_func()
         Ya_train2, _, _, _ = method.get_anchor_points()
 
-        if method_name=="optimal":
-            Y_train2_, _, Yt_train2_,_,  = train_test_split(Y_train2, Yt_train2, test_size=n_train2//2, random_state=random_state+3)
-        else:
-            Y_train2_ = Y_train2.copy()
-            Yt_train2_ = Yt_train2.copy()
-
         # Use anchor points to estimate T
-        T_method = TMatrixEstimation(Ya_train2, Yt_train2_, K, estimation_method="empirical_parametricRR")
+        T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
         T_hat = T_method.get_estimate()
 
         print("Done.")
         sys.stdout.flush()
 
-        performances = evaluate_estimate(T, T_hat, Y_train2_, Ya_train2, Yt_train2_, K, epsilon0=flipy)
+        performances = evaluate_estimate(T, T_hat, Y_train2, Ya_train2, Yt_train2, K, epsilon0=flipy)
         res_update = header.copy()
         res_update = res_update.assign(Method=method_name, n_train1=n_train1, n_train2=n_train2, size=np.sum(Ya_train2!=-1), **performances)
         res_list.append(res_update)

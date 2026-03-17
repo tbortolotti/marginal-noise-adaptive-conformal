@@ -205,18 +205,19 @@ def run_experiment(random_state):
     method = AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
                                         use_classifier=True, black_box=black_box_SVC,
                                         calibrate_gamma=True)
+    # Voglio cambiare questa cosa in modo che Ya_train2 contenga -1 in corrispondenza di tutti i punti
+    # che il metodo ottimo ha utilizzato per validare l'anchor points detection method.
     Ya_train2, _, _, _ = method.get_anchor_points()
     T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     T_hat_SVC = T_method.get_estimate()
 
     ## Anchor points method for T estimation, using combination of outlier detectors as classifier
     method = AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
-                                            outlier_detection=True,
-                                            outlier_detection_method="elliptic_envelope",
-                                            selection="accuracy")
+                                        black_box=black_box_SVC, optimal_method=True,
+                                        random_state=random_state+3)
     Ya_train2, _, _, _ = method.get_anchor_points()
     T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
-    T_hat_EE = T_method.get_estimate()
+    T_hat_opt = T_method.get_estimate()
 
     # Create dataset of sole anchor points
     method = AnchorPointsIdentification(X_train1, Yt_train1, X_cal, Yt_cal, K,
@@ -260,8 +261,8 @@ def run_experiment(random_state):
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ AP EE": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_EE, rho_tilde=rho_tilde_hat,
+        "Adaptive optimized+ AP opt": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+                                                                    epsilon=epsilon, T=T_hat_opt, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state)
