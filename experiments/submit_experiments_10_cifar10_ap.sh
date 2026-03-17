@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # Parameters
-CONF=1001
+CONF=1000
 
 if [[ $CONF == 1000 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN1_LIST=(1000)
-  N_TRAIN2_LIST=(3000)
-  N_CAL_LIST=(5000)
+  N_TRAIN2_LIST=(1000)
+  N_CAL_LIST=(1000)
   SEED_LIST=(1)
 
 elif [[ $CONF == 1001 ]]; then

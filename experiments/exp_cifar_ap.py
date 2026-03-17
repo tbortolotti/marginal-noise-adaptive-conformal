@@ -77,7 +77,7 @@ noisy_data_dir = "/home1/tb_214/data/cifar10h"
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
 
-dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, imagenet_flag=True, random_state=2026)
+dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2026)
 
 #print(f"\nOverall numerosity of dataset {len(dataset)}")
 #sys.stdout.flush()
@@ -100,8 +100,8 @@ else:
     exit(-1)
 
 # Initialize black-box model
-#black_box = ResNet18()
-black_box = arc.black_boxes.MLPBlackBox(clip_proba_factor=1e-5)
+black_box = ResNet18()
+#black_box = arc.black_boxes.MLPBlackBox(clip_proba_factor=1e-5)
 
 # Initialize the black-box model
 black_box_SVC = arc.black_boxes.SVC(clip_proba_factor = 1e-5)
@@ -128,14 +128,14 @@ def run_experiment(random_state):
     # Generate a large data set
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
-    X_all, Y_all, _, _, _, _ = next(iter(loader))
+    X_all, X_all_imagenet, Y_all, _, _, _, _ = next(iter(loader))
     Y_all = Y_all.detach().numpy()
     print("Done.")
     sys.stdout.flush()
 
     # Separate the test set
-    X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
-    del X_all, Y_all
+    X, X_test, X_imagenet, _, Y, Y_test = train_test_split(X_all, X_all_imagenet, Y_all, test_size=n_test, random_state=random_state+1)
+    del X_all, X_all_imagenet, Y_all
 
     # Generate the contaminated labels
     print("Generating contaminated labels...", end=' ')
@@ -149,15 +149,15 @@ def run_experiment(random_state):
     rho_tilde_hat = estimate_rho(Yt, K)
 
     # Separate data into training and calibration
-    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
-    del X, Y, Yt
+    X_imagenet_train, X_imagenet_cal, _, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X_imagenet, X, Y, Yt, test_size=n_cal, random_state=random_state+2)
+    del X_imagenet, X, Y, Yt
 
     # Extract features
     print("Extract features for T estimation...", end=' ')
     sys.stdout.flush()
     # Split training set in two, as it'll be needed to estimate T
-    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+3)
-    del X_train, Y_train, Yt_train
+    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_imagenet_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+3)
+    del X_imagenet_train, Y_train, Yt_train
 
     # Operate transformation of X to fit SVC and identify anchor points
     X_features_train1 = feature_extractor.transform(X_train1).numpy()
@@ -166,28 +166,24 @@ def run_experiment(random_state):
     X_features_train2 = feature_extractor.transform(X_train2).numpy()
     del X_train2; torch.cuda.empty_cache()
 
-    X_features_cal = feature_extractor.transform(X_cal).numpy()
-    del X_cal; torch.cuda.empty_cache()
-
-    X_features_test = feature_extractor.transform(X_test).numpy()
-    del X_test; torch.cuda.empty_cache()
+    X_features_cal = feature_extractor.transform(X_imagenet_cal).numpy()
+    del X_imagenet_cal; torch.cuda.empty_cache()
 
     print("Done.")
     sys.stdout.flush()
 
     # Train MLP black box on the training set
-    print("Training MLP black box...", end=' ')
-    sys.stdout.flush()
-    X_features_train_all = np.concatenate([X_features_train1, X_features_train2])
-    Y_train_all = np.concatenate([Yt_train1, Yt_train2])
+    #print("Training MLP black box...", end=' ')
+    #sys.stdout.flush()
+    #X_features_train_all = np.concatenate([X_features_train1, X_features_train2])
+    #Y_train_all = np.concatenate([Yt_train1, Yt_train2])
 
-    black_box_MLP = copy.deepcopy(black_box)
-    black_box_MLP.fit(X_features_train_all, Y_train_all)
-    del X_features_train_all, Y_train_all
-    torch.cuda.empty_cache()
-    print("Done.")
-    sys.stdout.flush()
-
+    #black_box_MLP = copy.deepcopy(black_box)
+    #black_box_MLP.fit(X_features_train_all, Y_train_all)
+    #del X_features_train_all, Y_train_all
+    #torch.cuda.empty_cache()
+    #print("Done.")
+    #sys.stdout.flush()
 
     print("Estimating contamination matrix...", end=' ')
     sys.stdout.flush()
@@ -203,14 +199,14 @@ def run_experiment(random_state):
     T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     T_hat_SVC = T_method.get_estimate()
 
-    ## Anchor points method for T estimation, using combination of outlier detectors as classifier
-    # method = AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
-    #                                        outlier_detection=True,
-    #                                        outlier_detection_method="isolation_forest",
-    #                                        selection="accuracy")
-    # Ya_train2, _, _, _ = method.get_anchor_points()
-    # T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
-    # T_hat_EE = T_method.get_estimate()
+    # Anchor points method for T estimation, using combination of outlier detectors as classifier
+    method = AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+                                        black_box=black_box_SVC,
+                                        optimal_method=True,
+                                        random_state=random_state+4)
+    Ya_train2, _, _, _ = method.get_anchor_points()
+    T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
+    T_hat_opt = T_method.get_estimate()
 
     del X_features_train2
     print("Done.")
@@ -224,8 +220,8 @@ def run_experiment(random_state):
                                         calibrate_gamma=True)
     Ya_cal, _, _, _ = method.get_anchor_points()
     idxs_cal_anchor = (Ya_cal != -1)
-    X_features_anchor = X_features_cal[idxs_cal_anchor,]
-    del X_features_train1
+    X_anchor = X_cal[idxs_cal_anchor,]
+    del X_features_train1, X_features_cal
     Y_anchor = Y_cal[idxs_cal_anchor]
     print("Done.")
     sys.stdout.flush()
@@ -257,26 +253,32 @@ def run_experiment(random_state):
 
     # Define a dictionary of methods with their names and corresponding initialization parameters
     methods = {
-        "Standard": lambda: arc.methods.SplitConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
+        "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                        pre_trained=True, random_state=random_state),
 
-        "Standard using AP": lambda: arc.methods.SplitConformal(X_features_anchor, Y_anchor, black_box_MLP, K, alpha, n_cal=-1,
+        "Standard using AP": lambda: arc.methods.SplitConformal(X_anchor, Y_anchor, black_box, K, alpha, n_cal=-1,
                                                                 pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
+        "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
+        "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ AP SVC": lambda: MarginalLabelNoiseConformal(X_features_cal, Yt_cal, black_box_MLP, K, alpha, n_cal=-1,
+        "Adaptive optimized+ AP SVC": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T_hat_SVC, rho_tilde=rho_tilde_hat,
+                                                                    allow_empty=allow_empty, method="improved",
+                                                                    optimized=True, optimistic=True, verbose=False,
+                                                                    pre_trained=True, random_state=random_state),
+
+        "Adaptive optimized+ AP opt": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                    epsilon=epsilon, T=T_hat_opt, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state)
@@ -293,13 +295,13 @@ def run_experiment(random_state):
 
         # Initialize and apply the method
         method = method_func()
-        predictions = method.predict(X_features_test)
+        predictions = method.predict(X_test)
 
         print("Done.")
         sys.stdout.flush()
 
         # Evaluate the method
-        res_new = evaluate_predictions(predictions, X_features_test, Y_test, K, verbose=False)
+        res_new = evaluate_predictions(predictions, X_test, Y_test, K, verbose=False)
         res_new['Method'] = method_name
         res_new['Guarantee'] = guarantee
         res_new['Alpha'] = alpha

@@ -214,7 +214,7 @@ def run_experiment(random_state):
     ## Anchor points method for T estimation, using combination of outlier detectors as classifier
     method = AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
                                         black_box=black_box_SVC, optimal_method=True,
-                                        random_state=random_state+3)
+                                        random_state=random_state+4)
     Ya_train2, _, _, _ = method.get_anchor_points()
     T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     T_hat_opt = T_method.get_estimate()

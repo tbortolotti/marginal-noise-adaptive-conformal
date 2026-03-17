@@ -70,7 +70,7 @@ print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
 
 #dataset = Cifar10DataSet(data_dir, noisy_data_dir, random_state=2026)
-dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, imagenet_flag=True, random_state=2026)
+dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2026)
 loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
 feature_extractor = ImageNetResNet18Features()
 
@@ -114,7 +114,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     #X_batch, Y_batch, Y_lab_batch, Yt_batch, Yt_lab_batch, idx_batch = next(iter(loader))
-    X, Y, _, _, _, _ = next(iter(loader))
+    X, _, Y, _, _, _, _ = next(iter(loader))
     X_features = feature_extractor.transform(X)
     X_features = X_features.numpy()
     del X; torch.cuda.empty_cache()

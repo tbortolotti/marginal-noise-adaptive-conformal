@@ -3038,7 +3038,7 @@ make_figure_802(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 #### Experiment 803: Impact of the contamination strength -----------------
 load_data <- function(exp.num, from_cluster=TRUE) {
@@ -3382,13 +3382,7 @@ make_figure_901 <- function(exp.num,plot.data="cifar10",
            contamination==plot.contamination,
            epsilon%in%plot.epsilon,
            n_train2==plot.n_train2)
-  
-  df_optimal <- df %>%
-    filter(Method == "SVC") %>%
-    mutate(Method = "optimal")
-  
-  df <- bind_rows(df, df_optimal)
-  
+
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
@@ -3472,12 +3466,6 @@ make_figure_902 <- function(exp.num,plot.data="cifar10",
            contamination==plot.contamination,
            epsilon%in%plot.epsilon,
            n_train1==plot.n_train1)
-  
-  df_optimal <- df %>%
-    filter(Method == "SVC") %>%
-    mutate(Method = "optimal")
-  
-  df <- bind_rows(df, df_optimal)
   
   df.nominal_error <- tibble(Key="epsilon_res", Mean=0)
   #df.nominal_error2 <- tibble(Key="frobenius_d", Mean=0)
