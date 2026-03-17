@@ -238,16 +238,26 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         else:
             return SequentialSampler(indices)
     """
-    
+
     def create_sampler(self, dataset_size, shuffle=False, seed=None):
         indices = list(range(dataset_size))
         if shuffle:
-            generator = torch.Generator().manual_seed(seed)
+            generator = torch.Generator().manual_seed(int(seed))
+            return SubsetRandomSampler(indices=indices, generator=generator)
+        else:
+            return SequentialSampler(indices)
+        
+    """
+    def create_sampler(self, dataset_size, shuffle=False, seed=None):
+        indices = list(range(dataset_size))
+        if shuffle:
+            generator = torch.Generator().manual_seed(int(seed))
             shuffled = torch.randperm(dataset_size, generator=generator).tolist()
             self.last_train_indices = shuffled
             return SubsetRandomSampler(indices=shuffled, generator=None)
         else:
             return SequentialSampler(indices)
+    """
     
 
     def train_dataloader(self, seed=None) -> torch.utils.data.dataloader.DataLoader:

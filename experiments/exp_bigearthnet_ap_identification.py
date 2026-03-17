@@ -191,7 +191,7 @@ def run_experiment(random_state):
             black_box=black_box_SVC,
             optimal_method=True,
             random_state=random_state + 3
-        ),
+        )
     }
 
     res_list = []
