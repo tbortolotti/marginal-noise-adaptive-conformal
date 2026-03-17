@@ -218,13 +218,19 @@ def run_experiment(random_state):
     method = AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_cal, Yt_cal, K,
                                         use_classifier=True, black_box=black_box_SVC,
                                         calibrate_gamma=True)
-    Ya_cal, _, _, _ = method.get_anchor_points()
-    idxs_cal_anchor = (Ya_cal != -1)
-    X_anchor = X_cal[idxs_cal_anchor,]
+    Y_anchor, _, _, _ = method.get_anchor_points()
+    idxs_anchor = (Y_anchor != -1)
+    X_anchor = X_cal[idxs_anchor,]
     del X_features_train1, X_features_cal
-    Y_anchor = Y_cal[idxs_cal_anchor]
+    #Y_anchor = Y_cal[idxs_anchor]
     print("Done.")
     sys.stdout.flush()
+
+    # Compute size of AP set and imbalance ratio
+    size_ap = np.sum(Y_anchor!=-1)
+    Y_anchor_valid = Y_anchor[Y_anchor != -1]
+    counts = np.bincount(Y_anchor_valid, minlength=K)
+    IR = np.inf if np.any(counts == 0) else counts.max() / counts.min()
 
     # Force garbage collection
     gc.collect()
@@ -302,6 +308,8 @@ def run_experiment(random_state):
 
         # Evaluate the method
         res_new = evaluate_predictions(predictions, X_test, Y_test, K, verbose=False)
+        res_new['size_ap'] = size_ap
+        res_new['ir'] = IR
         res_new['Method'] = method_name
         res_new['Guarantee'] = guarantee
         res_new['Alpha'] = alpha
