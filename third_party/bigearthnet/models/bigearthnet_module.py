@@ -201,3 +201,20 @@ class BigEarthNetModule(pl.LightningModule):
             probabilities = probabilities.numpy().astype(np.float32)
 
         return probabilities
+    
+    def extract_features(self, X):
+        self.model.eval()
+        with torch.no_grad():
+            if hasattr(self.model, 'fc'):
+                original_layer = self.model.fc
+                self.model.fc = torch.nn.Identity()
+                features = self.model(X)
+                self.model.fc = original_layer
+            elif hasattr(self.model, 'classifier'):
+                original_layer = self.model.classifier
+                self.model.classifier = torch.nn.Identity()
+                features = self.model(X)
+                self.model.classifier = original_layer
+            else:
+                raise AttributeError("Cannot find 'fc' or 'classifier' layer.")
+        return features
