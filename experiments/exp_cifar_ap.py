@@ -200,7 +200,7 @@ def run_experiment(random_state):
     T_hat_SVC = T_method.get_estimate()
 
     # Anchor points method for T estimation, using combination of outlier detectors as classifier
-    method = AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
+    method = AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, Yt_train2, K,
                                         black_box=black_box_SVC,
                                         optimal_method=True,
                                         random_state=random_state+4)

@@ -3324,7 +3324,7 @@ make_figure_805(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.center_scale=plot.center_scale,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 #' ---------------------------------------------------------------------------------------------------------------------
 ### Experiments 900: AP identification in CIFAR-10 dataset ------------------------
