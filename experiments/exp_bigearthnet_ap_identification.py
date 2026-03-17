@@ -137,14 +137,14 @@ def run_experiment(random_state):
 
     # Retrieve the corresponding clean (v2-grouped) labels from the CSV,
     # using the same generator the datamodule used to shuffle its dataset.
-    shuffled_csv = v1v2_corresp_train.iloc[datamodule.last_train_indices].reset_index(drop=True)
-    batch_csv = shuffled_csv.iloc[:batch_size]
-    Y_clean = batch_csv['v2-labels-grouped'].to_numpy()
+    #shuffled_csv = v1v2_corresp_train.iloc[datamodule.last_train_indices].reset_index(drop=True)
+    #batch_csv = shuffled_csv.iloc[:batch_size]
+    #Y_clean = batch_csv['v2-labels-grouped'].to_numpy()
 
     # OLD VERSION
-    #generator = torch.Generator().manual_seed(datamodule.random_seed)
-    #indices = torch.randperm(len(datamodule.train_dataset), generator=generator).tolist()
-    #shuffled_csv = v1v2_corresp_train.iloc[indices].reset_index(drop=True)
+    generator = torch.Generator().manual_seed(datamodule.random_seed)
+    indices = torch.randperm(len(datamodule.train_dataset), generator=generator).tolist()
+    shuffled_csv = v1v2_corresp_train.iloc[indices].reset_index(drop=True)
 
     # Drop rows where clean label is NaN
     valid = ~np.isnan(Y_clean)
