@@ -137,7 +137,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     data_distribution.set_seed(random_state+1)
-    X, Y = data_distribution.sample(n_train1+n_train2+n_train3)
+    X, Y = data_distribution.sample(n_train1+n_train2)
     print("Done.")
     sys.stdout.flush()
 
