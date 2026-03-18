@@ -5,8 +5,8 @@ CONF=604
 
 if [[ $CONF == 600 ]]; then
   MODEL_LIST=('RFC')
-  DATA_LIST=("synthetic1")
-  NUM_VAR_LIST=(20)
+  DATA_LIST=("syntheticAP")
+  NUM_VAR_LIST=(2)
   K_LIST=(4)
   SIGNAL_LIST=(1.0)
   PI_LIST=(1.0)
@@ -14,8 +14,8 @@ if [[ $CONF == 600 ]]; then
   FLIPY_LIST=(0)
   EPSILON_LIST=(0.1)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN1_LIST=(10000)
-  N_TRAIN2_LIST=(10000)
+  N_TRAIN1_LIST=(1000)
+  N_TRAIN2_LIST=(1000)
   N_CAL_LIST=(2000)
   SEED_LIST=(1)
 
