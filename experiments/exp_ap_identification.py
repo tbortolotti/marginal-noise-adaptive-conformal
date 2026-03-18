@@ -150,7 +150,7 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Separate data into first-stage training and anchor-selection set
-    X_train1, X_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, Y, Yt, test_size=n_train2, random_state=random_state+4)
+    X_train1, X_train2, Y_train1, Y_train2, Yt_train1, Yt_train2 = train_test_split(X, Y, Yt, test_size=n_train2, random_state=random_state+3)
 
     methods = {
         "RFC": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
@@ -172,7 +172,7 @@ def run_experiment(random_state):
                                                     selection="accuracy"),
 
         "optimal": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
-                                                      black_box=black_box_SVC, optimal_method=True, random_state=random_state+3)
+                                                      black_box=black_box_SVC, optimal_method=True, random_state=random_state+4)
 
         #"LOF": lambda: AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
         #                                            outlier_detection=True,

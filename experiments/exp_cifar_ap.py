@@ -77,7 +77,7 @@ noisy_data_dir = "/home1/tb_214/data/cifar10h"
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
 
-dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2026)
+dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2024)
 
 #print(f"\nOverall numerosity of dataset {len(dataset)}")
 #sys.stdout.flush()
@@ -140,7 +140,7 @@ def run_experiment(random_state):
     # Generate the contaminated labels
     print("Generating contaminated labels...", end=' ')
     sys.stdout.flush()
-    contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+3)
+    contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+2)
     Yt = contamination_process.sample_labels(Y)
     print("Done.")
     sys.stdout.flush()
@@ -149,14 +149,14 @@ def run_experiment(random_state):
     rho_tilde_hat = estimate_rho(Yt, K)
 
     # Separate data into training and calibration
-    X_imagenet_train, X_imagenet_cal, _, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X_imagenet, X, Y, Yt, test_size=n_cal, random_state=random_state+2)
+    X_imagenet_train, X_imagenet_cal, _, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X_imagenet, X, Y, Yt, test_size=n_cal, random_state=random_state+3)
     del X_imagenet, X, Y, Yt
 
     # Extract features
     print("Extract features for T estimation...", end=' ')
     sys.stdout.flush()
     # Split training set in two, as it'll be needed to estimate T
-    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_imagenet_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+3)
+    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_imagenet_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+4)
     del X_imagenet_train, Y_train, Yt_train
 
     # Operate transformation of X to fit SVC and identify anchor points
@@ -203,7 +203,7 @@ def run_experiment(random_state):
     method = AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, Yt_train2, K,
                                         black_box=black_box_SVC,
                                         optimal_method=True,
-                                        random_state=random_state+4)
+                                        random_state=random_state+5)
     Ya_train2, _, _, _ = method.get_anchor_points()
     T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     T_hat_opt = T_method.get_estimate()

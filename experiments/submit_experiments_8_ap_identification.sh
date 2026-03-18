@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=805
+CONF=800
 
 if [[ $CONF == 800 ]]; then
   DATA_LIST=("syntheticAP")

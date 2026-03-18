@@ -168,7 +168,7 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Separate the test set
-    X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
+    X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+2)
 
     # Generate the contaminated labels
     print("Generating contaminated labels...", end=' ')
@@ -189,9 +189,9 @@ def run_experiment(random_state):
         exit(-1)
 
     # Separate data into training and calibration
-    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
+    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+4)
 
-    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+3)
+    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+5)
 
     # Fit the point predictor on the training set
     black_box_pt = copy.deepcopy(black_box)
@@ -214,7 +214,7 @@ def run_experiment(random_state):
     ## Anchor points method for T estimation, using combination of outlier detectors as classifier
     method = AnchorPointsIdentification(X_train1, Yt_train1, X_train2, Yt_train2, K,
                                         black_box=black_box_SVC, optimal_method=True,
-                                        random_state=random_state+4)
+                                        random_state=random_state+6)
     Ya_train2, _, _, _ = method.get_anchor_points()
     T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
     T_hat_opt = T_method.get_estimate()
