@@ -146,7 +146,13 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Estimate the label proportions from the whole data set
+    print("Estimating label proportions...", end=' ')
+    sys.stdout.flush()
     rho_tilde_hat = estimate_rho(Yt, K)
+    print(rho_tilde_hat)
+    print("Done.")
+    sys.stdout.flush()
+
 
     # Separate data into training and calibration
     X_imagenet_train, X_imagenet_cal, _, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X_imagenet, X, Y, Yt, test_size=n_cal, random_state=random_state+3)

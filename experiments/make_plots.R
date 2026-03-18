@@ -2183,7 +2183,7 @@ make_figure_604a(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
                 plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
-                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 make_figure_604b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal",
@@ -2244,13 +2244,13 @@ make_figure_604b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K
   }
 }
 
-plot.n_train1 <- 500
+plot.n_train1 <- 1000
 plot.n_train2 <- c(500,1000,5000,10000)
 make_figure_604b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                  plot.contamination=plot.contamination,
                  plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
                  plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
-                 save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 ### Experiments 700: Estimating the contamination process ------------------------
@@ -3038,7 +3038,7 @@ make_figure_802(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 803: Impact of the contamination strength -----------------
 load_data <- function(exp.num, from_cluster=TRUE) {
@@ -3507,20 +3507,17 @@ exp.num <- 902
 plot.epsilon <- c(0, 0.05, 0.1, 0.15)
 plot.contamination <- "uniform"
 plot.n_train1 <- 3000
-#plot.epsilon <- c(0.2)
-#plot.n_train1 <- 4000
 
 plot.data <- "cifar10"
 make_figure_902(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train1=plot.n_train1,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 exp.num <- 1102
-plot.epsilon <- c(0, 0.05, 0.1, 0.2)
-#plot.epsilon <- c(0.2)
+plot.epsilon <- c(0, 0.05, 0.1)
 plot.contamination <- "uniform"
 plot.n_train1 <- 4000
 
@@ -3529,7 +3526,7 @@ make_figure_902(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train1=plot.n_train1,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
@@ -3581,6 +3578,7 @@ init_settings <- function(plot.optimistic = FALSE) {
 make_figure_1001 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.guarantee="marginal",
                              plot.contamination="uniform",
                              plot.epsilon=0.1,
+                             plot.nu=0,
                              plot.n_train1=1000,
                              plot.n_train2,
                              plot.optimistic=TRUE,
@@ -3647,5 +3645,7 @@ make_figure_1001(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon,
                  plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
-                 save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+
 
