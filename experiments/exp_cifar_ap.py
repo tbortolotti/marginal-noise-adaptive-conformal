@@ -216,8 +216,9 @@ def run_experiment(random_state):
     sys.stdout.flush()
     # Create dataset of sole anchor points
     method = AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_cal, Yt_cal, K,
-                                        use_classifier=True, black_box=black_box_SVC,
-                                        calibrate_gamma=True)
+                                        black_box=black_box_SVC,
+                                        optimal_method=True,
+                                        random_state=random_state+6)
     Ya_cal, _, _, _ = method.get_anchor_points()
     idxs_anchor = (Ya_cal != -1)
     X_anchor = X_cal[idxs_anchor,]
