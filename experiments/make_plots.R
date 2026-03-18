@@ -3544,7 +3544,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("Coverage", "Size", "size_ap"), names_to = "Key", values_to = "Value") %>%
     group_by(data, contamination, epsilon, n_train1, n_train2, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
     filter(seed %in% (1:20)) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
@@ -3626,7 +3626,7 @@ make_figure_1001 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.g
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_nt1_%d_eps%s_nu%s_%s_optimistic%s.pdf",
                          exp.num, plot.data, plot.n_train1, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=4, width=9, units="in")
+    ggsave(file=plot.file, height=7.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)

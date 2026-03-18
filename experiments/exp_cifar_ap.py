@@ -240,6 +240,12 @@ def run_experiment(random_state):
     counts = np.bincount(Y_anchor_valid, minlength=K)
     IR = np.inf if np.any(counts == 0) else counts.max() / counts.min()
 
+    print("Frequencies in the anchor points sets...", end=' ')
+    sys.stdout.flush()
+    print(counts)
+    print("Done.")
+    sys.stdout.flush()
+
     # Force garbage collection
     gc.collect()
     torch.cuda.empty_cache()
