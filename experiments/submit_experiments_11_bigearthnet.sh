@@ -21,7 +21,7 @@ elif [[ $CONF == 1101 ]]; then
 
 elif [[ $CONF == 1102 ]]; then
   #EPSILON_LIST=(0 0.05 0.1 0.2)
-  EPSILON_LIST=(0.2)
+  EPSILON_LIST=(0 0.05 0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN1_LIST=(4000)

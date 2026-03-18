@@ -3535,6 +3535,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   summary <- results %>%
     pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
     group_by(data, contamination, epsilon, n_train1, n_train2, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    filter(seed %in% (1:20)) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
