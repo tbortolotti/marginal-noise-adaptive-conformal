@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Parameters
-CONF=902
+CONF=1002
 
-if [[ $CONF == 900 ]]; then
+if [[ $CONF == 1000 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN1_LIST=(5000)
-  N_TRAIN2_LIST=(5000)
+  N_TRAIN1_LIST=(1000)
+  N_TRAIN2_LIST=(1000)
   SEED_LIST=(1)
 
-elif [[ $CONF == 901 ]]; then
+elif [[ $CONF == 1001 ]]; then
   EPSILON_LIST=(0 0.05 0.1 0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
@@ -19,12 +19,12 @@ elif [[ $CONF == 901 ]]; then
   N_TRAIN2_LIST=(1000)
   SEED_LIST=$(seq 1 10)
 
-elif [[ $CONF == 902 ]]; then
+elif [[ $CONF == 1002 ]]; then
   #EPSILON_LIST=(0 0.05 0.1 0.2)
   EPSILON_LIST=(0.15)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN1_LIST=(3000)
+  N_TRAIN1_LIST=(4000)
   N_TRAIN2_LIST=(500 1000 2000 5000)
   SEED_LIST=$(seq 1 10)
 
@@ -57,7 +57,7 @@ for SEED in $SEED_LIST; do
       for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
         for N_TRAIN1 in "${N_TRAIN1_LIST[@]}"; do
           for N_TRAIN2 in "${N_TRAIN2_LIST[@]}"; do
-            JOBN="exp"$CONF"/cifar10_eps"$EPSILON
+            JOBN="exp"$CONF"/bigearthnet_eps"$EPSILON
             JOBN=$JOBN"_nu"$NU"_"$CONTAMINATION
             JOBN=$JOBN"_nt1_"$N_TRAIN1"_nt2_"$N_TRAIN2"_"$SEED
             OUT_FILE=$OUT_DIR"/"$JOBN".txt"
@@ -68,7 +68,7 @@ for SEED in $SEED_LIST; do
 
             if [[ $COMPLETE -eq 0 ]]; then
               # Script to be run
-              SCRIPT="exp_cifar_ap_identification.sh $CONF $EPSILON $NU $CONTAMINATION $N_TRAIN1 $N_TRAIN2 $SEED"
+              SCRIPT="exp_bigearthnet_ap_identification.sh $CONF $EPSILON $NU $CONTAMINATION $N_TRAIN1 $N_TRAIN2 $SEED"
               # Define job name
               OUTF=$LOGS"/"$JOBN".out"
               ERRF=$LOGS"/"$JOBN".err"

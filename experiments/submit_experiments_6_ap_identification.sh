@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Parameters
-CONF=800
+CONF=600
 
-if [[ $CONF == 800 ]]; then
+if [[ $CONF == 600 ]]; then
   DATA_LIST=("syntheticAP")
   NUM_VAR_LIST=(2)
   K_LIST=(4)
@@ -21,7 +21,7 @@ if [[ $CONF == 800 ]]; then
   N_TRAIN2_LIST=(1000)
   SEED_LIST=(1)
 
-elif [[ $CONF == 801 ]]; then
+elif [[ $CONF == 601 ]]; then
   DATA_LIST=("syntheticAP")
   NUM_VAR_LIST=(2)
   K_LIST=(4)
@@ -39,7 +39,7 @@ elif [[ $CONF == 801 ]]; then
   N_TRAIN2_LIST=(10000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 802 ]]; then
+elif [[ $CONF == 602 ]]; then
   DATA_LIST=("syntheticAP")
   NUM_VAR_LIST=(2)
   K_LIST=(4)
@@ -57,7 +57,7 @@ elif [[ $CONF == 802 ]]; then
   N_TRAIN2_LIST=(100 200 500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 803 ]]; then
+elif [[ $CONF == 603 ]]; then
   DATA_LIST=("syntheticAP")
   NUM_VAR_LIST=(2)
   K_LIST=(4)
@@ -75,7 +75,7 @@ elif [[ $CONF == 803 ]]; then
   N_TRAIN2_LIST=(10000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 804 ]]; then
+elif [[ $CONF == 604 ]]; then
   DATA_LIST=("syntheticAP")
   NUM_VAR_LIST=(2)
   K_LIST=(4)
@@ -93,7 +93,7 @@ elif [[ $CONF == 804 ]]; then
   N_TRAIN2_LIST=(100 200 500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 805 ]]; then
+elif [[ $CONF == 605 ]]; then
   DATA_LIST=("syntheticAP")
   NUM_VAR_LIST=(2)
   K_LIST=(4)

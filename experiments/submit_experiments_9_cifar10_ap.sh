@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Parameters
-CONF=1000
+CONF=900
 
-if [[ $CONF == 1000 ]]; then
+if [[ $CONF == 900 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
@@ -12,7 +12,7 @@ if [[ $CONF == 1000 ]]; then
   N_CAL_LIST=(5000)
   SEED_LIST=(1)
 
-elif [[ $CONF == 1001 ]]; then
+elif [[ $CONF == 901 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")

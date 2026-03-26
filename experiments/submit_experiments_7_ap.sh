@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Parameters
-CONF=604
+CONF=704
 
-if [[ $CONF == 600 ]]; then
+if [[ $CONF == 700 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("syntheticAP")
   NUM_VAR_LIST=(2)
@@ -19,7 +19,7 @@ if [[ $CONF == 600 ]]; then
   N_CAL_LIST=(2000)
   SEED_LIST=(1)
 
-elif [[ $CONF == 601 ]]; then
+elif [[ $CONF == 701 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("synthetic1_easy")
   NUM_VAR_LIST=(20)
@@ -35,7 +35,7 @@ elif [[ $CONF == 601 ]]; then
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 602 ]]; then
+elif [[ $CONF == 702 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
@@ -51,7 +51,7 @@ elif [[ $CONF == 602 ]]; then
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 603 ]]; then
+elif [[ $CONF == 703 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
@@ -67,7 +67,7 @@ elif [[ $CONF == 603 ]]; then
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 604 ]]; then
+elif [[ $CONF == 704 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("syntheticAP")
   NUM_VAR_LIST=(2)
@@ -83,7 +83,7 @@ elif [[ $CONF == 604 ]]; then
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 605 ]]; then
+elif [[ $CONF == 705 ]]; then
   MODEL_LIST=('RFC')
   DATA_LIST=("syntheticAP")
   NUM_VAR_LIST=(2)
