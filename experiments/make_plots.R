@@ -2352,8 +2352,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   summary <- results %>%
     #pivot_longer(c("correct", "FP", "FN", "existence"), names_to="Key", values_to="Value") %>%
     #mutate(Key = recode(Key, correct="accuracy", FP="FPR", FN="FNR", existence="exist_rate")) %>%
-    pivot_longer(c("correct"), names_to="Key", values_to="Value") %>%
-    mutate(Key = recode(Key, correct="accuracy")) %>%
+    pivot_longer(c("existence"), names_to="Key", values_to="Value") %>%
+    mutate(Key = recode(Key, existence="AP detection rate")) %>%
     group_by(data, scenario, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
   
@@ -2379,11 +2379,10 @@ make_figure_611 <- function(exp.num, plot.data="syntheticAP",
            epsilon==plot.epsilon,
            n_train1==plot.n_train1)
   
-  df.accuracy_line <- tibble(Key=c("accuracy"), Mean=1, n_train2=1000, Method="Split 5")
-  df.accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0,1), n_train2=1000, Method="Split 5")
-  #df.fpr <- tibble(Key=c("FPR","FPR"), Mean=c(0,1), n_train2=1000, Method="Split 5")
-  #df.fnr <- tibble(Key=c("FNR","FNR"), Mean=c(0,1), n_train2=1000, Method="Split 5")
-  #df.exist_rate <- tibble(Key=c("exist_rate","exist_rate"), Mean=c(0,1), n_train2=1000, Method="Split 5")
+  df.exist_rate_line <- tibble(Key="AP detection rate",
+                               Mean=c(1,0,0),
+                               scenario=c("scenario1","scenario2","scenario3"))
+  #df.exist_rate <- tibble(Key=c("AP detection rate","AP detection rate"), Mean=c(0,1), n_train2=1000, Method="Split 5")
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
@@ -2393,12 +2392,7 @@ make_figure_611 <- function(exp.num, plot.data="syntheticAP",
     geom_line() +
     geom_errorbar(aes(ymin=pmax(0,Mean-SE), ymax=pmin(1,Mean+SE)), width = 0.1) +
     facet_grid(Key~Scenario, scales="free") +
-    geom_point(data=df.accuracy, aes(x=n_train2, y=Mean), alpha=0) +
-    #geom_point(data=df.fpr, aes(x=n_train2, y=Mean), alpha=0) +
-    geom_hline(data=df.accuracy_line, aes(yintercept=Mean), linetype="dashed") +
-    #geom_hline(data=df.fpr, aes(yintercept=Mean), linetype="dashed") +
-    #geom_hline(data=df.fnr, aes(yintercept=Mean), linetype="dashed") +
-    #geom_hline(data=df.exist_rate, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.exist_rate_line, aes(yintercept=Mean), linetype="dashed") +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
@@ -3179,4 +3173,218 @@ make_figure_901(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                  save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
+#' ---------------------------------------------------------------------------------------------------------------------
+### Experiments 1000: AP identification in BIGEARTHNET dataset ------------------------
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  
+  # method.values <<- c("Clean sample", "SVC", "ResNet18", "IF")
+  # method.labels <<- c("Clean sample", "SVC", "ResNet18", "IF")
+  
+  # method.values <<- c("Clean sample", "SVC", "IF")
+  # method.labels <<- c("Clean sample", "SVC", "IF")
+  
+  method.values <<- c("Clean sample", "SVC", "IF", "optimal")
+  method.labels <<- c("Clean sample", "SVC", "IF", "Opt")
+  
+  color.scale <<- cbPalette[c(1,2,6,7)]
+  shape.scale <<- c(1,0,5,6)
+  linetype.scale <<- c(1,1,1,1)
+}
 
+
+
+#### Experiment 1002: Impact of numerosity of the anchor-selection set -----------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("accuracy", "epsilon_res"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, K, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_1002 <- function(exp.num,plot.data="cifar10",
+                            plot.contamination="uniform",
+                            plot.epsilon,
+                            plot.n_train1=5000,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon%in%plot.epsilon,
+           n_train1==plot.n_train1)
+  
+  df.nominal_error <- tibble(Key="epsilon_res", Mean=0)
+  #df.nominal_error2 <- tibble(Key="frobenius_d", Mean=0)
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
+    ggplot(aes(x=n_train2, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Epsilon, scales="free") +
+    geom_hline(data=df.nominal_error, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.nominal_error2, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of samples in the anchor-selection set") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_%s_nt1_%d.png",
+                         exp.num, plot.data, plot.contamination, plot.n_train1)
+    ggsave(file=plot.file, height=3.5, width=7.5, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+
+exp.num <- 1002
+plot.epsilon <- c(0, 0.05, 0.1)
+plot.contamination <- "uniform"
+plot.n_train1 <- 4000
+
+plot.data <- "bigearthnet"
+make_figure_1002(exp.num=exp.num, plot.data=plot.data,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                plot.n_train1=plot.n_train1,
+                save_plots=FALSE, reload=TRUE)
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
+### Experiments 1010: AP existence in BEN dataset ------------------------
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  
+  # method.values <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
+  # method.labels <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
+  
+  method.values <<- c("Split 5", "Boot 5")
+  method.labels <<- c("Split 5", "Boot 5")
+  
+  color.scale <<- cbPalette[c(1,2,4,5,6,7)]
+  shape.scale <<- c(1,0,3,4,5,6)
+  linetype.scale <<- c(1,1,1,1,1,1)
+}
+
+
+#### Experiment 1012: Performances for different scenarios -----------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))
+  
+  summary <- results %>%
+    #pivot_longer(c("correct", "FP", "FN", "existence"), names_to="Key", values_to="Value") %>%
+    #mutate(Key = recode(Key, correct="accuracy", FP="FPR", FN="FNR", existence="exist_rate")) %>%
+    pivot_longer(c("existence"), names_to="Key", values_to="Value") %>%
+    mutate(Key = recode(Key, existence="AP detection rate")) %>%
+    group_by(data, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
+  
+  return(summary)
+}
+
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_1012 <- function(exp.num, plot.data="syntheticAP",
+                            plot.contamination="uniform",
+                            plot.epsilon=0.1,
+                            plot.n_train1=4000,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon %in% plot.epsilon,
+           n_train1==plot.n_train1)
+  
+  #df_exist_rate_line <- tibble(Key=c("exist_rate"), Mean=1, n_train2=1000, Method="Split 5")
+  df.exist_rate <- tibble(Key=c("AP detection rate","AP detection rate"), Mean=c(0,1), n_train2=1000, Method="Split 5")
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Epsilon = sprintf("%s", epsilon)) %>%
+    ggplot(aes(x=n_train2, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=pmax(0,Mean-SE), ymax=pmin(1,Mean+SE)), width = 0.1) +
+    facet_grid(Key~Epsilon, scales="free") +
+    geom_point(data=df.exist_rate, aes(x=n_train2, y=Mean), alpha=0) +
+    #geom_hline(data=df.exist_rate_line, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of samples in the anchor-selection set") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_eps%s_%s_nt1_%d.png",
+                         exp.num, plot.data, plot.epsilon, plot.contamination, n_train1)
+    ggsave(file=plot.file, height=2.2, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 1012
+plot.epsilon <- c(0.05, 0.1, 0.15)
+plot.contamination <- "uniform"
+plot.data <- "bigearthnet"
+plot.n_train1 <- 4000
+
+make_figure_1012(exp.num=exp.num, plot.data=plot.data,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon, plot.n_train1=plot.n_train1,
+                save_plots=FALSE, reload=TRUE)

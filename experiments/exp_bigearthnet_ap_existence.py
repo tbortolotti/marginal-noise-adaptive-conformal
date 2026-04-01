@@ -161,10 +161,10 @@ def run_experiment(random_state):
 
     # Methods
     methods = {
-        "Split 5": lambda: AnchorPointsExistence(X_features, Yt, K,B=50, n2=n_train2, black_box=black_box_SVC,
+        "Split 5": lambda: AnchorPointsExistence(X_features, Yt, K,B=20, n2=n_train2, black_box=black_box_SVC,
                                                  method="split", frac_threshold = 0.05, consistency_threshold=0.6),
 
-        "Boot 5": lambda: AnchorPointsExistence(X_features, Yt, K, B=50, n2=n_train2, black_box=black_box_SVC,
+        "Boot 5": lambda: AnchorPointsExistence(X_features, Yt, K, B=20, n2=n_train2, black_box=black_box_SVC,
                                                 method="bootstrap", freq_threshold = 0.3, stable_frac_threshold=0.05)
     }
 
