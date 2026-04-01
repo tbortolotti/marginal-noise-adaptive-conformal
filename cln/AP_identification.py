@@ -486,7 +486,7 @@ class AnchorPointsIdentification:
 # ANCHOR POINTS EXISTENCE TEST
 class AnchorPointsExistence:
     def __init__(self, X, Yt, K,
-                 B=50,
+                 B=20,
                  n2=None,
                  black_box=None,
                  method="split",  # "split" or "bootstrap"
