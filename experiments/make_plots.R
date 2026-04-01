@@ -2344,20 +2344,21 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
-  }))    
+  }))
+  
   summary <- results %>%
-    pivot_longer(c("size","accuracy","accuracy_tilde"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, pi_easy, contamination, flipy, epsilon, n_train1, n_train2, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+    pivot_longer(c("correct", "FP", "FN", "existence"), names_to="Key", values_to="Value") %>%
+    group_by(data, scenario, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
+  
   return(summary)
 }
 
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_601 <- function(exp.num, plot.data="syntheticAP", plot.K=4,
-                            plot.pi_easy,
+make_figure_611 <- function(exp.num, plot.data="syntheticAP",
                             plot.contamination="uniform",
-                            plot.flipy=0,
-                            plot.epsilon=0.2,
+                            plot.epsilon=0.1,
+                            plot.n_train1=10000,
                             save_plots=FALSE, reload=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
@@ -2366,29 +2367,26 @@ make_figure_601 <- function(exp.num, plot.data="syntheticAP", plot.K=4,
   init_settings()
   
   df <- summary %>%
-    filter(data==plot.data, num_var==2, K==plot.K,
-           pi_easy %in% plot.pi_easy,
+    filter(data==plot.data,
            Method %in% method.values,
            contamination==plot.contamination,
-           flipy==plot.flipy, epsilon==plot.epsilon)
-  nominal_accuracy <- 1 - (plot.K-1)/plot.K*plot.flipy
-  df.nominal_accuracy <- tibble(Key="accuracy", Mean=nominal_accuracy)
-  #df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+           epsilon==plot.epsilon,
+           n_train1==plot.n_train1)
+
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Pi = sprintf("pi: %.2f", pi_easy)) %>%
-    ggplot(aes(x=n_train1, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    mutate(Scenario = sprintf("%s", scenario)) %>%
+    ggplot(aes(x=n_train2, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~Pi, scales="free") +
+    facet_grid(Key~Scenario, scales="free") +
     geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
-    #geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of samples in the training set") +
+    xlab("Number of samples in the anchor-selection set") +
     ylab("") +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -2399,8 +2397,8 @@ make_figure_601 <- function(exp.num, plot.data="syntheticAP", plot.K=4,
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_K%d_flipy%s_%s.png",
-                         exp.num, plot.data, plot.K, plot.flipy, plot.contamination)
+    plot.file <- sprintf("figures/exp%d_%s_eps%s_%s_nt1_%d.png",
+                         exp.num, plot.data, plot.epsilon, plot.contamination, n_train1)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
@@ -2408,18 +2406,14 @@ make_figure_601 <- function(exp.num, plot.data="syntheticAP", plot.K=4,
   }
 }
 
-exp.num <- 601
+exp.num <- 611
 plot.epsilon <- 0.1
-plot.K <- 4
 plot.contamination <- "uniform"
-plot.pi_easy <- c(0.25, 0.5, 0.75, 1)
 
-plot.flipy <- 0
 plot.data <- "syntheticAP"
-make_figure_601(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.pi_easy=plot.pi_easy,
+make_figure_611(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
-                plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
+                plot.epsilon=plot.epsilon,
                 save_plots=TRUE, reload=TRUE)
 
 

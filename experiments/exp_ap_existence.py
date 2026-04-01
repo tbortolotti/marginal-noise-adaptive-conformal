@@ -150,20 +150,20 @@ def run_experiment(random_state):
         "Split 5": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
                                              method="split", frac_threshold = 0.05, consistency_threshold=0.6),
 
-        "Split 10": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
-                                             method="split", frac_threshold = 0.1, consistency_threshold=0.6),
+        #"Split 10": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
+        #                                     method="split", frac_threshold = 0.1, consistency_threshold=0.6),
 
-        "Split 20": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
-                                             method="split", frac_threshold = 0.2, consistency_threshold=0.6),
+        #"Split 20": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
+        #                                     method="split", frac_threshold = 0.2, consistency_threshold=0.6),
 
         "Boot 5": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
-                                             method="bootstrap", freq_threshold = 0.3, stable_frac_threshold=0.05),
+                                             method="bootstrap", freq_threshold = 0.3, stable_frac_threshold=0.05)
 
-        "Boot 10": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
-                                             method="bootstrap", freq_threshold = 0.3, stable_frac_threshold=0.1),
+        #"Boot 10": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
+        #                                     method="bootstrap", freq_threshold = 0.3, stable_frac_threshold=0.1),
 
-        "Boot 20": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
-                                             method="bootstrap", freq_threshold = 0.3, stable_frac_threshold=0.2),
+        #"Boot 20": lambda: AnchorPointsExistence(X, Yt, K, n2=n_train2, black_box=black_box_SVC,
+        #                                     method="bootstrap", freq_threshold = 0.3, stable_frac_threshold=0.2),
     }
 
     # Initialize an empty list to store the evaluation results
