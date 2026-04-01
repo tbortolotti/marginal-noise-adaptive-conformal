@@ -193,7 +193,6 @@ def run_experiment(random_state):
             FP           = existence and (scenario != "scenario1"),
             FN           = (not existence) and (scenario == "scenario1"),
         )
-        res_update = res_update.assign(Method=method_name, existence=existence)
         res_list.append(res_update)
 
     # Combine all results into a single DataFrame

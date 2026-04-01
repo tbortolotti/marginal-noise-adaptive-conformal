@@ -2324,8 +2324,11 @@ make_figure_605(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   
-  method.values <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
-  method.labels <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
+  # method.values <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
+  # method.labels <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
+
+  method.values <<- c("Split 5", "Boot 5")
+  method.labels <<- c("Split 5", "Boot 5")
   
   color.scale <<- cbPalette[c(1,2,4,5,6,7)]
   shape.scale <<- c(1,0,3,4,5,6)
@@ -2347,7 +2350,10 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   }))
   
   summary <- results %>%
-    pivot_longer(c("correct", "FP", "FN", "existence"), names_to="Key", values_to="Value") %>%
+    #pivot_longer(c("correct", "FP", "FN", "existence"), names_to="Key", values_to="Value") %>%
+    #mutate(Key = recode(Key, correct="accuracy", FP="FPR", FN="FNR", existence="exist_rate")) %>%
+    pivot_longer(c("correct"), names_to="Key", values_to="Value") %>%
+    mutate(Key = recode(Key, correct="accuracy")) %>%
     group_by(data, scenario, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
   
@@ -2372,16 +2378,27 @@ make_figure_611 <- function(exp.num, plot.data="syntheticAP",
            contamination==plot.contamination,
            epsilon==plot.epsilon,
            n_train1==plot.n_train1)
-
+  
+  df.accuracy_line <- tibble(Key=c("accuracy"), Mean=1, n_train2=1000, Method="Split 5")
+  df.accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0,1), n_train2=1000, Method="Split 5")
+  #df.fpr <- tibble(Key=c("FPR","FPR"), Mean=c(0,1), n_train2=1000, Method="Split 5")
+  #df.fnr <- tibble(Key=c("FNR","FNR"), Mean=c(0,1), n_train2=1000, Method="Split 5")
+  #df.exist_rate <- tibble(Key=c("exist_rate","exist_rate"), Mean=c(0,1), n_train2=1000, Method="Split 5")
+  
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(Scenario = sprintf("%s", scenario)) %>%
     ggplot(aes(x=n_train2, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    geom_errorbar(aes(ymin=pmax(0,Mean-SE), ymax=pmin(1,Mean+SE)), width = 0.1) +
     facet_grid(Key~Scenario, scales="free") +
-    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.accuracy, aes(x=n_train2, y=Mean), alpha=0) +
+    #geom_point(data=df.fpr, aes(x=n_train2, y=Mean), alpha=0) +
+    geom_hline(data=df.accuracy_line, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.fpr, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.fnr, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.exist_rate, aes(yintercept=Mean), linetype="dashed") +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
@@ -2399,7 +2416,7 @@ make_figure_611 <- function(exp.num, plot.data="syntheticAP",
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_eps%s_%s_nt1_%d.png",
                          exp.num, plot.data, plot.epsilon, plot.contamination, n_train1)
-    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    ggsave(file=plot.file, height=2.2, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -2409,12 +2426,13 @@ make_figure_611 <- function(exp.num, plot.data="syntheticAP",
 exp.num <- 611
 plot.epsilon <- 0.1
 plot.contamination <- "uniform"
-
 plot.data <- "syntheticAP"
+plot.n_train1 <- 10000
+
 make_figure_611(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
-                plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                plot.epsilon=plot.epsilon, plot.n_train1=plot.n_train1,
+                save_plots=FALSE, reload=TRUE)
 
 
 
