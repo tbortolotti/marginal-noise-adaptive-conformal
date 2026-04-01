@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=1010
+CONF=1012
 
 if [[ $CONF == 1010 ]]; then
   EPSILON_LIST=(0.1)
@@ -21,7 +21,7 @@ elif [[ $CONF == 1011 ]]; then
 
 elif [[ $CONF == 1012 ]]; then
   #EPSILON_LIST=(0 0.05 0.1 0.2)
-  EPSILON_LIST=(0.15)
+  EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN1_LIST=(4000)
@@ -32,13 +32,18 @@ fi
 
 
 # Slurm parameters
-MEMO=64G
-TIME=00-03:00:00
-CORE=1
+#MEMO=64G
+#TIME=00-03:00:00
+#CORE=1
 
 # Assemble order prefix
-ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
 #ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=main"
+
+MEMO=32G 
+TIME=00-04:00:00
+CORE=1
+ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=gpu --gres=gpu:p100:1"
 
 # Create directory for log files
 LOGS="logs"

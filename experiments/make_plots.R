@@ -3055,6 +3055,115 @@ make_figure_802(exp.num=exp.num, plot.data=plot.data,
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
+### Experiments 810: AP existence in CIFAR dataset ------------------------
+init_settings <- function() {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  
+  # method.values <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
+  # method.labels <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
+  
+  method.values <<- c("Split 5", "Boot 5")
+  method.labels <<- c("Split 5", "Boot 5")
+  
+  color.scale <<- cbPalette[c(1,2,4,5,6,7)]
+  shape.scale <<- c(1,0,3,4,5,6)
+  linetype.scale <<- c(1,1,1,1,1,1)
+}
+
+
+#### Experiment 812: Performances for different scenarios -----------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))
+  
+  summary <- results %>%
+    #pivot_longer(c("correct", "FP", "FN", "existence"), names_to="Key", values_to="Value") %>%
+    #mutate(Key = recode(Key, correct="accuracy", FP="FPR", FN="FNR", existence="exist_rate")) %>%
+    pivot_longer(c("existence"), names_to="Key", values_to="Value") %>%
+    mutate(Key = recode(Key, existence="AP detection rate")) %>%
+    group_by(data, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
+  
+  return(summary)
+}
+
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_812 <- function(exp.num, plot.data="syntheticAP",
+                             plot.contamination="uniform",
+                             plot.epsilon=0.1,
+                             plot.n_train1=4000,
+                             save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon %in% plot.epsilon,
+           n_train1==plot.n_train1)
+  
+  #df_exist_rate_line <- tibble(Key=c("exist_rate"), Mean=1, n_train2=1000, Method="Split 5")
+  df.exist_rate <- tibble(Key=c("AP detection rate","AP detection rate"), Mean=c(0,1), n_train2=1000, Method="Split 5")
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Epsilon = sprintf("%s", epsilon)) %>%
+    ggplot(aes(x=n_train2, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=pmax(0,Mean-SE), ymax=pmin(1,Mean+SE)), width = 0.1) +
+    facet_grid(Key~Epsilon, scales="free") +
+    geom_point(data=df.exist_rate, aes(x=n_train2, y=Mean), alpha=0) +
+    #geom_hline(data=df.exist_rate_line, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of samples in the anchor-selection set") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_eps%s_%s_nt1_%d.png",
+                         exp.num, plot.data, plot.epsilon, plot.contamination, n_train1)
+    ggsave(file=plot.file, height=2.2, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 812
+plot.epsilon <- c(0.05, 0.1, 0.15)
+plot.contamination <- "uniform"
+plot.data <- "cifar10"
+plot.n_train1 <- 3000
+
+make_figure_812(exp.num=exp.num, plot.data=plot.data,
+                 plot.contamination=plot.contamination,
+                 plot.epsilon=plot.epsilon, plot.n_train1=plot.n_train1,
+                 save_plots=FALSE, reload=TRUE)
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
 ### Experiments 900: Noise-adaptive conformal in CIFAR-10 dataset ------------------------
 
 load_data <- function(exp.num, from_cluster=TRUE) {
