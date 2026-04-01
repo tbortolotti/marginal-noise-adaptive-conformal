@@ -25,7 +25,7 @@ from third_party.bigearthnet.datamodules.bigearthnet_datamodule import BigEarthN
 from third_party.bigearthnet.models.bigearthnet_module import BigEarthNetModule, BigEarthNetFeatureExtractor
 
 # Define default parameters
-exp_num = 1101
+exp_num = 1001
 epsilon = 0.1
 nu = 0
 contamination_model = "uniform"

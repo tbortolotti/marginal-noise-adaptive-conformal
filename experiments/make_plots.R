@@ -1940,7 +1940,7 @@ make_figure_601(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 602: Impact of size of the set for T estimation -----------------
@@ -2030,7 +2030,7 @@ make_figure_602(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 603: Impact of the contamination strength -----------------
 load_data <- function(exp.num, from_cluster=TRUE) {
@@ -2119,7 +2119,7 @@ make_figure_603(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_easy=plot.pi_easy,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 plot.pi_easy <- 0.75
 make_figure_603(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
@@ -2316,11 +2316,7 @@ make_figure_605(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.center_scale=plot.center_scale,
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
-
-
-
-
+                save_plots=TRUE, reload=TRUE)
 
 
 ### Experiments 700: Using the estimated T in the adaptive algorithm ------------------------
@@ -2449,13 +2445,13 @@ plot.flipy <- 0
 make_figure_701(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
               plot.contamination=plot.contamination,
               plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-              save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+              save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 plot.flipy <- 0.01
 make_figure_701(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
-                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 exp.num <- 702
 plot.data <- "synthetic1"
@@ -2674,7 +2670,7 @@ make_figure_704a(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                 plot.contamination=plot.contamination,
                 plot.flipy=plot.flipy, plot.epsilon=plot.epsilon,
                 plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
-                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 make_figure_704b <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal",
@@ -2931,7 +2927,7 @@ make_figure_802(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train1=plot.n_train1,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 exp.num <- 1002
@@ -3057,7 +3053,7 @@ plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.contamination <- "uniform"
 
-plot.n_train1 <- 900
+plot.n_train1 <- 1000
 plot.n_train2 <- c(1000,2000,3000)
 make_figure_901(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
                  plot.contamination=plot.contamination,

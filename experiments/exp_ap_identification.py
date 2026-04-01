@@ -23,7 +23,7 @@ from cln.T_estimation import evaluate_estimate, TMatrixEstimation
 from third_party import arc
 
 # Define default parameters
-exp_num = 801
+exp_num = 601
 
 # Data simulation parameters
 data_name = 'syntheticAP'

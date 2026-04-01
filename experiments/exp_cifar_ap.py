@@ -31,7 +31,7 @@ import copy
 
 
 # Define default parameters
-exp_num = 1001
+exp_num = 901
 epsilon = 0.1
 nu = 0
 contamination_model = "uniform"

@@ -480,7 +480,145 @@ class AnchorPointsIdentification:
             return self.Y_anchor, self.gamma_opt, self.accuracy_tilde_vec, self.scores
         else:
             return self.Y_anchor, None, None, self.scores
+
+
+# _________________________________________________________________________________________
+# ANCHOR POINTS EXISTENCE TEST
+class AnchorPointsExistence:
+    def __init__(self, X, Yt, K,
+                 B=50,
+                 n2=None,
+                 black_box=None,
+                 method="split",  # "split" or "bootstrap"
+                 frac_threshold=0.05,
+                 consistency_threshold=0.6,
+                 # Method 2 parameters
+                 freq_threshold=0.3,
+                 stable_frac_threshold=0.05,
+                 random_state=None):
+        """
+        Tests whether anchor points exist in the dataset (X, Yt).
+
+        Parameters
+        ----------
+        X, Yt                : full dataset
+        K                    : number of classes
+        B                    : number of iterations
+        n2                : size of the anchor-selection set (absolute).
+                               If None, uses 0.5 * len(X).
+        black_box            : classifier instance
+        method               : "split"     -> random train/cal splits each iteration
+                               "bootstrap" -> fixed cal set, bootstrap resample training
         
+        --- method="split" parameters ---
+        frac_threshold       : min fraction of cal points that must be anchors per iteration
+        consistency_threshold: fraction of B iterations in which the above must hold
+        
+        --- method="bootstrap" parameters ---
+        freq_threshold       : a cal point is "stably anchor" if it was anchor in
+                               >= freq_threshold fraction of bootstrap iterations
+        stable_frac_threshold: anchors exist if >= stable_frac_threshold fraction
+                               of cal points are stably anchor
+        
+
+        random_state         : for reproducibility
+        """
+        self.K = K
+        self.B = B
+        self.method = method
+        self.frac_threshold = frac_threshold
+        self.consistency_threshold = consistency_threshold
+        self.freq_threshold = freq_threshold
+        self.stable_frac_threshold = stable_frac_threshold
+
+        if n2 is None:
+            n2 = int(0.5 * len(X))
+        self.n2 = n2
+
+        rng = np.random.RandomState(random_state)
+
+        # ------------------------------------------------------------------ #
+        # METHOD 1: random train/cal splits
+        # ------------------------------------------------------------------ #
+        if method == "split":
+            how_many_anchors = np.zeros(B)
+
+            for b in range(B):
+                seed_b = rng.randint(0, 2**31)
+                X1_b, X2_b, Yt1_b, Yt2_b = train_test_split(X, Yt, test_size=n2, random_state=seed_b)
+                ap = AnchorPointsIdentification(X1_b, Yt1_b, X2_b, Yt2_b, K,
+                                                use_classifier=True,
+                                                black_box=copy.deepcopy(black_box),
+                                                calibrate_gamma=True)
+                Y_anchor_b, _, _, _ = ap.get_anchor_points()
+                how_many_anchors[b] = np.sum(Y_anchor_b != -1)
+
+            self.how_many_anchors = how_many_anchors
+            self.how_many_anchors_frac = how_many_anchors / n2
+
+            above_threshold = self.how_many_anchors_frac > frac_threshold
+            self.consistency = float(np.mean(above_threshold))
+            self.anchors_exist = self.consistency > consistency_threshold
+
+        # ------------------------------------------------------------------ #
+        # METHOD 2: fixed cal set, bootstrap resample the training set
+        # ------------------------------------------------------------------ #
+        elif method == "bootstrap":
+            seed_split = rng.randint(0, 2**31)
+            X1, X2, Yt1, Yt2 = train_test_split(X, Yt, test_size=n2, random_state=seed_split)
+            n_train = len(X1)
+
+            # anchor_counts[i, k] = how many times cal point i was identified as anchor for class k
+            anchor_counts = np.zeros((n2, K), dtype=float)
+
+            for b in range(B):
+                boot_idx = rng.choice(n_train, size=n_train, replace=True)
+                X_boot = X1[boot_idx]
+                Yt_boot = Yt1[boot_idx]
+
+                ap = AnchorPointsIdentification(X_boot, Yt_boot, X2, Yt2, K,
+                                                use_classifier=True,
+                                                black_box=copy.deepcopy(black_box),
+                                                calibrate_gamma=True)
+                Y_anchor_b, _, _, _ = ap.get_anchor_points()
+
+                for k in range(K):
+                    anchor_counts[:, k] += (Y_anchor_b == k).astype(float)
+
+            # Frequency with which each cal point was identified as anchor *for each class*
+            self.anchor_freq = anchor_counts / B          # shape (n2, K)
+
+            # A point is stably anchor only if it exceeds freq_threshold for *some single class*
+            stably_anchor = np.any(self.anchor_freq > freq_threshold, axis=1)
+            self.stable_anchor_frac = float(np.mean(stably_anchor))
+            self.anchors_exist = self.stable_anchor_frac > stable_frac_threshold
+
+        else:
+            raise ValueError(f"Unknown method='{method}'. Choose 'split' or 'bootstrap'.")
+        
+    def get_anchors_exist(self):
+        return self.anchors_exist
+
+    def summary(self):
+        print(f"Anchor existence test — method='{self.method}', B={self.B}")
+        print(f"  n2 : {self.n2}")
+
+        if self.method == "split":
+            print(f"  frac_threshold        : {self.frac_threshold}")
+            print(f"  consistency_threshold : {self.consistency_threshold}")
+            print(f"  Observed consistency  : {self.consistency:.3f}")
+            print(f"  Mean anchor fraction  : {self.how_many_anchors_frac.mean():.3f}")
+            print(f"  Std  anchor fraction  : {self.how_many_anchors_frac.std():.3f}")
+
+        elif self.method == "bootstrap":
+            print(f"  freq_threshold        : {self.freq_threshold}")
+            print(f"  stable_frac_threshold : {self.stable_frac_threshold}")
+            print(f"  Stable anchor frac    : {self.stable_anchor_frac:.3f}")
+            print(f"  Mean anchor frequency : {self.anchor_freq.mean():.3f}")
+            print(f"  Std  anchor frequency : {self.anchor_freq.std():.3f}")
+
+        print(f"  --> Anchors exist     : {self.anchors_exist}")
+
 
 """
 # OLD NOTES on AP identification via outlier detection, might delete later
