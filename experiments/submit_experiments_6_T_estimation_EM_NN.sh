@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=625
+CONF=623
 
 if [[ $CONF == 620 ]]; then
   DATA_LIST=("synthetic6")
@@ -43,7 +43,7 @@ elif [[ $CONF == 623 ]]; then
   DATA_LIST=("synthetic1" "synthetic2" "synthetic3")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  N_LIST=(500 1000 2000 5000 10000 20000)
+  N_LIST=(500 1000 2000 5000 10000 20000 50000)
   CLEAN_FRAC_LIST=(0.1)
   RANDOM_FLAG_LIST=("true")
   EPSILON_LIST=(0.2)

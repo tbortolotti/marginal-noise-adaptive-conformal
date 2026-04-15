@@ -2765,6 +2765,82 @@ make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 save_plots=FALSE, reload=TRUE)
 
 
+#### Experiment 625: Impact of contamination strength -----------------
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
+                            plot.clean_frac=0.1,
+                            plot.contamination="uniform",
+                            plot.epsilon=0.2,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data==plot.data, num_var==20, K==plot.K,
+           epsilon %in% plot.epsilon,
+           clean_frac==plot.clean_frac,
+           Method %in% method.values,
+           contamination==plot.contamination)
+  df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
+  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+  df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
+  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="NN")
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
+    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~Epsilon, scales="free") +
+    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range_accuracy, aes(x=n, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of training samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_K%d_%s.png",
+                         exp.num, plot.data, plot.K, plot.contamination)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 625
+plot.epsilon <- c(0.05, 0.1, 0.2)
+plot.K <- 4
+plot.contamination <- "uniform"
+plot.clean_frac <- 0.05
+plot.data <- "synthetic6"
+
+make_figure_625(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
+                plot.clean_frac=plot.clean_frac,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                save_plots=FALSE, reload=TRUE)
+
+
+
+
 ### Experiments 700: Using the estimated T in the adaptive algorithm ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
