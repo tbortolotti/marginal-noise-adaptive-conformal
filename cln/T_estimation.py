@@ -8,7 +8,7 @@ import sys
 def tv_matrix_distance(P, Q):
     return np.mean([0.5 * np.sum(np.abs(P[i] - Q[i])) for i in range(P.shape[0])])
 
-def evaluate_estimate(T, T_hat, Y=None, Y_anchor_=None, Yt=None, K=None, epsilon0=0.01, verbose=False):
+def evaluate_estimate(T, T_hat, Y=None, Y_anchor_=None, Yt=None, K=None, epsilon0=0, verbose=False):
 
     if Y is not None:
         # Accuracy of the set of anchor points
