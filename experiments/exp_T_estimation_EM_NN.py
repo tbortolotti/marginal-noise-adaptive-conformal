@@ -179,7 +179,7 @@ def run_experiment(random_state):
     X_test_intercept = np.hstack([np.ones((n_test, 1)), X_test])
     Y_test_hat_EM = predict(X_test_intercept, result_EM.beta)
 
-    performances = evaluate_estimate(T, T_hat_EM, Y_test, Y_test_hat_EM, Yt_test, K)
+    performances = evaluate_estimate(T, T_hat_EM, Y_test, Y_test_hat_EM, Yt_test, K, epsilon0=0)
     res_update = header.copy()
     res_update = res_update.assign(Method='EM',  **performances)
     res_list.append(res_update)
@@ -211,7 +211,7 @@ def run_experiment(random_state):
     predicted_Y = logits_Y.argmax(dim=1)
     Y_test_hat_NN = predicted_Y.numpy()
 
-    performances = evaluate_estimate(T, T_hat_NN, Y_test, Y_test_hat_NN, Yt_test, K)
+    performances = evaluate_estimate(T, T_hat_NN, Y_test, Y_test_hat_NN, Yt_test, K, epsilon0=0)
     res_update = header.copy()
     res_update = res_update.assign(Method='NN',  **performances)
     res_list.append(res_update)
