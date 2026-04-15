@@ -44,7 +44,7 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 11:
+    if len(sys.argv) != 12:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
