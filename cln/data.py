@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import norm
+from scipy.special import softmax
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_classification
 import pdb
@@ -7,42 +8,6 @@ from cln import contamination
 
 def sigmoid(x):
     return(1/(1 + np.exp(-x)))
-
-
-"""
-def sample_raised_cosine(n, R=1.0, A=None, mu=None, batch_size=50000, random_state=None):
-    rng = np.random.default_rng(random_state)
-
-    out = np.empty((n, 2), dtype=float)
-    filled = 0
-
-    while filled < n:
-        m = min(batch_size, (n - filled) * 10)
-        u1 = rng.random(m)
-        u2 = rng.random(m)
-
-        r = R * np.sqrt(u1)
-        theta = 2.0 * np.pi * u2
-
-        u = np.stack([r * np.cos(theta), r * np.sin(theta)], axis=1)
-
-        accept_prob = 0.5 * (1.0 + np.cos(np.pi * r / R))
-        accept = rng.random(m) < accept_prob
-
-        accepted_u = u[accept]
-        k = accepted_u.shape[0]
-        if k == 0:
-            continue
-
-        take = min(k, n - filled)
-        U_take = accepted_u[:take]
-
-        X_take = (U_take @ A.T) + mu[filled:filled + take]
-        out[filled:filled + take] = X_take
-        filled += take
-
-    return out
-"""
 
 
 def sample_truncated_gaussian(n, R=1.0, A=None, mu=None, batch_size=50000, random_state=None):
@@ -313,6 +278,38 @@ class DataModel_5(DataModel):
         Y = contamination_process.sample_labels(Y0)     
 
         return X, Y
+
+class DataModel_6(DataModel):
+    """
+    K-class classification via multinomial logistic (softmax) regression.
+
+    Data generating process:
+      1. X_raw ~ N(0, I_{p x p})
+      2. X = [1 | X_raw]  (prepend intercept column, so dim = p+1)
+      3. beta_true ~ N(0, 1)^{(p+1) x K}
+      4. probs = softmax(X @ beta_true, axis=1)
+      5. Y_true ~ Categorical(probs)
+    """
+
+    def __init__(self, K, p, random_state=None):
+        super().__init__(K, p, random_state=random_state)
+
+        # p+1 because of the intercept column
+        self.beta_true = self.rng.standard_normal((self.p + 1, self.K))
+
+    def sample(self, n):
+        # Features with intercept
+        X = self.rng.standard_normal((n, self.p))
+        X_intercept = np.hstack([np.ones((n, 1)), X])
+
+        # Class probabilities via softmax
+        logits = X_intercept @ self.beta_true
+        probs = softmax(logits, axis=1)
+
+        # 5. True labels
+        Y = np.array([self.rng.choice(self.K, p=probs[i]) for i in range(n)], dtype=np.int32)
+
+        return X, Y
     
 class DataModel_AP(DataModel):
     # K-class classification where X|Y is heteroscedastic via a 2-component mixture:
@@ -424,68 +421,4 @@ class DataModel_AP(DataModel):
         Y = contamination_process.sample_labels(Y0)     
 
         return X, Y
-
-
-"""
-class DataModel_draft(DataModel):
-    def __init__(self, K, p, signal=1, random_state=None):
-        super().__init__(K, p, random_state=random_state)
-        self.signal = signal
-        
-    def sample_X(self, n):
-        X = self.rng.normal(0, 1, (n,self.p))
-        X[:,0] = self.rng.choice([-1,1], size=n, replace=True, p=[1/self.K, (self.K-1)/self.K])
-        X[:,1] = self.rng.choice([-1,1], size=n, replace=True, p=[1/4, 3/4])
-        X[:,2] = self.rng.choice([-1,1], size=n, replace=True, p=[1/2, 1/2])
-        X[:,3] = self.rng.choice(self.K, n, replace=True)
-
-        # Split observations into four leaves
-        prob_y = np.zeros((X.shape[0], self.K))
-        right_0 = X[:,0] > 0
-        right_1 = X[:,1] > 0
-        right_2 = X[:,2] > 0
-        leaf_0 = np.where(1-right_0)[0]
-        leaf_1 = np.where((right_0) * (1-right_1) * (1-right_2))[0]
-        leaf_2 = np.where((right_0) * (1-right_1) * (right_2))[0]
-        leaf_3 = np.where((right_0) * (right_1))[0]
-
-
-
-        return X.astype(np.float32)
-        
-    def compute_prob(self, X):
-
-
-        # Zeroth leaf: class 0 easily predictable, other classes have small separation
-        # TO DO
-        
-
-        # First leaf: class 1 easily predictable, other classes have small separation
-        # TO DO
-
-        # Second leaf: class 2 easily predictable, other classes have small separation
-        # TO DO
-
-        # Second leaf: class 3 easily predictable, other classes have small separation
-        # TO DO
-
-        # Second leaf: uniform distribution over the second half of the labels
-        prob_y[leaf_2, 0:K_half] = 0
-        prob_y[leaf_2, K_half:self.K] = 2.0/self.K
-        # Third leaf: 90% probability to label determined by 4th variable
-        X3 = np.round(X[leaf_3,3]).astype(int)
-        for k in range(self.K):
-            prob_y[leaf_3[X3==k],:] = (1-0.9)/(self.K-1.0)
-            prob_y[leaf_3[X3==k],k] = 0.9
-        # Standardize probabilities for each sample        
-        prob_y = prob_y / prob_y.sum(axis=1)[:,None]
-        return prob_y
-
-    def sample_Y(self, X):
-        prob_y = self.compute_prob(X)
-        g = np.array([self.rng.multinomial(1,prob_y[i]) for i in range(X.shape[0])], dtype = float)
-        classes_id = np.arange(self.K)
-        y = np.array([np.dot(g[i],classes_id) for i in range(X.shape[0])], dtype = int)
-        return y.astype(np.int32)
-"""
 

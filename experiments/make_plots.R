@@ -2328,7 +2328,7 @@ init_settings <- function() {
   # method.labels <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
 
   method.values <<- c("Split 5", "Boot 5")
-  method.labels <<- c("Split 5", "Boot 5")
+  method.labels <<- c("Split", "Bootstrap")
   
   color.scale <<- cbPalette[c(1,2,4,5,6,7)]
   shape.scale <<- c(1,0,3,4,5,6)
@@ -2355,7 +2355,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     pivot_longer(c("existence"), names_to="Key", values_to="Value") %>%
     mutate(Key = recode(Key, existence="AP detection rate")) %>%
     group_by(data, scenario, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
+    summarise(Mean=mean(Value), N=n(), SE=2*sqrt(mean(Value)*(1-mean(Value))/N), .groups = "drop")
+    #summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
   
   return(summary)
 }
@@ -2409,8 +2410,8 @@ make_figure_611 <- function(exp.num, plot.data="syntheticAP",
   
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_eps%s_%s_nt1_%d.png",
-                         exp.num, plot.data, plot.epsilon, plot.contamination, n_train1)
-    ggsave(file=plot.file, height=2.2, width=9, units="in")
+                         exp.num, plot.data, plot.epsilon, plot.contamination, plot.n_train1)
+    ggsave(file=plot.file, height=2.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -2418,15 +2419,21 @@ make_figure_611 <- function(exp.num, plot.data="syntheticAP",
 }
 
 exp.num <- 611
-plot.epsilon <- 0.1
 plot.contamination <- "uniform"
 plot.data <- "syntheticAP"
 plot.n_train1 <- 10000
 
+plot.epsilon <- 0
 make_figure_611(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon, plot.n_train1=plot.n_train1,
                 save_plots=FALSE, reload=TRUE)
+
+plot.epsilon <- 0.1
+make_figure_611(exp.num=exp.num, plot.data=plot.data,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon, plot.n_train1=plot.n_train1,
+                save_plots=TRUE, reload=TRUE)
 
 
 
@@ -3063,7 +3070,7 @@ init_settings <- function() {
   # method.labels <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
   
   method.values <<- c("Split 5", "Boot 5")
-  method.labels <<- c("Split 5", "Boot 5")
+  method.labels <<- c("Split", "Bootstrap")
   
   color.scale <<- cbPalette[c(1,2,4,5,6,7)]
   shape.scale <<- c(1,0,3,4,5,6)
@@ -3090,7 +3097,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     pivot_longer(c("existence"), names_to="Key", values_to="Value") %>%
     mutate(Key = recode(Key, existence="AP detection rate")) %>%
     group_by(data, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
+    summarise(Mean=mean(Value), N=n(), SE=2*sqrt(mean(Value)*(1-mean(Value))/N), .groups = "drop")
+    #summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
   
   return(summary)
 }
@@ -3111,6 +3119,7 @@ make_figure_812 <- function(exp.num, plot.data="syntheticAP",
     filter(data==plot.data,
            Method %in% method.values,
            contamination==plot.contamination,
+           #epsilon==plot.epsilon,
            epsilon %in% plot.epsilon,
            n_train1==plot.n_train1)
   
@@ -3143,8 +3152,8 @@ make_figure_812 <- function(exp.num, plot.data="syntheticAP",
   
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_eps%s_%s_nt1_%d.png",
-                         exp.num, plot.data, plot.epsilon, plot.contamination, n_train1)
-    ggsave(file=plot.file, height=2.2, width=9, units="in")
+                         exp.num, plot.data, plot.epsilon, plot.contamination, plot.n_train1)
+    ggsave(file=plot.file, height=2.5, width=5, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -3152,7 +3161,7 @@ make_figure_812 <- function(exp.num, plot.data="syntheticAP",
 }
 
 exp.num <- 812
-plot.epsilon <- c(0.05, 0.1, 0.15)
+plot.epsilon <- c(0.15)
 plot.contamination <- "uniform"
 plot.data <- "cifar10"
 plot.n_train1 <- 3000
@@ -3160,7 +3169,7 @@ plot.n_train1 <- 3000
 make_figure_812(exp.num=exp.num, plot.data=plot.data,
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon, plot.n_train1=plot.n_train1,
-                 save_plots=FALSE, reload=TRUE)
+                 save_plots=TRUE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
@@ -3178,7 +3187,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("Coverage", "Size", "size_ap"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
     group_by(data, contamination, epsilon, n_train1, n_train2, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
     filter(seed %in% (1:20)) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
@@ -3260,7 +3269,7 @@ make_figure_901 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.gu
   if(save_plots) {
     plot.file <- sprintf("figures/exp%d_%s_nt1_%d_eps%s_nu%s_%s_optimistic%s.pdf",
                          exp.num, plot.data, plot.n_train1, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=7.5, width=9, units="in")
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -3399,7 +3408,7 @@ init_settings <- function() {
   # method.labels <<- c("Split 5", "Split 10", "Split 20", "Boot 5", "Boot 10", "Boot 20")
   
   method.values <<- c("Split 5", "Boot 5")
-  method.labels <<- c("Split 5", "Boot 5")
+  method.labels <<- c("Split", "Bootstrap")
   
   color.scale <<- cbPalette[c(1,2,4,5,6,7)]
   shape.scale <<- c(1,0,3,4,5,6)
@@ -3426,7 +3435,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     pivot_longer(c("existence"), names_to="Key", values_to="Value") %>%
     mutate(Key = recode(Key, existence="AP detection rate")) %>%
     group_by(data, contamination, epsilon, n_train1, n_train2, Method, Key) %>%
-    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
+    summarise(Mean=mean(Value), N=n(), SE=2*sqrt(mean(Value)*(1-mean(Value))/N), .groups = "drop")
+    #summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N), .groups = "drop")
   
   return(summary)
 }
@@ -3478,9 +3488,9 @@ make_figure_1012 <- function(exp.num, plot.data="syntheticAP",
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_eps%s_%s_nt1_%d.png",
-                         exp.num, plot.data, plot.epsilon, plot.contamination, n_train1)
-    ggsave(file=plot.file, height=2.2, width=9, units="in")
+    plot.file <- sprintf("figures/exp%d_%s_%s_nt1_%d.png",
+                         exp.num, plot.data, plot.contamination, plot.n_train1)
+    ggsave(file=plot.file, height=2.5, width=5, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -3488,7 +3498,7 @@ make_figure_1012 <- function(exp.num, plot.data="syntheticAP",
 }
 
 exp.num <- 1012
-plot.epsilon <- c(0.05, 0.1, 0.15)
+plot.epsilon <- c(0.15)
 plot.contamination <- "uniform"
 plot.data <- "bigearthnet"
 plot.n_train1 <- 4000
@@ -3496,4 +3506,4 @@ plot.n_train1 <- 4000
 make_figure_1012(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon, plot.n_train1=plot.n_train1,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)

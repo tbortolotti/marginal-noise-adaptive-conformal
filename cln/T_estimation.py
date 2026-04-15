@@ -10,9 +10,10 @@ def tv_matrix_distance(P, Q):
 
 def evaluate_estimate(T, T_hat, Y=None, Y_anchor_=None, Yt=None, K=None, epsilon0=0.01, verbose=False):
 
-    # Accuracy of the set of anchor points
-    accuracy = np.sum(Y_anchor_ == Y)/np.sum(Y_anchor_ != -1)
-    accuracy_tilde = np.sum(Y_anchor_ == Yt)/np.sum(Y_anchor_ != -1)
+    if Y is not None:
+        # Accuracy of the set of anchor points
+        accuracy = np.sum(Y_anchor_ == Y)/np.sum(Y_anchor_ != -1)
+        accuracy_tilde = np.sum(Y_anchor_ == Yt)/np.sum(Y_anchor_ != -1)
 
     # Evaluate quality of estimated T in terms of:
     # Frobenius norm
@@ -38,22 +39,29 @@ def evaluate_estimate(T, T_hat, Y=None, Y_anchor_=None, Yt=None, K=None, epsilon
     except np.linalg.LinAlgError:
         frob_inv_d = None
 
-    res = {'accuracy': accuracy,
-           'accuracy_tilde': accuracy_tilde,
-           'tv_d':tv_d,
-           'frobenius_d':frobenius_d,
-           'frob_inv_d':frob_inv_d,
-           'offdiag_mass':offdiag_mass,
-           'epsilon_res':epsilon_res}
+    if Y is not None:
+        res = {'accuracy': accuracy,
+        'accuracy_tilde': accuracy_tilde,
+        'tv_d':tv_d,
+        'frobenius_d':frobenius_d,
+        'frob_inv_d':frob_inv_d,
+        'offdiag_mass':offdiag_mass,
+        'epsilon_res':epsilon_res}
+    else:
+        res = {'tv_d':tv_d,
+               'frobenius_d':frobenius_d,
+               'frob_inv_d':frob_inv_d,
+               'offdiag_mass':offdiag_mass,
+               'epsilon_res':epsilon_res}
          
-    if verbose:
-        print('Accuracy:             {:2.3%}'.format(accuracy))
-        print('Accuracy_tilde:             {:2.3%}'.format(accuracy_tilde))
-        print('Total Variation Distance:            {:2.3%}'.format(tv_d))
-        print('Fobrenius Distance:                  {:2.3%}'.format(frobenius_d))
-        print('Fobrenius Distance of Inverses:      {:2.3%}'.format(frob_inv_d))
-        print('Off-diagonal mass:      {:2.3%}'.format(offdiag_mass))
-        print('Residual with sign in epsilon estimation:      {:2.3%}'.format(epsilon_res))
+        if verbose:
+            print('Accuracy:             {:2.3%}'.format(accuracy))
+            print('Accuracy_tilde:             {:2.3%}'.format(accuracy_tilde))
+            print('Total Variation Distance:            {:2.3%}'.format(tv_d))
+            print('Fobrenius Distance:                  {:2.3%}'.format(frobenius_d))
+            print('Fobrenius Distance of Inverses:      {:2.3%}'.format(frob_inv_d))
+            print('Off-diagonal mass:      {:2.3%}'.format(offdiag_mass))
+            print('Residual with sign in epsilon estimation:      {:2.3%}'.format(epsilon_res))
 
     return res
 
