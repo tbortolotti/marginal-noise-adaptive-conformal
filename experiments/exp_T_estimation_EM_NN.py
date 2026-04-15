@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 import pdb
 import copy
+from sklearn.ensemble import RandomForestClassifier
 
 import sys
 sys.path.append("..")
@@ -36,6 +37,7 @@ epsilon = 0.2
 epsilon_init = 0.05
 nu = 0
 contamination_model = "uniform"
+random_flag = True
 seed = 1
 
 # Parse input parameters
@@ -53,11 +55,11 @@ if True:
     K = int(sys.argv[4])
     n = int(sys.argv[5])
     clean_frac = float(sys.argv[6])
-    epsilon = float(sys.argv[7])
-    nu = float(sys.argv[8])
-    contamination_model = sys.argv[9]
-    seed = int(sys.argv[10])
-
+    random_flag = sys.argv[7].lower() == "true"
+    epsilon = float(sys.argv[8])
+    nu = float(sys.argv[9])
+    contamination_model = sys.argv[10]
+    seed = int(sys.argv[11])
 
 # Define other constant parameters
 batch_size = 20
@@ -158,8 +160,22 @@ def run_experiment(random_state):
     # Separate data into training and calibration
     X, X_test, Y, Y_test, Yt, Yt_test = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+3)
 
-    rng = np.random.default_rng(random_state+4)
-    I = rng.binomial(1, clean_frac, size=n)
+    if random_flag == True:
+        rng = np.random.default_rng(random_state+4)
+        I = rng.binomial(1, clean_frac, size=n)
+    else:
+        n_train = 10000
+        data_distribution.set_seed(random_state+5)
+        X_train, Y_train = data_distribution.sample(n_train)
+        Yt_train = contamination_process.sample_labels(Y_train)
+        # Fit a quick RFC on noisy labels to score each observation's difficulty
+        rfc_easy = RandomForestClassifier(n_estimators=100, random_state=random_state+4)
+        rfc_easy.fit(X_train, Yt_train)
+        conf_scores = rfc_easy.predict_proba(X).max(axis=1)  # max prob = confidence = easiness
+
+        # Assign I=1 to the top clean_frac fraction by confidence
+        threshold = np.quantile(conf_scores, 1 - clean_frac)
+        I = (conf_scores >= threshold).astype(int)
     Y_obs = np.where(I == 1, Y, Yt)
 
     # Initialize an empty list to store the evaluation results

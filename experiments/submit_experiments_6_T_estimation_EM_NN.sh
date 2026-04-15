@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=623
+CONF=624
 
 if [[ $CONF == 620 ]]; then
   DATA_LIST=("synthetic6")
@@ -9,6 +9,7 @@ if [[ $CONF == 620 ]]; then
   K_LIST=(4)
   N_LIST=(1000)
   CLEAN_FRAC_LIST=(0.1)
+  RANDOM_FLAG_LIST=("true")
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
@@ -20,6 +21,7 @@ elif [[ $CONF == 621 ]]; then
   K_LIST=(4)
   N_LIST=(500 1000 2000 5000 10000 20000)
   CLEAN_FRAC_LIST=(0.05 0.1 0.2 0.5)
+  RANDOM_FLAG_LIST=("true")
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
@@ -31,6 +33,7 @@ elif [[ $CONF == 622 ]]; then
   K_LIST=(4)
   N_LIST=(500 1000 2000 5000 10000 20000)
   CLEAN_FRAC_LIST=(0.1)
+  RANDOM_FLAG_LIST=("true")
   EPSILON_LIST=(0.05 0.1 0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
@@ -42,7 +45,20 @@ elif [[ $CONF == 623 ]]; then
   K_LIST=(4)
   N_LIST=(500 1000 2000 5000 10000 20000)
   CLEAN_FRAC_LIST=(0.1)
+  RANDOM_FLAG_LIST=("true")
   EPSILON_LIST=(0.2)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("uniform")
+  SEED_LIST=$(seq 1 5)
+
+elif [[ $CONF == 624 ]]; then
+  DATA_LIST=("synthetic6")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  N_LIST=(500 1000 2000 5000 10000 20000)
+  CLEAN_FRAC_LIST=(0.05 0.1 0.2 0.5)
+  RANDOM_FLAG_LIST=("false")
+  EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   SEED_LIST=$(seq 1 5)
@@ -75,32 +91,34 @@ for SEED in $SEED_LIST; do
       for K in "${K_LIST[@]}"; do
         for N in "${N_LIST[@]}"; do
           for CLEAN_FRAC in "${CLEAN_FRAC_LIST[@]}"; do
-            for EPSILON in "${EPSILON_LIST[@]}"; do
-              for NU in "${NU_LIST[@]}"; do
-                for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
-                  JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_N"$N"_CLEAN_FRAC"$CLEAN_FRAC"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_seed"$SEED
-                  OUT_FILE=$OUT_DIR"/"$JOBN".txt"
-                  COMPLETE=0
-                  #  ls $OUT_FILE
-                  if [[ -f $OUT_FILE ]]; then
-                        COMPLETE=1
-                  fi
+            for RANDOM_FLAG in "${RANDOM_FLAG_LIST[@]}"; do
+              for EPSILON in "${EPSILON_LIST[@]}"; do
+                for NU in "${NU_LIST[@]}"; do
+                  for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
+                    JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_n"$N"_cf"$CLEAN_FRAC"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_seed"$SEED
+                    OUT_FILE=$OUT_DIR"/"$JOBN".txt"
+                    COMPLETE=0
+                    #  ls $OUT_FILE
+                    if [[ -f $OUT_FILE ]]; then
+                          COMPLETE=1
+                    fi
 
-                  if [[ $COMPLETE -eq 0 ]]; then
-                    # Script to be run
-                    SCRIPT="exp_T_estimation_EM_NN.sh $CONF $DATA $NUM_VAR $K $N $CLEAN_FRAC $EPSILON $NU $CONTAMINATION $SEED"
-                    # Define job name
-                    OUTF=$LOGS"/"$JOBN".out"
-                    ERRF=$LOGS"/"$JOBN".err"
-                    # Assemble slurm order for this job
-                    ORD=$ORDP" -J "$JOBN" -o "$OUTF" -e "$ERRF" "$SCRIPT
-                    # Print order
-                    echo $ORD
-                    # Submit order
-                    $ORD
-                    # Run command now
-                    #./$SCRIPT
-                  fi
+                    if [[ $COMPLETE -eq 0 ]]; then
+                      # Script to be run
+                      SCRIPT="exp_T_estimation_EM_NN.sh $CONF $DATA $NUM_VAR $K $N $CLEAN_FRAC $RANDOM_FLAG $EPSILON $NU $CONTAMINATION $SEED"
+                      # Define job name
+                      OUTF=$LOGS"/"$JOBN".out"
+                      ERRF=$LOGS"/"$JOBN".err"
+                      # Assemble slurm order for this job
+                      ORD=$ORDP" -J "$JOBN" -o "$OUTF" -e "$ERRF" "$SCRIPT
+                      # Print order
+                      echo $ORD
+                      # Submit order
+                      $ORD
+                      # Run command now
+                      #./$SCRIPT
+                    fi
+                  done
                 done
               done
             done
