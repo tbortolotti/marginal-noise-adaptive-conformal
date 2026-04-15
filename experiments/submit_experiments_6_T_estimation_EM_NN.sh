@@ -36,6 +36,17 @@ elif [[ $CONF == 622 ]]; then
   CONTAMINATION_LIST=("uniform")
   SEED_LIST=$(seq 1 5)
 
+elif [[ $CONF == 623 ]]; then
+  DATA_LIST=("synthetic1" "synthetic2" "synthetic3")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  N_LIST=(500 1000 2000 5000 10000 20000)
+  CLEAN_FRAC_LIST=(0.1)
+  EPSILON_LIST=(0.2)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("uniform")
+  SEED_LIST=$(seq 1 5)
+
 fi
 
 

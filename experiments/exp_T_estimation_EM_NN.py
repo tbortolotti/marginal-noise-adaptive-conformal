@@ -71,7 +71,7 @@ elif data_name == "synthetic2":
 elif data_name == "synthetic3":
     data_distribution = data.DataModel_3(K, num_var, signal=1, random_state=seed)
 elif data_name == "synthetic6":
-    data_distribution = data.DataModel_6(K, num_var, random_state=seed)
+    data_distribution = data.DataModel_6(K, num_var, random_state=seed)e
 else:
     print("Unknown data distribution!")
     sys.stdout.flush()
