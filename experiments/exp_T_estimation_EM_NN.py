@@ -31,7 +31,7 @@ num_var = 20
 K = 4
 n = 10000
 n_test = 2000
-clean_frac = 0.1
+n_clean = 100
 model_name = 'RFC'
 epsilon = 0.2
 epsilon_init = 0.05
@@ -54,7 +54,7 @@ if True:
     num_var = int(sys.argv[3])
     K = int(sys.argv[4])
     n = int(sys.argv[5])
-    clean_frac = float(sys.argv[6])
+    n_clean = int(sys.argv[6])
     random_flag = sys.argv[7].lower() == "true"
     epsilon = float(sys.argv[8])
     nu = float(sys.argv[9])
@@ -123,7 +123,7 @@ else:
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
-                       'n':[n], 'clean_frac':[clean_frac],
+                       'n':[n], 'ncl':[n_clean],
                        'epsilon':[epsilon], 'nu':[nu], 'contamination':[contamination_model],
                        'model_name':[model_name],
                        'seed':[seed]})
@@ -132,7 +132,7 @@ header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
 outfile_prefix += "_K" + str(K) + "_" + model_name
 outfile_prefix += "_eps" + str(epsilon) + "_epsin" + str(epsilon_init) + "_nu" + str(nu) + "_" + contamination_model
-outfile_prefix += "_n" + str(n) + "_cf" + str(clean_frac) + "_seed" + str(seed)
+outfile_prefix += "_n" + str(n) + "_ncl" + str(n_clean) + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
@@ -145,7 +145,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     data_distribution.set_seed(random_state+1)
-    X_all, Y_all = data_distribution.sample(n + n_test)
+    X_all, Y_all = data_distribution.sample(n + n_clean + n_test)
     print("Done.")
     sys.stdout.flush()
 
@@ -162,6 +162,7 @@ def run_experiment(random_state):
 
     if random_flag == True:
         rng = np.random.default_rng(random_state+4)
+        clean_frac = np.round(n_clean/(n+n_clean), decimals=5)
         I = rng.binomial(1, clean_frac, size=n)
     else:
         n_train = 10000
@@ -171,9 +172,10 @@ def run_experiment(random_state):
         # Fit a quick RFC on noisy labels to score each observation's difficulty
         rfc_easy = RandomForestClassifier(n_estimators=100, random_state=random_state+4)
         rfc_easy.fit(X_train, Yt_train)
-        conf_scores = rfc_easy.predict_proba(X).max(axis=1)  # max prob = confidence = easiness
+        conf_scores = rfc_easy.predict_proba(X).max(axis=1)
 
         # Assign I=1 to the top clean_frac fraction by confidence
+        clean_frac = np.round(n_clean/(n+n_clean), decimals=5)
         threshold = np.quantile(conf_scores, 1 - clean_frac)
         I = (conf_scores >= threshold).astype(int)
     Y_obs = np.where(I == 1, Y, Yt)
@@ -230,6 +232,46 @@ def run_experiment(random_state):
     performances = evaluate_estimate(T, T_hat_NN, Y_test, Y_test_hat_NN, Yt_test, K, epsilon0=0)
     res_update = header.copy()
     res_update = res_update.assign(Method='NN',  **performances)
+    res_list.append(res_update)
+    print("Done.")
+    sys.stdout.flush()
+
+    # Estimate T using the simplified NN algorithm
+    print("Estimating T using an easier NN...", end=' ')
+    sys.stdout.flush()
+    model_NN_easy = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16], contamination_model="uniform", epsilon_init=epsilon_init)
+    history_easy = train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=100, batch_size=128, lr=1e-3, verbose=False)
+    T_hat_NN_easy = model_NN_easy.contamination.contamination_matrix()
+    T_hat_NN_easy = T_hat_NN_easy.detach().numpy()
+
+    # predictions on test set
+    model_NN_easy.eval()
+
+    with torch.no_grad():
+        dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
+        dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_easy.K)
+        logits_Y_easy, _ = model_NN_easy(X_test_torch, dummy_I, dummy_noise)
+
+    predicted_Y_easy = logits_Y_easy.argmax(dim=1)
+    Y_test_hat_NN_easy = predicted_Y_easy.numpy()
+
+    performances = evaluate_estimate(T, T_hat_NN_easy, Y_test, Y_test_hat_NN_easy, Yt_test, K, epsilon0=0)
+    res_update = header.copy()
+    res_update = res_update.assign(Method='NN16',  **performances)
+    res_list.append(res_update)
+    print("Done.")
+    sys.stdout.flush()
+
+    ## Fit classifier using contaminated data and check its accuracy
+    print("Performance of classifier trained on Y_obs...", end=' ')
+    sys.stdout.flush()
+    rfc = RandomForestClassifier(n_estimators=100, random_state=random_state+5)
+    rfc.fit(X, Y_obs)
+    Y_test_hat_RF = rfc.predict(X_test)
+    performances = evaluate_estimate(T, T, Y_test, Y_test_hat_RF, Yt_test, K, epsilon0=0)
+
+    res_update = header.copy()
+    res_update = res_update.assign(Method='RF',  **performances)
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
