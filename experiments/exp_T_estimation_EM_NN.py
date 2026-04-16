@@ -187,7 +187,7 @@ def run_experiment(random_state):
     ## Estimate T using the EM algorithm
     print("Estimating T using EM algorithm...", end=' ')
     sys.stdout.flush()
-    X_intercept = np.hstack([np.ones((n, 1)), X])
+    X_intercept = np.hstack([np.ones((n+n_clean, 1)), X])
     data = Dataset(X=X_intercept, Y_obs=Y_obs, I=I, K=K)
     result_EM = run_em(data, eps_init=0.1, max_iter=100, tol=1e-7, verbose=False)
     eps_hat_EM = result_EM.eps

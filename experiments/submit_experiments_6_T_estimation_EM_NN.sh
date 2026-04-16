@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=624
+CONF=620
 
 if [[ $CONF == 620 ]]; then
   DATA_LIST=("synthetic6")
