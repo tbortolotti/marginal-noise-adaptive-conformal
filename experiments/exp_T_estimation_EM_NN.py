@@ -11,6 +11,7 @@ from tqdm import tqdm
 import pdb
 import copy
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
 
 import sys
 sys.path.append("..")
@@ -262,16 +263,42 @@ def run_experiment(random_state):
     print("Done.")
     sys.stdout.flush()
 
+    # Estimate T using the NN algorithm with single linear layer
+    print("Estimating T using the NN with SLL...", end=' ')
+    sys.stdout.flush()
+    model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model="uniform", epsilon_init=epsilon_init)
+    history_sll = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=100, batch_size=128, lr=1e-3, verbose=False)
+    T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
+    T_hat_NN_sll = model_NN_sll.detach().numpy()
+
+    # predictions on test set
+    model_NN_sll.eval()
+
+    with torch.no_grad():
+        dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
+        dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_easy.K)
+        logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
+
+    predicted_Y_sll = logits_Y_sll.argmax(dim=1)
+    Y_test_hat_NN_sll = predicted_Y_sll.numpy()
+
+    performances = evaluate_estimate(T, T_hat_NN_sll, Y_test, Y_test_hat_NN_sll, Yt_test, K, epsilon0=0)
+    res_update = header.copy()
+    res_update = res_update.assign(Method='NN SLL',  **performances)
+    res_list.append(res_update)
+    print("Done.")
+    sys.stdout.flush()
+
     ## Fit classifier using contaminated data and check its accuracy
     print("Performance of classifier trained on Y_obs...", end=' ')
     sys.stdout.flush()
-    rfc = RandomForestClassifier(n_estimators=100, random_state=random_state+5)
-    rfc.fit(X, Y_obs)
-    Y_test_hat_RF = rfc.predict(X_test)
-    performances = evaluate_estimate(T, T, Y_test, Y_test_hat_RF, Yt_test, K, epsilon0=0)
+    softmax_model = LogisticRegression(multi_class='multinomial', solver='lbfgs', max_iter=1000)
+    softmax_model.fit(X, Y_obs)
+    Y_test_hat_softmax = softmax_model.predict(X_test)
+    performances = evaluate_estimate(T, T, Y_test, Y_test_hat_softmax, Yt_test, K, epsilon0=0)
 
     res_update = header.copy()
-    res_update = res_update.assign(Method='RF',  **performances)
+    res_update = res_update.assign(Method='softmax',  **performances)
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()

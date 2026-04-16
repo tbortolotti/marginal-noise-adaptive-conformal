@@ -2441,8 +2441,8 @@ make_figure_611(exp.num=exp.num, plot.data=plot.data,
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   
-  method.values <<- c("EM", "NN")
-  method.labels <<- c("EM", "NN")
+  method.values <<- c("EM", "NN", "NN16", "RF")
+  method.labels <<- c("EM", "NN", "NN (slim)", "RF")
   
   color.scale <<- cbPalette[c(2,4,5,6,7)]
   shape.scale <<- c(0,3,4,5,6)
@@ -2539,7 +2539,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 #### Experiment 622: Impact of contamination strength -----------------
@@ -2613,7 +2613,7 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 #### Experiment 623: Different data design -----------------
@@ -2667,8 +2667,8 @@ make_figure_623 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_K%d_%s.png",
-                         exp.num, plot.data, plot.K, plot.contamination)
+    plot.file <- sprintf("figures/exp%d_eps%s_ncl%d_K%d_%s.png",
+                         exp.num, plot.epsilon, plot.n_clean, plot.K, plot.contamination)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
@@ -2687,7 +2687,7 @@ make_figure_623(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 
