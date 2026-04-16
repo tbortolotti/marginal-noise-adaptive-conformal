@@ -269,14 +269,14 @@ def run_experiment(random_state):
     model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model="uniform", epsilon_init=epsilon_init)
     history_sll = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=100, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
-    T_hat_NN_sll = model_NN_sll.detach().numpy()
+    T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
 
     # predictions on test set
     model_NN_sll.eval()
 
     with torch.no_grad():
         dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
-        dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_easy.K)
+        dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_sll.K)
         logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
 
     predicted_Y_sll = logits_Y_sll.argmax(dim=1)
