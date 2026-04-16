@@ -2539,7 +2539,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.clean_frac=plot.clean_frac,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 622: Impact of contamination strength -----------------
@@ -2613,7 +2613,7 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.clean_frac=plot.clean_frac,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 
@@ -2688,7 +2688,7 @@ make_figure_623(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.clean_frac=plot.clean_frac,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 624: Impact of clean_frac -----------------
 #' Plot marginal coverage as function of the number of calibration samples, increasing the fraction of clean data
@@ -2762,7 +2762,7 @@ make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.clean_frac=plot.clean_frac,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 625: Impact of contamination strength -----------------
@@ -2836,7 +2836,7 @@ make_figure_625(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.clean_frac=plot.clean_frac,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 

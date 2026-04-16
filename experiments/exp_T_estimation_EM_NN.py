@@ -211,7 +211,7 @@ def run_experiment(random_state):
     I_torch = torch.tensor(I, dtype=torch.long)
 
     # --- Build and train model ---
-    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[64, 32], contamination_model="uniform", epsilon_init=epsilon_init)
+    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model="uniform", epsilon_init=epsilon_init)
     history = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=100, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN = model_NN.contamination.contamination_matrix()
     T_hat_NN = T_hat_NN.detach().numpy()
