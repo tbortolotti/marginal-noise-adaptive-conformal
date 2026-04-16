@@ -123,7 +123,7 @@ else:
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
-                       'n':[n], 'ncl':[n_clean],
+                       'n':[n], 'n_clean':[n_clean],
                        'epsilon':[epsilon], 'nu':[nu], 'contamination':[contamination_model],
                        'model_name':[model_name],
                        'seed':[seed]})
@@ -163,7 +163,7 @@ def run_experiment(random_state):
     if random_flag == True:
         rng = np.random.default_rng(random_state+4)
         clean_frac = np.round(n_clean/(n+n_clean), decimals=5)
-        I = rng.binomial(1, clean_frac, size=n)
+        I = rng.binomial(1, clean_frac, size=(n+n_clean))
     else:
         n_train = 10000
         data_distribution.set_seed(random_state+5)

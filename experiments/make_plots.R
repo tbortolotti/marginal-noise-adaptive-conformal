@@ -2462,16 +2462,16 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   }))    
   summary <- results %>%
     pivot_longer(c("epsilon_res", "frobenius_d", "accuracy"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, contamination, epsilon, n, clean_frac, Method, Key) %>%
+    group_by(data, num_var, K, contamination, epsilon, n, n_clean, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
-
-#### Experiment 621: Impact of clean_frac -----------------
+#### Experiment 621: Impact of size of clean data -----------------
 #' Plot marginal coverage as function of the number of calibration samples, increasing the fraction of clean data
+#' The clean observations are "easy observations"
 make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
-                            plot.clean_frac=0.1,
+                            plot.n_clean=100,
                             plot.contamination="uniform",
                             plot.epsilon=0.2,
                             save_plots=FALSE, reload=FALSE) {
@@ -2483,7 +2483,7 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   df <- summary %>%
     filter(data==plot.data, num_var==20, K==plot.K,
-           clean_frac %in% plot.clean_frac,
+           n_clean %in% plot.n_clean,
            Method %in% method.values,
            contamination==plot.contamination,
            epsilon==plot.epsilon)
@@ -2494,12 +2494,12 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(CF = sprintf("Frac. of clean data: %.2f", clean_frac)) %>%
+    mutate(N_CLEAN = sprintf("Size of clean data: %d", n_clean)) %>%
     ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~CF, scales="free") +
+    facet_grid(Key~N_CLEAN, scales="free") +
     geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
     geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
     geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
@@ -2532,11 +2532,11 @@ exp.num <- 621
 plot.epsilon <- 0.1
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.clean_frac <- c(0.05, 0.1, 0.2, 0.5)
+plot.n_clean <- c(100,500,1000,5000)
 plot.data <- "synthetic6"
 
 make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.clean_frac=plot.clean_frac,
+                plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 save_plots=TRUE, reload=TRUE)
@@ -2545,7 +2545,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #### Experiment 622: Impact of contamination strength -----------------
 #' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
 make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
-                            plot.clean_frac=0.1,
+                            plot.n_clean=100,
                             plot.contamination="uniform",
                             plot.epsilon=0.2,
                             save_plots=FALSE, reload=FALSE) {
@@ -2558,7 +2558,7 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df <- summary %>%
     filter(data==plot.data, num_var==20, K==plot.K,
            epsilon %in% plot.epsilon,
-           clean_frac==plot.clean_frac,
+           n_clean==plot.n_clean,
            Method %in% method.values,
            contamination==plot.contamination)
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
@@ -2606,21 +2606,20 @@ exp.num <- 622
 plot.epsilon <- c(0.05, 0.1, 0.2)
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.clean_frac <- 0.1
+plot.n_clean <- 100
 plot.data <- "synthetic6"
 
 make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.clean_frac=plot.clean_frac,
+                plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 save_plots=TRUE, reload=TRUE)
 
 
-
 #### Experiment 623: Different data design -----------------
 #' Plot marginal coverage as function of the number of calibration samples, changing the data design
 make_figure_623 <- function(exp.num, plot.data="synthetic6", plot.K=4,
-                            plot.clean_frac=0.1,
+                            plot.n_clean=100,
                             plot.contamination="uniform",
                             plot.epsilon=0.2,
                             save_plots=FALSE, reload=FALSE) {
@@ -2633,7 +2632,7 @@ make_figure_623 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df <- summary %>%
     filter(data %in% plot.data, num_var==20, K==plot.K,
            epsilon==plot.epsilon,
-           clean_frac==plot.clean_frac,
+           n_clean==plot.n_clean,
            Method %in% method.values,
            contamination==plot.contamination)
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
@@ -2681,163 +2680,14 @@ exp.num <- 623
 plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.clean_frac <- 0.1
+plot.n_clean <- 100
 plot.data <- c("synthetic1", "synthetic2", "synthetic3")
 
 make_figure_623(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.clean_frac=plot.clean_frac,
+                plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 save_plots=TRUE, reload=TRUE)
-
-#### Experiment 624: Impact of clean_frac -----------------
-#' Plot marginal coverage as function of the number of calibration samples, increasing the fraction of clean data
-#' The clean observations are "easy observations"
-make_figure_624 <- function(exp.num, plot.data="synthetic6", plot.K=4,
-                            plot.clean_frac=0.1,
-                            plot.contamination="uniform",
-                            plot.epsilon=0.2,
-                            save_plots=FALSE, reload=FALSE) {
-  if(reload) {
-    summary <- load_data(exp.num)
-  }
-  
-  init_settings()
-  
-  df <- summary %>%
-    filter(data==plot.data, num_var==20, K==plot.K,
-           clean_frac %in% plot.clean_frac,
-           Method %in% method.values,
-           contamination==plot.contamination,
-           epsilon==plot.epsilon)
-  df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
-  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
-  df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
-  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="NN")
-  
-  pp <- df %>%
-    mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(CF = sprintf("Frac. of clean data: %.2f", clean_frac)) %>%
-    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~CF, scales="free") +
-    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
-    geom_point(data=df.range_accuracy, aes(x=n, y=Mean), alpha=0) +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    scale_x_continuous(trans='log10') +
-    xlab("Number of training samples") +
-    ylab("") +
-    theme_bw() +
-    theme(text = element_text(size = 12),
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-          legend.text = element_text(size = 12),
-          legend.title = element_text(size = 12),
-          plot.margin = margin(5, 1, 1, -10))
-  
-  
-  if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_K%d_%s.png",
-                         exp.num, plot.data, plot.K, plot.contamination)
-    ggsave(file=plot.file, height=4.5, width=9, units="in")
-    return(NULL)
-  } else{
-    return(pp)
-  }
-}
-
-exp.num <- 624
-plot.epsilon <- 0.1
-plot.K <- 4
-plot.contamination <- "uniform"
-plot.clean_frac <- c(0.05, 0.1, 0.2, 0.5)
-plot.data <- "synthetic6"
-
-make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.clean_frac=plot.clean_frac,
-                plot.contamination=plot.contamination,
-                plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
-
-
-#### Experiment 625: Impact of contamination strength -----------------
-#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
-make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
-                            plot.clean_frac=0.1,
-                            plot.contamination="uniform",
-                            plot.epsilon=0.2,
-                            save_plots=FALSE, reload=FALSE) {
-  if(reload) {
-    summary <- load_data(exp.num)
-  }
-  
-  init_settings()
-  
-  df <- summary %>%
-    filter(data==plot.data, num_var==20, K==plot.K,
-           epsilon %in% plot.epsilon,
-           clean_frac==plot.clean_frac,
-           Method %in% method.values,
-           contamination==plot.contamination)
-  df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
-  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
-  df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
-  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="NN")
-  
-  pp <- df %>%
-    mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
-    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~Epsilon, scales="free") +
-    geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
-    geom_point(data=df.range_accuracy, aes(x=n, y=Mean), alpha=0) +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    scale_x_continuous(trans='log10') +
-    xlab("Number of training samples") +
-    ylab("") +
-    theme_bw() +
-    theme(text = element_text(size = 12),
-          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-          legend.text = element_text(size = 12),
-          legend.title = element_text(size = 12),
-          plot.margin = margin(5, 1, 1, -10))
-  
-  
-  if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_K%d_%s.png",
-                         exp.num, plot.data, plot.K, plot.contamination)
-    ggsave(file=plot.file, height=4.5, width=9, units="in")
-    return(NULL)
-  } else{
-    return(pp)
-  }
-}
-
-exp.num <- 625
-plot.epsilon <- c(0.05, 0.1, 0.2)
-plot.K <- 4
-plot.contamination <- "uniform"
-plot.clean_frac <- 0.05
-plot.data <- "synthetic6"
-
-make_figure_625(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.clean_frac=plot.clean_frac,
-                plot.contamination=plot.contamination,
-                plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
-
 
 
 
