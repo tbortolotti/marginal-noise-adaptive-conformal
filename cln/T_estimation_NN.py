@@ -230,7 +230,7 @@ def train(model: NoisyLabelNet,
           I: torch.Tensor,
           n_epochs: int = 100,
           batch_size: int = 256,
-          lr: float = 1e-3,
+          lr: float = 1e-2,
           device: str = "cpu",
           verbose: bool = False) -> list[dict]:
 
