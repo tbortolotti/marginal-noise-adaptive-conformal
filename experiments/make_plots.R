@@ -2441,8 +2441,11 @@ make_figure_611(exp.num=exp.num, plot.data=plot.data,
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   
-  method.values <<- c("EM", "NN", "NN16", "RF")
-  method.labels <<- c("EM", "NN", "NN (slim)", "RF")
+  #method.values <<- c("EM", "NN", "NN16", "NN SLL", "softmax")
+  #method.labels <<- c("EM", "NN", "NN (slim)", "NN (sll)","softmax")
+  
+  method.values <<- c("EM", "NN")
+  method.labels <<- c("EM", "NN")
   
   color.scale <<- cbPalette[c(2,4,5,6,7)]
   shape.scale <<- c(0,3,4,5,6)
@@ -2487,6 +2490,10 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
            Method %in% method.values,
            contamination==plot.contamination,
            epsilon==plot.epsilon)
+  
+  prova <- (df$Method=="softmax") & (df$Key %in% c("frobenius_d", "epsilon_res"))
+  df$Mean[prova] <- NA
+  
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
@@ -2539,7 +2546,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 622: Impact of contamination strength -----------------
@@ -2561,6 +2568,10 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
            n_clean==plot.n_clean,
            Method %in% method.values,
            contamination==plot.contamination)
+  
+  prova <- (df$Method=="softmax") & (df$Key %in% c("frobenius_d", "epsilon_res"))
+  df$Mean[prova] <- NA
+  
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
@@ -2613,7 +2624,7 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 623: Different data design -----------------
@@ -2635,6 +2646,10 @@ make_figure_623 <- function(exp.num, plot.data="synthetic6", plot.K=4,
            n_clean==plot.n_clean,
            Method %in% method.values,
            contamination==plot.contamination)
+  
+  prova <- (df$Method=="softmax") & (df$Key %in% c("frobenius_d", "epsilon_res"))
+  df$Mean[prova] <- NA
+  
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
@@ -2687,7 +2702,7 @@ make_figure_623(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 

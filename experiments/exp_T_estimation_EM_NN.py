@@ -33,12 +33,11 @@ K = 4
 n = 10000
 n_test = 2000
 n_clean = 100
+random_flag = True
 model_name = 'RFC'
 epsilon = 0.2
-epsilon_init = 0.05
 nu = 0
 contamination_model = "uniform"
-random_flag = True
 seed = 1
 
 # Parse input parameters
@@ -64,6 +63,7 @@ if True:
 
 # Define other constant parameters
 batch_size = 20
+epsilon_init = 0.01
 n_test = 2000
 
 # Initialize the data distribution
