@@ -63,7 +63,7 @@ if True:
 
 # Define other constant parameters
 batch_size = 20
-epsilon_init = 0.01
+epsilon_init = 0.5
 n_test = 2000
 
 # Initialize the data distribution
