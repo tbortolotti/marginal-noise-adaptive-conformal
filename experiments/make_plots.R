@@ -2441,8 +2441,11 @@ make_figure_611(exp.num=exp.num, plot.data=plot.data,
 init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   
-  method.values <<- c("EM", "NN", "NN16", "NN SLL", "softmax")
-  method.labels <<- c("EM", "NN", "NN (slim)", "NN (sll)","softmax")
+  # method.values <<- c("EM", "NN", "NN16", "NN SLL", "softmax")
+  # method.labels <<- c("EM", "NN", "NN (slim)", "NN (sll)","softmax")
+  
+  method.values <<- c("EM", "NN", "NN SLL", "softmax")
+  method.labels <<- c("EM", "NN", "NN (sll)","softmax")
   
   # method.values <<- c("EM", "NN")
   # method.labels <<- c("EM", "NN")
@@ -2501,7 +2504,12 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(N_CLEAN = sprintf("Size of clean data: %d", n_clean)) %>%
+    mutate(N_CLEAN = factor(sprintf("Size of clean data: %d", n_clean),
+                            levels = sprintf("Size of clean data: %d", plot.n_clean),
+                            labels = sprintf("Size of clean data: %d", plot.n_clean))) %>%
+    # mutate(K_lab = factor(sprintf("%d classes", K), 
+    #                       levels = sprintf("%d classes", c(10, 20, 50)), 
+    #                       labels = c("10 classes", "20 classes", "50 classes"))) %>%
     ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
@@ -2614,7 +2622,7 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
 }
 
 exp.num <- 622
-plot.epsilon <- c(0.05, 0.1, 0.2)
+plot.epsilon <- c(0, 0.05, 0.1, 0.2)
 plot.K <- 4
 plot.contamination <- "uniform"
 plot.n_clean <- 100
@@ -2624,7 +2632,7 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 #### Experiment 623: Different data design -----------------

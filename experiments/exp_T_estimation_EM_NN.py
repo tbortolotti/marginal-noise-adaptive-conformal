@@ -216,8 +216,8 @@ def run_experiment(random_state):
     I_torch = torch.tensor(I, dtype=torch.long)
 
     model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model="uniform", epsilon_init=epsilon_init)
-    train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=300, batch_size=128, lr=1e-2, verbose=False)
-    history = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=300, batch_size=128, lr=1e-3, verbose=False)
+    history_1 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, verbose=False)
+    history_2 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN = model_NN.contamination.contamination_matrix()
     T_hat_NN = T_hat_NN.detach().numpy()
 
@@ -244,8 +244,8 @@ def run_experiment(random_state):
     print("Estimating T using an easier NN...", end=' ')
     sys.stdout.flush()
     model_NN_easy = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16], contamination_model="uniform", epsilon_init=epsilon_init)
-    train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=300, batch_size=128, lr=1e-2, verbose=False)
-    history_easy = train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=300, batch_size=128, lr=1e-3, verbose=False)
+    history_easy_1 = train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, verbose=False)
+    history_easy_2 = train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN_easy = model_NN_easy.contamination.contamination_matrix()
     T_hat_NN_easy = T_hat_NN_easy.detach().numpy()
 
@@ -272,8 +272,8 @@ def run_experiment(random_state):
     print("Estimating T using the NN with SLL...", end=' ')
     sys.stdout.flush()
     model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model="uniform", epsilon_init=epsilon_init)
-    train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=300, batch_size=128, lr=1e-2, verbose=False)
-    history_sll = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=300, batch_size=128, lr=1e-3, verbose=False)
+    history_sll_1 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, verbose=False)
+    history_sll_2 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
     T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
 
