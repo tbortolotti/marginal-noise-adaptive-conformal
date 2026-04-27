@@ -275,7 +275,7 @@ def run_experiment(random_state):
 
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with weighted loss
-    print("Estimating T using NN...", end=' ')
+    print("Estimating T using NN with weighted loss...", end=' ')
     sys.stdout.flush()
     model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model="uniform", epsilon_init=epsilon_init)
     history_w_1 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, loss_type="weighted", verbose=False)
@@ -303,7 +303,7 @@ def run_experiment(random_state):
 
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with single linear layer with weighted loss
-    print("Estimating T using the NN with SLL...", end=' ')
+    print("Estimating T using the NN with SLL and weighted loss...", end=' ')
     sys.stdout.flush()
     model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model="uniform", epsilon_init=epsilon_init)
     history_sllw_1 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, loss_type="weighted", verbose=False)
@@ -331,7 +331,7 @@ def run_experiment(random_state):
 
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with upweighted loss
-    print("Estimating T using NN...", end=' ')
+    print("Estimating T using NN with upweighted loss...", end=' ')
     sys.stdout.flush()
     model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model="uniform", epsilon_init=epsilon_init)
     history_uw_1 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, loss_type="upweighted", verbose=False)
@@ -359,7 +359,7 @@ def run_experiment(random_state):
 
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with single linear layer with upweighted loss
-    print("Estimating T using the NN with SLL...", end=' ')
+    print("Estimating T using the NN with SLL and upweighted loss...", end=' ')
     sys.stdout.flush()
     model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model="uniform", epsilon_init=epsilon_init)
     history_slluw_1 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, loss_type="upweighted", verbose=False)
