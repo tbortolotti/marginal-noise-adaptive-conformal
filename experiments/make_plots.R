@@ -2474,7 +2474,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 }
 
 #### Experiment 621: Impact of size of clean data -----------------
-#' Plot marginal coverage as function of the number of calibration samples, increasing the fraction of clean data
+#' Plot marginal coverage as function of the number of calibration samples, increasing the number of clean data
 #' The clean observations are "easy observations"
 make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
                             plot.n_clean=100,

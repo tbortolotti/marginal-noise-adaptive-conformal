@@ -33,6 +33,7 @@ K = 4
 n = 10000
 n_test = 2000
 n_clean = 100
+pi_clean = 0.5
 random_flag = True
 model_name = 'RFC'
 epsilon = 0.2
@@ -44,7 +45,7 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 12:
+    if len(sys.argv) != 13:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -55,16 +56,20 @@ if True:
     K = int(sys.argv[4])
     n = int(sys.argv[5])
     n_clean = int(sys.argv[6])
-    random_flag = sys.argv[7].lower() == "true"
-    epsilon = float(sys.argv[8])
-    nu = float(sys.argv[9])
-    contamination_model = sys.argv[10]
-    seed = int(sys.argv[11])
+    pi_clean = float(sys.argv[7])
+    random_flag = sys.argv[8].lower() == "true"
+    epsilon = float(sys.argv[9])
+    nu = float(sys.argv[10])
+    contamination_model = sys.argv[11]
+    seed = int(sys.argv[12])
 
 # Define other constant parameters
 batch_size = 20
 epsilon_init = 0.5
 n_test = 2000
+
+if n_clean == 0:
+    n_clean = int(np.round(pi_clean/(1-pi_clean) * n))
 
 # Initialize the data distribution
 if data_name == "synthetic1":
