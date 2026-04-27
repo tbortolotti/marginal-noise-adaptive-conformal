@@ -167,7 +167,8 @@ class NoisyLabelNet(nn.Module):
 def noisy_label_loss(logits_Y: torch.Tensor,
                      logits_Ytilde: torch.Tensor,
                      obs_labels: torch.Tensor,
-                     I: torch.Tensor) -> torch.Tensor:
+                     I: torch.Tensor,
+                     loss_type: str = "equal") -> torch.Tensor:
     """
     Selective cross-entropy loss:
         - Use logits_Y     for samples where I == 1 (clean label observed)
@@ -182,36 +183,55 @@ def noisy_label_loss(logits_Y: torch.Tensor,
         scalar loss
     """
 
-    I = I.bool()
-    loss = torch.zeros(logits_Y.shape[0], device=logits_Y.device)
+    if loss_type=="equal":
+        I = I.bool()
+        loss = torch.zeros(logits_Y.shape[0], device=logits_Y.device)
 
-    # Cross-entropy for clean observations
-    if I.any():
-        loss[I] = F.cross_entropy(logits_Y[I], obs_labels[I], reduction='none')
+        # Cross-entropy for clean observations
+        if I.any():
+            loss[I] = F.cross_entropy(logits_Y[I], obs_labels[I], reduction='none')
 
-    # Cross-entropy for contaminated observations
-    # logits_Ytilde is already log-softmax-like, use nll_loss
-    if (~I).any():
-        loss[~I] = F.nll_loss(logits_Ytilde[~I], obs_labels[~I], reduction='none')
+        # Cross-entropy for contaminated observations
+        # logits_Ytilde is already log-softmax-like, use nll_loss
+        if (~I).any():
+            loss[~I] = F.nll_loss(logits_Ytilde[~I], obs_labels[~I], reduction='none')
 
-    return loss.mean()
+        loss_ = loss.mean()
+    elif loss_type=="weighted":
+        I = I.bool()
+        losses = []
 
-    """
-    I = I.bool()
-    losses = []
+        # Cross-entropy for clean observations
+        if I.any():
+            loss_clean = F.cross_entropy(logits_Y[I], obs_labels[I], reduction='mean')
+            losses.append(loss_clean)
 
-    # Cross-entropy for clean observations
-    if I.any():
-        loss_clean = F.cross_entropy(logits_Y[I], obs_labels[I], reduction='mean')
-        losses.append(loss_clean)
+        # Cross-entropy for contaminated observations
+        if (~I).any():
+            loss_noisy = F.nll_loss(logits_Ytilde[~I], obs_labels[~I], reduction='none')
+            losses.append(loss_noisy.mean())
+        
+        loss_ = sum(losses) / len(losses)
+    elif loss_type=="upweighted":
+        I = I.bool()
+        pi_clean_ = torch.round(torch.sum(I==1)/len(I), decimals=2)
+        losses = []
 
-    # Cross-entropy for contaminated observations
-    if (~I).any():
-        loss_noisy = F.nll_loss(logits_Ytilde[~I], obs_labels[~I], reduction='none')
-        losses.append(loss_noisy.mean())
+        # Cross-entropy for clean observations
+        if I.any():
+            loss_clean = F.cross_entropy(logits_Y[I], obs_labels[I], reduction='mean')
+            loss_clean_ = 1/pi_clean_*loss_clean
+            losses.append(loss_clean_)
 
-    return sum(losses) / len(losses)
-    """
+        # Cross-entropy for contaminated observations
+        if (~I).any():
+            loss_noisy = F.nll_loss(logits_Ytilde[~I], obs_labels[~I], reduction='none')
+            loss_noisy_ = 1/(1-pi_clean_) * loss_noisy.mean()
+            losses.append(loss_noisy_)
+        
+        loss_ = sum(losses) / len(losses)
+
+    return loss_
 
 
 # ---------------------------------------------------------------------------
@@ -232,6 +252,7 @@ def train(model: NoisyLabelNet,
           batch_size: int = 256,
           lr: float = 1e-3,
           device: str = "cpu",
+          loss_type: str = "equal",
           verbose: bool = False) -> list[dict]:
 
     model = model.to(device)
@@ -250,7 +271,7 @@ def train(model: NoisyLabelNet,
             noise = sample_gumbel_noise((X_batch.shape[0], model.K), device=X_batch.device)
 
             logits_Y, logits_Ytilde = model(X_batch, I_batch, noise)
-            loss = noisy_label_loss(logits_Y, logits_Ytilde, labels_batch, I_batch)
+            loss = noisy_label_loss(logits_Y, logits_Ytilde, labels_batch, I_batch, loss_type)
 
             optimizer.zero_grad()
             loss.backward()

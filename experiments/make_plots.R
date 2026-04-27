@@ -2549,6 +2549,7 @@ plot.epsilon <- 0.1
 plot.K <- 4
 plot.contamination <- "uniform"
 plot.n_clean <- c(100,500,1000,5000)
+plot.n_clean <- c(1000,5000, 10000, 20000)
 plot.data <- "synthetic6"
 
 make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
