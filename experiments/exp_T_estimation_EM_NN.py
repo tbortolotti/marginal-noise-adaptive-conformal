@@ -129,7 +129,7 @@ else:
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
-                       'n':[n], 'n_clean':[n_clean],
+                       'n':[n], 'n_clean':[n_clean], 'pi_clean':[pi_clean],
                        'epsilon':[epsilon], 'nu':[nu], 'contamination':[contamination_model],
                        'model_name':[model_name],
                        'seed':[seed]})
@@ -138,7 +138,7 @@ header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
 outfile_prefix += "_K" + str(K) + "_" + model_name
 outfile_prefix += "_eps" + str(epsilon) + "_epsin" + str(epsilon_init) + "_nu" + str(nu) + "_" + contamination_model
-outfile_prefix += "_n" + str(n) + "_ncl" + str(n_clean) + "_seed" + str(seed)
+outfile_prefix += "_n" + str(n) + "_ncl" + str(n_clean) + "_picl" + str(pi_clean) + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
