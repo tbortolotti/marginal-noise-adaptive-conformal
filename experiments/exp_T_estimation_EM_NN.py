@@ -64,12 +64,15 @@ if True:
     seed = int(sys.argv[12])
 
 # Define other constant parameters
-batch_size = 20
+batch_size = 10
 epsilon_init = 0.5
 n_test = 2000
 
 if n_clean == 0:
-    n_clean = int(np.round(pi_clean/(1-pi_clean) * n))
+    #n_clean = int(np.round(pi_clean/(1-pi_clean) * n))
+    n_clean = int(np.round(pi_clean * n))
+
+n_noisy = n - n_clean
 
 # Initialize the data distribution
 if data_name == "synthetic1":
@@ -130,6 +133,7 @@ else:
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
                        'n':[n], 'n_clean':[n_clean], 'pi_clean':[pi_clean],
+                       'randflag': [random_flag],
                        'epsilon':[epsilon], 'nu':[nu], 'contamination':[contamination_model],
                        'model_name':[model_name],
                        'seed':[seed]})
@@ -138,7 +142,7 @@ header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_p" + str(num_var)
 outfile_prefix += "_K" + str(K) + "_" + model_name
 outfile_prefix += "_eps" + str(epsilon) + "_epsin" + str(epsilon_init) + "_nu" + str(nu) + "_" + contamination_model
-outfile_prefix += "_n" + str(n) + "_ncl" + str(n_clean) + "_picl" + str(pi_clean) + "_seed" + str(seed)
+outfile_prefix += "_n" + str(n) + "_ncl" + str(n_clean) + "_picl" + str(pi_clean) + "_randf" + random_flag + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
@@ -151,7 +155,7 @@ def run_experiment(random_state):
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
     data_distribution.set_seed(random_state+1)
-    X_all, Y_all = data_distribution.sample(n + n_clean + n_test)
+    X_all, Y_all = data_distribution.sample(n + n_test)
     print("Done.")
     sys.stdout.flush()
 
@@ -168,8 +172,8 @@ def run_experiment(random_state):
 
     if random_flag == True:
         rng = np.random.default_rng(random_state+4)
-        clean_frac = np.round(n_clean/(n+n_clean), decimals=5)
-        I = rng.binomial(1, clean_frac, size=(n+n_clean))
+        clean_frac = np.round(n_clean/n, decimals=5)
+        I = rng.binomial(1, clean_frac, size=n)
     else:
         n_train = 10000
         data_distribution.set_seed(random_state+5)
@@ -181,7 +185,7 @@ def run_experiment(random_state):
         conf_scores = rfc_easy.predict_proba(X).max(axis=1)
 
         # Assign I=1 to the top clean_frac fraction by confidence
-        clean_frac = np.round(n_clean/(n+n_clean), decimals=5)
+        clean_frac = np.round(n_clean/n, decimals=5)
         threshold = np.quantile(conf_scores, 1 - clean_frac)
         I = (conf_scores >= threshold).astype(int)
     Y_obs = np.where(I == 1, Y, Yt)
@@ -194,7 +198,7 @@ def run_experiment(random_state):
     ## Estimate T using the EM algorithm
     print("Estimating T using EM algorithm...", end=' ')
     sys.stdout.flush()
-    X_intercept = np.hstack([np.ones((n+n_clean, 1)), X])
+    X_intercept = np.hstack([np.ones((n, 1)), X])
     data = Dataset(X=X_intercept, Y_obs=Y_obs, I=I, K=K)
     result_EM = run_em(data, eps_init=0.1, max_iter=100, tol=1e-7, verbose=False)
     eps_hat_EM = result_EM.eps

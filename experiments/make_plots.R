@@ -2604,20 +2604,6 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #' The clean observations are "easy observations"
 #' 
 
-init_settings <- function() {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  
-  method.values <<- c("EM", "NN", "NN SLL", "softmax")
-  method.labels <<- c("EM", "NN", "NN (sll)","softmax")
-  
-  # method.values <<- c("EM", "NN")
-  # method.labels <<- c("EM", "NN")
-  
-  color.scale <<- cbPalette[c(2,4,5,6,7)]
-  shape.scale <<- c(0,3,4,5,6)
-  linetype.scale <<- c(1,1,1,1,1)
-}
-
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -2642,12 +2628,13 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
                             plot.pi_clean,
                             plot.contamination="uniform",
                             plot.epsilon=0.2,
+                            plot.sll_flag=FALSE,
                             save_plots=FALSE, reload=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
   }
   
-  init_settings()
+  init_settings(plot.sll_flag)
   
   df <- summary %>%
     filter(data==plot.data, num_var==20, K==plot.K,
@@ -2662,7 +2649,7 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
-  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="NN")
+  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="EM")
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
@@ -2716,6 +2703,14 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_clean=plot.pi_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
+                plot.sll_flag=FALSE,
+                save_plots=FALSE, reload=TRUE)
+
+make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
+                plot.pi_clean=plot.pi_clean,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                plot.sll_flag=TRUE,
                 save_plots=FALSE, reload=TRUE)
 
 
