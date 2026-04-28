@@ -112,12 +112,8 @@ class NoisyLabelNet(nn.Module):
     Forward pass:
         X, I, noise -> (logits_Y, logits_Ytilde)
 
-    The noise is used as Gumbel noise for sampling from p_Y before passing
-    through the contamination layer (straight-through Gumbel-Softmax).
+    The noise is used as Gumbel noise for sampling from p_Y before passing through the contamination layer (straight-through Gumbel-Softmax).
     The noise does NOT influence the backbone, only the Y -> Ỹ path.
-
-    Important: the contamination layer does NOT receive X, only the
-    distribution over Y (Assumption 1 is enforced by architecture).
     """
 
     def __init__(self, input_dim: int, K: int,
