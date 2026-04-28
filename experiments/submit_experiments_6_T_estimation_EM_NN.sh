@@ -101,7 +101,7 @@ for SEED in $SEED_LIST; do
                 for EPSILON in "${EPSILON_LIST[@]}"; do
                   for NU in "${NU_LIST[@]}"; do
                     for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
-                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_n"$N"_ncl"$N_CLEAN"_pic"$PI_CLEAN"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_seed"$SEED
+                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_n"$N"_ncl"$N_CLEAN"_pic"$PI_CLEAN"_rf"$RANDOM_FLAG"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_seed"$SEED
                       OUT_FILE=$OUT_DIR"/"$JOBN".txt"
                       COMPLETE=0
                       #  ls $OUT_FILE
