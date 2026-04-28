@@ -2450,8 +2450,13 @@ init_settings <- function(sll_flag=FALSE) {
     # color.scale <<- cbPalette[c(2,3,8,9,7)]
     # shape.scale <<- c(0,2,7,8,6)
     # linetype.scale <<- c(1,1,1,1,1)
-    method.values <<- c("EM", "NN SLL", "NNw SLL", "softmax")
-    method.labels <<- c("EM", "NNs", "NNs (weighted)", "softmax")
+    # method.values <<- c("EM", "NN SLL", "NNw SLL", "softmax")
+    # method.labels <<- c("EM", "NNs", "NNs (weighted)", "softmax")
+    # color.scale <<- cbPalette[c(2,3,8,7)]
+    # shape.scale <<- c(0,2,7,6)
+    # linetype.scale <<- c(1,1,1,1)
+    method.values <<- c("EM", "NN SLL", "softmax")
+    method.labels <<- c("EM", "NNs", "softmax")
     color.scale <<- cbPalette[c(2,3,8,7)]
     shape.scale <<- c(0,2,7,6)
     linetype.scale <<- c(1,1,1,1)
@@ -2485,6 +2490,17 @@ init_settings <- function(sll_flag=FALSE) {
   # linetype.scale <<- c(1,1,1,1,1)
 }
 
+
+init_settings <- function(sll_flag=FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  method.values <<- c("EM", "NN", "NN SLL", "softmax")
+  method.labels <<- c("EM", "NN", "NNs", "softmax")
+  color.scale <<- cbPalette[c(2,4,3,7)]
+  shape.scale <<- c(0,3,7,6)
+  linetype.scale <<- c(1,1,1,1)
+
+}
+
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -2497,8 +2513,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("epsilon_res", "frobenius_d", "accuracy"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, contamination, epsilon, n, n_clean, Method, Key) %>%
+    pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, contamination, epsilon, n, n_clean, randflag, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
@@ -2509,6 +2525,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 #' The clean observations are "easy observations"
 make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
                             plot.n_clean=100,
+                            plot.randflag,
                             plot.contamination="uniform",
                             plot.epsilon=0.2,
                             plot.sll_flag=FALSE,
@@ -2522,6 +2539,7 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df <- summary %>%
     filter(data==plot.data, num_var==20, K==plot.K,
            n_clean %in% plot.n_clean,
+           randflag==plot.randflag,
            Method %in% method.values,
            contamination==plot.contamination,
            epsilon==plot.epsilon)
@@ -2531,7 +2549,7 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
-  df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
+  #df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
   df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="EM")
   
   pp <- df %>%
@@ -2549,7 +2567,7 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
     facet_grid(Key~N_CLEAN, scales="free") +
     geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
     geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range_accuracy, aes(x=n, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
@@ -2580,11 +2598,12 @@ plot.epsilon <- 0.1
 plot.K <- 4
 plot.contamination <- "uniform"
 plot.n_clean <- c(100,500,1000,5000)
-#plot.n_clean <- c(1000,5000, 10000, 20000)
+#plot.n_clean <- c(1000,5000,10000,20000)
 plot.data <- "synthetic6"
 
 make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
+                plot.randflag=TRUE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.sll_flag=FALSE,
@@ -2592,6 +2611,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 
 make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
+                plot.randflag=FALSE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.sll_flag=TRUE,
@@ -2617,8 +2637,8 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("epsilon_res", "frobenius_d", "accuracy"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, contamination, epsilon, n, pi_clean, Method, Key) %>%
+    pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, contamination, epsilon, n, pi_clean, randflag, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
@@ -2626,6 +2646,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 
 make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
                             plot.pi_clean,
+                            plot.rand_flag,
                             plot.contamination="uniform",
                             plot.epsilon=0.2,
                             plot.sll_flag=FALSE,
@@ -2639,6 +2660,7 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df <- summary %>%
     filter(data==plot.data, num_var==20, K==plot.K,
            pi_clean %in% plot.pi_clean,
+           randflag==plot.rand_flag,
            Method %in% method.values,
            contamination==plot.contamination,
            epsilon==plot.epsilon)
@@ -2648,7 +2670,7 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
-  df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
+  #df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
   df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="EM")
   
   pp <- df %>%
@@ -2666,7 +2688,7 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
     facet_grid(Key~PI_CLEAN, scales="free") +
     geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
     geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range_accuracy, aes(x=n, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
@@ -2701,6 +2723,7 @@ plot.data <- "synthetic6"
 
 make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_clean=plot.pi_clean,
+                plot.rand_flag=TRUE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.sll_flag=FALSE,
@@ -2708,6 +2731,7 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 
 make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_clean=plot.pi_clean,
+                plot.rand_flag=FALSE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.sll_flag=TRUE,

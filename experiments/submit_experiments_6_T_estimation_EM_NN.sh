@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=622
+CONF=620
 
 if [[ $CONF == 620 ]]; then
   DATA_LIST=("synthetic6")
@@ -47,9 +47,9 @@ elif [[ $CONF == 623 ]]; then
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   N_LIST=(500 1000 2000 5000 10000 20000)
-  N_CLEAN_LIST=(100)
+  N_CLEAN_LIST=(500)
   PI_CLEAN_LIST=(0)
-  RANDOM_FLAG_LIST=("false")
+  RANDOM_FLAG_LIST=("true")
   EPSILON_LIST=(0 0.05 0.1 0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
@@ -59,10 +59,10 @@ elif [[ $CONF == 624 ]]; then
   DATA_LIST=("synthetic1" "synthetic2" "synthetic3")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  N_LIST=(500 1000 2000 5000 10000 20000 50000)
-  N_CLEAN_LIST=(100)
+  N_LIST=(500 1000 2000 5000 10000 20000)
+  N_CLEAN_LIST=(500)
   PI_CLEAN_LIST=(0)
-  RANDOM_FLAG_LIST=("false")
+  RANDOM_FLAG_LIST=("true")
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")

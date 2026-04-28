@@ -71,8 +71,10 @@ n_test = 2000
 if n_clean == 0:
     #n_clean = int(np.round(pi_clean/(1-pi_clean) * n))
     n_clean = int(np.round(pi_clean * n))
-
-n_noisy = n - n_clean
+    n_noisy = n - n_clean
+else:
+    n_noisy = n
+    n = n_noisy + n_clean
 
 # Initialize the data distribution
 if data_name == "synthetic1":
@@ -132,7 +134,7 @@ else:
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
-                       'n':[n], 'n_clean':[n_clean], 'pi_clean':[pi_clean],
+                       'n':[n], 'n_noisy':[n_noisy], 'n_clean':[n_clean], 'pi_clean':[pi_clean],
                        'randflag': [random_flag],
                        'epsilon':[epsilon], 'nu':[nu], 'contamination':[contamination_model],
                        'model_name':[model_name],
