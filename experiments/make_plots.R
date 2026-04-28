@@ -2462,11 +2462,17 @@ init_settings <- function(sll_flag=FALSE) {
     # shape.scale <<- c(0,3,4,5,6)
     # linetype.scale <<- c(1,1,1,1,1)
     
-    method.values <<- c("EM", "NN", "NNw", "softmax")
-    method.labels <<- c("EM", "NN", "NN (weighted)", "softmax")
-    color.scale <<- cbPalette[c(2,4,5,7)]
-    shape.scale <<- c(0,3,4,6)
-    linetype.scale <<- c(1,1,1,1)
+    # method.values <<- c("EM", "NN", "NNw", "softmax")
+    # method.labels <<- c("EM", "NN", "NN (weighted)", "softmax")
+    # color.scale <<- cbPalette[c(2,4,5,7)]
+    # shape.scale <<- c(0,3,4,6)
+    # linetype.scale <<- c(1,1,1,1)
+    
+    method.values <<- c("EM", "NN", "softmax")
+    method.labels <<- c("EM", "NN", "softmax")
+    color.scale <<- cbPalette[c(2,4,7)]
+    shape.scale <<- c(0,3,6)
+    linetype.scale <<- c(1,1,1)
   }
   # method.values <<- c("EM", "NN", "NN SLL", "softmax")
   # method.labels <<- c("EM", "NN", "NN (sll)","softmax")
@@ -2573,7 +2579,7 @@ exp.num <- 621
 plot.epsilon <- 0.1
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.n_clean <- c(100,500,1000)
+plot.n_clean <- c(100,500,1000,5000)
 #plot.n_clean <- c(1000,5000, 10000, 20000)
 plot.data <- "synthetic6"
 
