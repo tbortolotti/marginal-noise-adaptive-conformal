@@ -2501,6 +2501,12 @@ init_settings <- function(sll_flag=FALSE) {
 
 }
 
+#### Experiment 621: Impact of size of clean data -----------------
+#' Plot performance as function of the number of calibration samples,
+#' increasing the number of clean data
+#' The clean observations are "easy observations"
+#' 
+
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -2514,15 +2520,12 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   }))    
   summary <- results %>%
     pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, contamination, epsilon, n, n_clean, randflag, Method, Key) %>%
+    group_by(data, num_var, K, contamination, epsilon, n, n_clean, n_noisy, randflag, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
-#### Experiment 621: Impact of size of clean data -----------------
-#' Plot performance as function of the number of calibration samples,
-#' increasing the number of clean data
-#' The clean observations are "easy observations"
+
 make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
                             plot.n_clean=100,
                             plot.randflag,
@@ -2550,7 +2553,7 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   #df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
-  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="EM")
+  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n_noisy=1000, Method="EM")
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
@@ -2560,7 +2563,7 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
     # mutate(K_lab = factor(sprintf("%d classes", K), 
     #                       levels = sprintf("%d classes", c(10, 20, 50)), 
     #                       labels = c("10 classes", "20 classes", "50 classes"))) %>%
-    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    ggplot(aes(x=n_noisy, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
@@ -2568,12 +2571,12 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
     geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
     geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
     #geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
-    geom_point(data=df.range_accuracy, aes(x=n, y=Mean), alpha=0) +
+    geom_point(data=df.range_accuracy, aes(x=n_noisy, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of training samples") +
+    xlab("Number of noisy training samples") +
     ylab("") +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -2614,7 +2617,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.randflag=FALSE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                plot.sll_flag=TRUE,
+                plot.sll_flag=FALSE,
                 save_plots=FALSE, reload=TRUE)
 
 
@@ -2729,12 +2732,13 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.sll_flag=FALSE,
                 save_plots=FALSE, reload=TRUE)
 
+plot.pi_clean <- c(0.1,0.2,0.3,0.4,0.5)
 make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_clean=plot.pi_clean,
                 plot.rand_flag=FALSE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                plot.sll_flag=TRUE,
+                plot.sll_flag=FALSE,
                 save_plots=FALSE, reload=TRUE)
 
 
@@ -2754,7 +2758,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("epsilon_res", "frobenius_d", "accuracy"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, contamination, epsilon, n, n_clean, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -2876,7 +2880,7 @@ make_figure_624 <- function(exp.num, plot.data="synthetic6", plot.K=4,
     facet_grid(Key~Data, scales="free") +
     geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
     geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range_accuracy, aes(x=n, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
@@ -2906,14 +2910,14 @@ exp.num <- 624
 plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.n_clean <- 100
+plot.n_clean <- 500
 plot.data <- c("synthetic1", "synthetic2", "synthetic3")
 
 make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 
