@@ -202,9 +202,10 @@ def run_experiment(random_state):
     sys.stdout.flush()
     X_intercept = np.hstack([np.ones((n, 1)), X])
     data = Dataset(X=X_intercept, Y_obs=Y_obs, I=I, K=K)
-    result_EM = run_em(data, eps_init=0.1, max_iter=100, tol=1e-7, verbose=False)
-    eps_hat_EM = result_EM.eps
-    T_hat_EM = contamination.construct_T_matrix_simple(K, eps_hat_EM)
+    result_EM = run_em(data, contamination_model_="uniform", eps_init=epsilon_init, max_iter=100, tol=1e-7, verbose=False)
+    #eps_hat_EM = result_EM.eps
+    #T_hat_EM = contamination.construct_T_matrix_simple(K, eps_hat_EM)
+    T_hat_EM = result_EM.T
 
     # predictions on test set
     X_test_intercept = np.hstack([np.ones((n_test, 1)), X_test])
@@ -218,6 +219,26 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     #____________________________________________________________________
+    ## Estimate T using the EM algorithm with general contamination model
+    print("Estimating T using EM algorithm...", end=' ')
+    sys.stdout.flush()
+    X_intercept = np.hstack([np.ones((n, 1)), X])
+    data = Dataset(X=X_intercept, Y_obs=Y_obs, I=I, K=K)
+    result_EM = run_em(data, contamination_model_="general", eps_init=epsilon_init, max_iter=100, tol=1e-7, verbose=False)
+    T_hat_EM = result_EM.T
+
+    # predictions on test set
+    X_test_intercept = np.hstack([np.ones((n_test, 1)), X_test])
+    Y_test_hat_EM = predict(X_test_intercept, result_EM.beta)
+
+    performances = evaluate_estimate(T, T_hat_EM, Y_test, Y_test_hat_EM, Yt_test, K, epsilon0=0)
+    res_update = header.copy()
+    res_update = res_update.assign(Method='EM gen',  **performances)
+    res_list.append(res_update)
+    print("Done.")
+    sys.stdout.flush()
+
+    #____________________________________________________________________
     ## Estimate T using the NN algorithm
     print("Estimating T using NN...", end=' ')
     sys.stdout.flush()
@@ -226,7 +247,7 @@ def run_experiment(random_state):
     Y_obs_torch = torch.tensor(Y_obs, dtype=torch.long)
     I_torch = torch.tensor(I, dtype=torch.long)
 
-    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model="uniform", epsilon_init=epsilon_init)
+    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model_="uniform", epsilon_init=epsilon_init)
     history_1 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=5e-2, verbose=False)
     history_2 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN = model_NN.contamination.contamination_matrix()
@@ -254,7 +275,7 @@ def run_experiment(random_state):
     ## Estimate T using the NN algorithm with single linear layer
     print("Estimating T using the NN with SLL...", end=' ')
     sys.stdout.flush()
-    model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model="uniform", epsilon_init=epsilon_init)
+    model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
     history_sll_1 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=5e-2, verbose=False)
     history_sll_2 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
@@ -278,12 +299,73 @@ def run_experiment(random_state):
     print("Done.")
     sys.stdout.flush()
 
+    #____________________________________________________________________
+    ## Estimate T using the NN algorithm with general contamination
+    print("Estimating T using NN...", end=' ')
+    sys.stdout.flush()
+    X_torch  = torch.tensor(X, dtype=torch.float32)
+    X_test_torch = torch.tensor(X_test, dtype=torch.float32)
+    Y_obs_torch = torch.tensor(Y_obs, dtype=torch.long)
+    I_torch = torch.tensor(I, dtype=torch.long)
 
+    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model_="general", epsilon_init=epsilon_init)
+    history_1 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=5e-2, verbose=False)
+    history_2 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, verbose=False)
+    T_hat_NN = model_NN.contamination.contamination_matrix()
+    T_hat_NN = T_hat_NN.detach().numpy()
+
+    # predictions on test set
+    model_NN.eval()
+
+    with torch.no_grad():
+        dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
+        dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN.K)
+        logits_Y, _ = model_NN(X_test_torch, dummy_I, dummy_noise)
+
+    predicted_Y = logits_Y.argmax(dim=1)
+    Y_test_hat_NN = predicted_Y.numpy()
+
+    performances = evaluate_estimate(T, T_hat_NN, Y_test, Y_test_hat_NN, Yt_test, K, epsilon0=0)
+    res_update = header.copy()
+    res_update = res_update.assign(Method='NN',  **performances)
+    res_list.append(res_update)
+    print("Done.")
+    sys.stdout.flush()
+
+    #____________________________________________________________________
+    ## Estimate T using the NN algorithm with single linear layer with general contamination
+    print("Estimating T using the NN with SLL...", end=' ')
+    sys.stdout.flush()
+    model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
+    history_sll_1 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=5e-2, verbose=False)
+    history_sll_2 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, verbose=False)
+    T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
+    T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
+
+    # predictions on test set
+    model_NN_sll.eval()
+
+    with torch.no_grad():
+        dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
+        dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_sll.K)
+        logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
+
+    predicted_Y_sll = logits_Y_sll.argmax(dim=1)
+    Y_test_hat_NN_sll = predicted_Y_sll.numpy()
+
+    performances = evaluate_estimate(T, T_hat_NN_sll, Y_test, Y_test_hat_NN_sll, Yt_test, K, epsilon0=0)
+    res_update = header.copy()
+    res_update = res_update.assign(Method='NN SLL',  **performances)
+    res_list.append(res_update)
+    print("Done.")
+    sys.stdout.flush()
+
+    """
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with weighted loss
     print("Estimating T using NN with weighted loss...", end=' ')
     sys.stdout.flush()
-    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model="uniform", epsilon_init=epsilon_init)
+    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model_="uniform", epsilon_init=epsilon_init)
     history_w_1 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=5e-2, loss_type="weighted", verbose=False)
     history_w_2 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, loss_type="weighted", verbose=False)
     T_hat_NNw = model_NN.contamination.contamination_matrix()
@@ -311,7 +393,7 @@ def run_experiment(random_state):
     ## Estimate T using the NN algorithm with single linear layer with weighted loss
     print("Estimating T using the NN with SLL and weighted loss...", end=' ')
     sys.stdout.flush()
-    model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model="uniform", epsilon_init=epsilon_init)
+    model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
     history_sllw_1 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=5e-2, loss_type="weighted", verbose=False)
     history_sllw_2 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, loss_type="weighted", verbose=False)
     T_hat_NN_sllw = model_NN_sll.contamination.contamination_matrix()
@@ -334,13 +416,14 @@ def run_experiment(random_state):
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
+    """
 
     """
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with upweighted loss
     print("Estimating T using NN with upweighted loss...", end=' ')
     sys.stdout.flush()
-    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model="uniform", epsilon_init=epsilon_init)
+    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[32, 16], contamination_model_="uniform", epsilon_init=epsilon_init)
     history_uw_1 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, loss_type="upweighted", verbose=False)
     history_uw_2 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, loss_type="upweighted", verbose=False)
     T_hat_NNuw = model_NN.contamination.contamination_matrix()
@@ -368,7 +451,7 @@ def run_experiment(random_state):
     ## Estimate T using the NN algorithm with single linear layer with upweighted loss
     print("Estimating T using the NN with SLL and upweighted loss...", end=' ')
     sys.stdout.flush()
-    model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model="uniform", epsilon_init=epsilon_init)
+    model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
     history_slluw_1 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, loss_type="upweighted", verbose=False)
     history_slluw_2 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, loss_type="upweighted", verbose=False)
     T_hat_NN_slluw = model_NN_sll.contamination.contamination_matrix()
@@ -398,7 +481,7 @@ def run_experiment(random_state):
     ## Estimate T using the simplified NN algorithm
     print("Estimating T using an easier NN...", end=' ')
     sys.stdout.flush()
-    model_NN_easy = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16], contamination_model="uniform", epsilon_init=epsilon_init)
+    model_NN_easy = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16], contamination_model_="uniform", epsilon_init=epsilon_init)
     history_easy_1 = train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, verbose=False)
     history_easy_2 = train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN_easy = model_NN_easy.contamination.contamination_matrix()

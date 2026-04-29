@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=622
+CONF=625
 
 if [[ $CONF == 620 ]]; then
   DATA_LIST=("synthetic6")
@@ -23,8 +23,8 @@ elif [[ $CONF == 621 ]]; then
   N_LIST=(500 1000 2000 5000 10000 20000)
   N_CLEAN_LIST=(100 500 1000 5000)
   PI_CLEAN_LIST=(0)
-  RANDOM_FLAG_LIST=("true" "false")
-  EPSILON_LIST=(0.1)
+  RANDOM_FLAG_LIST=("false")
+  EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   SEED_LIST=$(seq 1 5)
@@ -35,10 +35,10 @@ elif [[ $CONF == 622 ]]; then
   K_LIST=(4)
   N_LIST=(500 1000 2000 5000 10000 20000)
   N_CLEAN_LIST=(0)
-  #PI_CLEAN_LIST=(0.1 0.2 0.5 0.8)
+  PI_CLEAN_LIST=(0.1 0.2 0.5 0.8)
   PI_CLEAN_LIST=(0.3 0.4)
   RANDOM_FLAG_LIST=("false")
-  EPSILON_LIST=(0.1)
+  EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   SEED_LIST=$(seq 1 5)
@@ -67,6 +67,19 @@ elif [[ $CONF == 624 ]]; then
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
+  SEED_LIST=$(seq 1 5)
+
+elif [[ $CONF == 625 ]]; then
+  DATA_LIST=("synthetic6")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  N_LIST=(500 1000 2000 5000 10000 20000)
+  N_CLEAN_LIST=(0)
+  PI_CLEAN_LIST=(0.5)
+  RANDOM_FLAG_LIST=("false")
+  EPSILON_LIST=(0.2)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("uniform" "mild" "asymmetric" "hard")
   SEED_LIST=$(seq 1 5)
 
 fi

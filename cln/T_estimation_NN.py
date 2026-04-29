@@ -118,15 +118,15 @@ class NoisyLabelNet(nn.Module):
 
     def __init__(self, input_dim: int, K: int,
                  hidden_dims: list[int] = [128, 64],
-                 contamination_model: str = "uniform",
+                 contamination_model_: str = "uniform",
                  epsilon_init: float = 0.5):
         super().__init__()
         self.K = K
 
         self.backbone = ClassifierBackbone(input_dim, K, hidden_dims)
-        if contamination_model=="uniform":
+        if contamination_model_=="uniform":
             self.contamination = RandomizedResponseLayer(K, epsilon_init)
-        elif contamination_model=="general":
+        elif contamination_model_=="general":
             self.contamination = GeneralContaminationLayer(K)
 
     def forward(self, X: torch.Tensor,
