@@ -3015,6 +3015,15 @@ make_figure_624b(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #' Plot performance as function of the number of training samples,
 #' changing the contamination model
 
+init_settings <- function(sll_flag=FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  method.values <<- c("EM", "NN", "NN SLL", "NN gen", "NN SLL gen", "softmax")
+  method.labels <<- c("EM", "NN", "NNs", "NN (gen)", "NNs (gen)", "softmax")
+  color.scale <<- cbPalette[c(2,4,3,5,6,7)]
+  shape.scale <<- c(0,3,7,4,5,6)
+  linetype.scale <<- c(1,1,1,1,1,1)
+  
+}
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -3028,7 +3037,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
   }))    
   summary <- results %>%
-    pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
+    pivot_longer(c("frobenius_d", "accuracy"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, contamination, epsilon, n, pi_clean, randflag, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
@@ -3057,7 +3066,7 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df$Mean[prova] <- NA
   
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
-  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+  #df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
   df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="EM")
   
@@ -3070,7 +3079,7 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
     facet_grid(Key~CONT, scales="free") +
     geom_hline(data=df.nominal_accuracy, aes(yintercept=Mean), linetype="dashed") +
-    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
+    #geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
     geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range_accuracy, aes(x=n, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
@@ -3100,7 +3109,7 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
 exp.num <- 625
 plot.epsilon <- 0.2
 plot.K <- 4
-plot.contamination <- c("uniform", "mild", "asymmetric", "hard")
+plot.contamination <- c("uniform", "mild", "asymmetric")
 plot.pi_clean <- 0.5
 plot.data <- "synthetic6"
 

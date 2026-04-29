@@ -299,6 +299,7 @@ def run_experiment(random_state):
     print("Done.")
     sys.stdout.flush()
 
+    """
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with general contamination
     print("Estimating T using NN with general contamination...", end=' ')
@@ -360,7 +361,6 @@ def run_experiment(random_state):
     print("Done.")
     sys.stdout.flush()
 
-    """
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with weighted loss
     print("Estimating T using NN with weighted loss...", end=' ')
