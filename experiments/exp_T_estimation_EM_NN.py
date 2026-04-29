@@ -327,7 +327,7 @@ def run_experiment(random_state):
 
     performances = evaluate_estimate(T, T_hat_NN, Y_test, Y_test_hat_NN, Yt_test, K, epsilon0=0)
     res_update = header.copy()
-    res_update = res_update.assign(Method='NN',  **performances)
+    res_update = res_update.assign(Method='NN gen',  **performances)
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
@@ -355,7 +355,7 @@ def run_experiment(random_state):
 
     performances = evaluate_estimate(T, T_hat_NN_sll, Y_test, Y_test_hat_NN_sll, Yt_test, K, epsilon0=0)
     res_update = header.copy()
-    res_update = res_update.assign(Method='NN SLL',  **performances)
+    res_update = res_update.assign(Method='NN SLL gen',  **performances)
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
