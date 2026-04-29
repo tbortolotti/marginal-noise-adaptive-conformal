@@ -476,13 +476,12 @@ def run_experiment(random_state):
     sys.stdout.flush()
     """
 
-    """
     #____________________________________________________________________
     ## Estimate T using the simplified NN algorithm
     print("Estimating T using an easier NN...", end=' ')
     sys.stdout.flush()
-    model_NN_easy = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16], contamination_model_="uniform", epsilon_init=epsilon_init)
-    history_easy_1 = train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-2, verbose=False)
+    model_NN_easy = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16, 8], contamination_model_="uniform", epsilon_init=epsilon_init)
+    history_easy_1 = train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=5e-2, verbose=False)
     history_easy_2 = train(model_NN_easy, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN_easy = model_NN_easy.contamination.contamination_matrix()
     T_hat_NN_easy = T_hat_NN_easy.detach().numpy()
@@ -504,7 +503,6 @@ def run_experiment(random_state):
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
-    """
 
     #____________________________________________________________________
     ## Fit classifier using contaminated data and check its accuracy
