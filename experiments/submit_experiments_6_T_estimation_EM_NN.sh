@@ -10,10 +10,10 @@ if [[ $CONF == 620 ]]; then
   N_LIST=(1000)
   N_CLEAN_LIST=(100)
   PI_CLEAN_LIST=(0)
-  RANDOM_FLAG_LIST=("true")
-  EPSILON_LIST=(0.1)
+  RANDOM_FLAG_LIST=("false")
+  EPSILON_LIST=(0.2)
   NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_LIST=("mild")
   SEED_LIST=(1)
 
 elif [[ $CONF == 621 ]]; then
