@@ -220,7 +220,7 @@ def run_experiment(random_state):
 
     #____________________________________________________________________
     ## Estimate T using the EM algorithm with general contamination model
-    print("Estimating T using EM algorithm...", end=' ')
+    print("Estimating T using EM algorithm with general contamination...", end=' ')
     sys.stdout.flush()
     X_intercept = np.hstack([np.ones((n, 1)), X])
     data = Dataset(X=X_intercept, Y_obs=Y_obs, I=I, K=K)
@@ -301,7 +301,7 @@ def run_experiment(random_state):
 
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with general contamination
-    print("Estimating T using NN...", end=' ')
+    print("Estimating T using NN with general contamination...", end=' ')
     sys.stdout.flush()
     X_torch  = torch.tensor(X, dtype=torch.float32)
     X_test_torch = torch.tensor(X_test, dtype=torch.float32)
@@ -334,7 +334,7 @@ def run_experiment(random_state):
 
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with single linear layer with general contamination
-    print("Estimating T using the NN with SLL...", end=' ')
+    print("Estimating T using the NN with SLL and general contamination...", end=' ')
     sys.stdout.flush()
     model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
     history_sll_1 = train(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=500, batch_size=128, lr=5e-2, verbose=False)
