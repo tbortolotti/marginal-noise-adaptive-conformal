@@ -32,7 +32,7 @@ num_var = 20
 K = 4
 n = 10000
 n_test = 2000
-n_clean = 100
+n_clean = 500
 pi_clean = 0.5
 random_flag = True
 model_name = 'RFC'
@@ -67,7 +67,7 @@ if True:
 
 # Define other constant parameters
 batch_size = 10
-epsilon_init = 0.5
+epsilon_init = 0
 n_test = 2000
 
 if n_clean == 0:

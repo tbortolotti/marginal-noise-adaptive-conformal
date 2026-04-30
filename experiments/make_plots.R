@@ -2438,67 +2438,66 @@ make_figure_611(exp.num=exp.num, plot.data=plot.data,
 
 
 ### Experiments 620: T estimation with NN and EM ------------------------
-init_settings <- function(sll_flag=FALSE) {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  
-  
-  # method.values <<- c("EM", "NN", "NN16", "NN SLL", "softmax")
-  # method.labels <<- c("EM", "NN", "NN (slim)", "NN (sll)","softmax")
-  if(sll_flag){
-    # method.values <<- c("EM", "NN SLL", "NNw SLL", "NNuw SLL", "softmax")
-    # method.labels <<- c("EM", "NNs", "NNs (weighted)", "NNs (upweighted)", "softmax")
-    # color.scale <<- cbPalette[c(2,3,8,9,7)]
-    # shape.scale <<- c(0,2,7,8,6)
-    # linetype.scale <<- c(1,1,1,1,1)
-    # method.values <<- c("EM", "NN SLL", "NNw SLL", "softmax")
-    # method.labels <<- c("EM", "NNs", "NNs (weighted)", "softmax")
-    # color.scale <<- cbPalette[c(2,3,8,7)]
-    # shape.scale <<- c(0,2,7,6)
-    # linetype.scale <<- c(1,1,1,1)
-    method.values <<- c("EM", "NN SLL", "softmax")
-    method.labels <<- c("EM", "NNs", "softmax")
-    color.scale <<- cbPalette[c(2,3,8,7)]
-    shape.scale <<- c(0,2,7,6)
-    linetype.scale <<- c(1,1,1,1)
-  } else {
-    # method.values <<- c("EM", "NN", "NNw", "NNuw", "softmax")
-    # method.labels <<- c("EM", "NN", "NN (weighted)", "NN (upweighted)", "softmax")
-    # color.scale <<- cbPalette[c(2,4,5,6,7)]
-    # shape.scale <<- c(0,3,4,5,6)
-    # linetype.scale <<- c(1,1,1,1,1)
-    
-    # method.values <<- c("EM", "NN", "NNw", "softmax")
-    # method.labels <<- c("EM", "NN", "NN (weighted)", "softmax")
-    # color.scale <<- cbPalette[c(2,4,5,7)]
-    # shape.scale <<- c(0,3,4,6)
-    # linetype.scale <<- c(1,1,1,1)
-    
-    method.values <<- c("EM", "NN", "softmax")
-    method.labels <<- c("EM", "NN", "softmax")
-    color.scale <<- cbPalette[c(2,4,7)]
-    shape.scale <<- c(0,3,6)
-    linetype.scale <<- c(1,1,1)
-  }
-  # method.values <<- c("EM", "NN", "NN SLL", "softmax")
-  # method.labels <<- c("EM", "NN", "NN (sll)","softmax")
-  
-  # method.values <<- c("EM", "NN")
-  # method.labels <<- c("EM", "NN")
-  
-  # color.scale <<- cbPalette[c(2,4,5,6,7)]
-  # shape.scale <<- c(0,3,4,5,6)
-  # linetype.scale <<- c(1,1,1,1,1)
-}
+# init_settings <- function(sll_flag=FALSE) {
+#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+#   
+#   
+#   # method.values <<- c("EM", "NN", "NN16", "NN SLL", "softmax")
+#   # method.labels <<- c("EM", "NN", "NN (slim)", "NN (sll)","softmax")
+#   if(sll_flag){
+#     # method.values <<- c("EM", "NN SLL", "NNw SLL", "NNuw SLL", "softmax")
+#     # method.labels <<- c("EM", "NNs", "NNs (weighted)", "NNs (upweighted)", "softmax")
+#     # color.scale <<- cbPalette[c(2,3,8,9,7)]
+#     # shape.scale <<- c(0,2,7,8,6)
+#     # linetype.scale <<- c(1,1,1,1,1)
+#     # method.values <<- c("EM", "NN SLL", "NNw SLL", "softmax")
+#     # method.labels <<- c("EM", "NNs", "NNs (weighted)", "softmax")
+#     # color.scale <<- cbPalette[c(2,3,8,7)]
+#     # shape.scale <<- c(0,2,7,6)
+#     # linetype.scale <<- c(1,1,1,1)
+#     method.values <<- c("EM", "NN SLL", "softmax")
+#     method.labels <<- c("EM", "NNs", "softmax")
+#     color.scale <<- cbPalette[c(2,3,8,7)]
+#     shape.scale <<- c(0,2,7,6)
+#     linetype.scale <<- c(1,1,1,1)
+#   } else {
+#     # method.values <<- c("EM", "NN", "NNw", "NNuw", "softmax")
+#     # method.labels <<- c("EM", "NN", "NN (weighted)", "NN (upweighted)", "softmax")
+#     # color.scale <<- cbPalette[c(2,4,5,6,7)]
+#     # shape.scale <<- c(0,3,4,5,6)
+#     # linetype.scale <<- c(1,1,1,1,1)
+#     
+#     # method.values <<- c("EM", "NN", "NNw", "softmax")
+#     # method.labels <<- c("EM", "NN", "NN (weighted)", "softmax")
+#     # color.scale <<- cbPalette[c(2,4,5,7)]
+#     # shape.scale <<- c(0,3,4,6)
+#     # linetype.scale <<- c(1,1,1,1)
+#     
+#     method.values <<- c("EM", "NN", "softmax")
+#     method.labels <<- c("EM", "NN", "softmax")
+#     color.scale <<- cbPalette[c(2,4,7)]
+#     shape.scale <<- c(0,3,6)
+#     linetype.scale <<- c(1,1,1)
+#   }
+#   # method.values <<- c("EM", "NN", "NN SLL", "softmax")
+#   # method.labels <<- c("EM", "NN", "NN (sll)","softmax")
+#   
+#   # method.values <<- c("EM", "NN")
+#   # method.labels <<- c("EM", "NN")
+#   
+#   # color.scale <<- cbPalette[c(2,4,5,6,7)]
+#   # shape.scale <<- c(0,3,4,5,6)
+#   # linetype.scale <<- c(1,1,1,1,1)
+# }
 
 
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("EM", "NN", "NN SLL", "softmax")
-  method.labels <<- c("EM", "NN", "NNs", "softmax")
-  color.scale <<- cbPalette[c(2,4,3,7)]
-  shape.scale <<- c(0,3,7,6)
-  linetype.scale <<- c(1,1,1,1)
-
+  method.values <<- c("EM", "NN", "NN SLL", "NN16", "softmax")
+  method.labels <<- c("EM", "NN", "NNs", "NN (simpl)", "softmax")
+  color.scale <<- cbPalette[c(2,4,3,5,7)]
+  shape.scale <<- c(0,3,7,4,6)
+  linetype.scale <<- c(1,1,1,1,1)
 }
 
 #### Experiment 621: Impact of size of clean data -----------------
