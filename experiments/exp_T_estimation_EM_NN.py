@@ -39,6 +39,7 @@ model_name = 'RFC'
 epsilon = 0.2
 nu = 0
 contamination_model = "uniform"
+contamination_exp_flag = False
 seed = 1
 
 # Parse input parameters
@@ -238,9 +239,10 @@ def run_experiment(random_state):
     model_NN.eval()
 
     with torch.no_grad():
-        dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
-        dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN.K)
-        logits_Y, _ = model_NN(X_test_torch, dummy_I, dummy_noise)
+        #dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
+        #dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN.K)
+        #logits_Y, _ = model_NN(X_test_torch, dummy_I, dummy_noise)
+        logits_Y, _ = model_NN(X_test_torch)
 
     predicted_Y = logits_Y.argmax(dim=1)
     Y_test_hat_NN = predicted_Y.numpy()
@@ -266,9 +268,11 @@ def run_experiment(random_state):
     model_NN_sll.eval()
 
     with torch.no_grad():
-        dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
-        dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_sll.K)
-        logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
+        #dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
+        #dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_sll.K)
+        #logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
+        logits_Y_sll, _ = model_NN_sll(X_test_torch)
+
 
     predicted_Y_sll = logits_Y_sll.argmax(dim=1)
     Y_test_hat_NN_sll = predicted_Y_sll.numpy()
@@ -295,9 +299,10 @@ def run_experiment(random_state):
     model_NN_easy.eval()
 
     with torch.no_grad():
-        dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
-        dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_easy.K)
-        logits_Y_easy, _ = model_NN_easy(X_test_torch, dummy_I, dummy_noise)
+        #dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
+        #dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_easy.K)
+        #logits_Y_easy, _ = model_NN_easy(X_test_torch, dummy_I, dummy_noise)
+        logits_Y_easy, _ = model_NN_easy(X_test_torch)
 
     predicted_Y_easy = logits_Y_easy.argmax(dim=1)
     Y_test_hat_NN_easy = predicted_Y_easy.numpy()
@@ -349,9 +354,10 @@ def run_experiment(random_state):
         model_NN.eval()
 
         with torch.no_grad():
-            dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
-            dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN.K)
-            logits_Y, _ = model_NN(X_test_torch, dummy_I, dummy_noise)
+            #dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
+            #dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN.K)
+            #logits_Y, _ = model_NN(X_test_torch, dummy_I, dummy_noise)
+            logits_Y, _ = model_NN(X_test_torch)
 
         predicted_Y = logits_Y.argmax(dim=1)
         Y_test_hat_NN = predicted_Y.numpy()
@@ -377,9 +383,10 @@ def run_experiment(random_state):
         model_NN_sll.eval()
 
         with torch.no_grad():
-            dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
-            dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_sll.K)
-            logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
+            #dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
+            #dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_sll.K)
+            #logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
+            logits_Y_sll, _ = model_NN_sll(X_test_torch)
 
         predicted_Y_sll = logits_Y_sll.argmax(dim=1)
         Y_test_hat_NN_sll = predicted_Y_sll.numpy()
