@@ -110,10 +110,7 @@ class NoisyLabelNet(nn.Module):
     Full model combining backbone + contamination layer.
 
     Forward pass:
-        X, I, noise -> (logits_Y, logits_Ytilde)
-
-    The noise is used as Gumbel noise for sampling from p_Y before passing through the contamination layer (straight-through Gumbel-Softmax).
-    The noise does NOT influence the backbone, only the Y -> Ỹ path.
+        X -> (logits_Y, logits_Ytilde)
     """
 
     def __init__(self, input_dim: int, K: int,
@@ -129,15 +126,10 @@ class NoisyLabelNet(nn.Module):
         elif contamination_model_=="general":
             self.contamination = GeneralContaminationLayer(K)
 
-    def forward(self, X: torch.Tensor,
-                I: torch.Tensor,
-                noise: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, X: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Args:
             X     : features, shape [batch, input_dim]
-            I     : indicator, shape [batch] — 1 if Y observed, 0 if Ỹ observed
-            noise : independent Gumbel noise, shape [batch, K]
-                    (generated externally; e.g. -log(-log(U)), U~Uniform(0,1))
         Returns:
             logits_Y      : logits for Y,  shape [batch, K]
             logits_Ytilde : logits for Ỹ, shape [batch, K]
@@ -233,13 +225,7 @@ def noisy_label_loss(logits_Y: torch.Tensor,
 # ---------------------------------------------------------------------------
 # Training loop
 # ---------------------------------------------------------------------------
-
-def sample_gumbel_noise(shape: tuple, device: torch.device) -> torch.Tensor:
-    """Samples Gumbel(0,1) noise: -log(-log(U)), U ~ Uniform(0,1)."""
-    U = torch.rand(shape, device=device).clamp(min=1e-8, max=1 - 1e-8)
-    return -torch.log(-torch.log(U))
-
-
+"""
 def train(model: NoisyLabelNet,
           X: torch.Tensor,
           obs_labels: torch.Tensor,
@@ -264,9 +250,7 @@ def train(model: NoisyLabelNet,
         total_loss = 0.0
 
         for X_batch, labels_batch, I_batch in loader:
-            noise = sample_gumbel_noise((X_batch.shape[0], model.K), device=X_batch.device)
-
-            logits_Y, logits_Ytilde = model(X_batch, I_batch, noise)
+            logits_Y, logits_Ytilde = model(X_batch)
             loss = noisy_label_loss(logits_Y, logits_Ytilde, labels_batch, I_batch, loss_type)
 
             optimizer.zero_grad()
@@ -285,5 +269,119 @@ def train(model: NoisyLabelNet,
 
         #history.append({"epoch": epoch + 1, "loss": avg_loss, "epsilon": eps_val})
         history.append({"epoch": epoch + 1, "loss": avg_loss})
+
+    return history
+"""
+
+def train(model: NoisyLabelNet,
+          X: torch.Tensor,
+          obs_labels: torch.Tensor,
+          I: torch.Tensor,
+          n_epochs: int = 100,
+          batch_size: int = 256,
+          lr: float = 1e-3,
+          device: str = "cpu",
+          loss_type: str = "equal",
+          verbose: bool = False) -> list[dict]:
+
+    model = model.to(device)
+    X, obs_labels, I = X.to(device), obs_labels.to(device), I.to(device)
+
+    # Split indices into clean (I==1) and noisy (I==0)
+    clean_idx = (I == 1).nonzero(as_tuple=True)[0]
+    noisy_idx = (I == 0).nonzero(as_tuple=True)[0]
+
+    # Separate optimizers for backbone and contamination layer
+    optimizer_backbone     = torch.optim.AdamW(model.backbone.parameters(), lr=lr)
+    optimizer_contamination = torch.optim.AdamW(model.contamination.parameters(), lr=lr)
+
+    # How many steps per epoch: driven by the larger of the two splits
+    steps_per_epoch = max(len(clean_idx), len(noisy_idx)) // batch_size + 1
+
+    history = []
+    for epoch in range(n_epochs):
+        model.train()
+        total_loss_clean = 0.0
+        total_loss_noisy = 0.0
+
+        # Shuffle split indices at the start of each epoch
+        clean_perm = clean_idx[torch.randperm(len(clean_idx), device=device)]
+        noisy_perm = noisy_idx[torch.randperm(len(noisy_idx), device=device)]
+
+        for step in range(steps_per_epoch):
+            # ----------------------------------------------------------------
+            # Phase 1: clean batch → update backbone only
+            # ----------------------------------------------------------------
+            # Cycle over clean indices if exhausted
+            start = (step * batch_size) % len(clean_perm)
+            end   = start + batch_size
+            if end > len(clean_perm):               # wrap around
+                batch_idx = torch.cat([clean_perm[start:], clean_perm[:end - len(clean_perm)]])
+            else:
+                batch_idx = clean_perm[start:end]
+
+            X_clean     = X[batch_idx]
+            labels_clean = obs_labels[batch_idx]
+            I_clean     = I[batch_idx]              # all ones, but kept for generality
+
+            # Freeze contamination, unfreeze backbone
+            for p in model.contamination.parameters():
+                p.requires_grad_(False)
+            for p in model.backbone.parameters():
+                p.requires_grad_(True)
+
+            logits_Y, logits_Ytilde = model(X_clean)
+            loss_clean = noisy_label_loss(logits_Y, logits_Ytilde, labels_clean, I_clean, loss_type)
+
+            optimizer_backbone.zero_grad()
+            loss_clean.backward()
+            optimizer_backbone.step()
+
+            # ----------------------------------------------------------------
+            # Phase 2: noisy batch → update contamination layer only
+            # ----------------------------------------------------------------
+            start = (step * batch_size) % len(noisy_perm)
+            end   = start + batch_size
+            if end > len(noisy_perm):
+                batch_idx = torch.cat([noisy_perm[start:], noisy_perm[:end - len(noisy_perm)]])
+            else:
+                batch_idx = noisy_perm[start:end]
+
+            X_noisy      = X[batch_idx]
+            labels_noisy = obs_labels[batch_idx]
+            I_noisy      = I[batch_idx]             # all zeros, but kept for generality
+
+            # Freeze backbone, unfreeze contamination
+            for p in model.backbone.parameters():
+                p.requires_grad_(False)
+            for p in model.contamination.parameters():
+                p.requires_grad_(True)
+
+            logits_Y, logits_Ytilde = model(X_noisy)
+            loss_noisy = noisy_label_loss(logits_Y, logits_Ytilde, labels_noisy, I_noisy, loss_type)
+
+            optimizer_contamination.zero_grad()
+            loss_noisy.backward()
+            optimizer_contamination.step()
+
+            total_loss_clean += loss_clean.item()
+            total_loss_noisy += loss_noisy.item()
+
+        avg_loss_clean = total_loss_clean / steps_per_epoch
+        avg_loss_noisy = total_loss_noisy / steps_per_epoch
+
+        if verbose and (epoch + 1) % 10 == 0:
+            print(f"Epoch {epoch+1:4d}/{n_epochs} | "
+                  f"loss_clean={avg_loss_clean:.4f} | "
+                  f"loss_noisy={avg_loss_noisy:.4f}")
+
+        history.append({"epoch": epoch + 1,
+                        "loss_clean": avg_loss_clean,
+                        "loss_noisy": avg_loss_noisy,
+        })
+
+    # Restore all gradients at the end
+    for p in model.parameters():
+        p.requires_grad_(True)
 
     return history

@@ -2587,8 +2587,8 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_K%d_%s.png",
-                         exp.num, plot.data, plot.K, plot.contamination)
+    plot.file <- sprintf("figures/exp%d_%s_K%d_%s_%s.png",
+                         exp.num, plot.data, plot.K, plot.contamination, plot.randflag)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
@@ -2610,7 +2610,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.sll_flag=FALSE,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
@@ -2618,7 +2618,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.sll_flag=FALSE,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 622: Impact of fraction of clean data -----------------
@@ -2627,6 +2627,15 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #' The clean observations are "easy observations"
 #' 
 
+init_settings <- function(sll_flag=FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  method.values <<- c("EM", "NN", "NN SLL", "NN16", "softmax")
+  method.labels <<- c("EM", "NN", "NNs", "NN (simpl)", "softmax")
+  color.scale <<- cbPalette[c(2,4,3,5,7)]
+  shape.scale <<- c(0,3,7,4,6)
+  linetype.scale <<- c(1,1,1,1,1)
+  
+}
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -2718,28 +2727,27 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
 }
 
 exp.num <- 622
-plot.epsilon <- 0.1
+plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.pi_clean <- c(0.1,0.2,0.5,0.8)
+plot.pi_clean <- c(0.1,0.2,0.3,0.5)
 plot.data <- "synthetic6"
 
-make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.pi_clean=plot.pi_clean,
-                plot.rand_flag=TRUE,
-                plot.contamination=plot.contamination,
-                plot.epsilon=plot.epsilon,
-                plot.sll_flag=FALSE,
-                save_plots=FALSE, reload=TRUE)
+# make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
+#                 plot.pi_clean=plot.pi_clean,
+#                 plot.rand_flag=TRUE,
+#                 plot.contamination=plot.contamination,
+#                 plot.epsilon=plot.epsilon,
+#                 plot.sll_flag=FALSE,
+#                 save_plots=FALSE, reload=TRUE)
 
-plot.pi_clean <- c(0.1,0.2,0.3,0.4,0.5)
 make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_clean=plot.pi_clean,
                 plot.rand_flag=FALSE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.sll_flag=FALSE,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 623: Impact of contamination strength -----------------
@@ -2993,7 +3001,7 @@ make_figure_624b <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_eps%s_picl%d_K%d_%s.png",
+    plot.file <- sprintf("figures/exp%d_eps%s_picl%s_K%d_%s.png",
                          exp.num, plot.epsilon, plot.pi_clean, plot.K, plot.contamination)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
@@ -3009,7 +3017,7 @@ make_figure_624b(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_clean=plot.pi_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 625: Different contamination model -----------------
 #' Plot performance as function of the number of training samples,
@@ -3017,11 +3025,11 @@ make_figure_624b(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("EM", "NN", "NN SLL", "NN gen", "NN SLL gen", "softmax")
-  method.labels <<- c("EM", "NN", "NNs", "NN (gen)", "NNs (gen)", "softmax")
-  color.scale <<- cbPalette[c(2,4,3,5,6,7)]
-  shape.scale <<- c(0,3,7,4,5,6)
-  linetype.scale <<- c(1,1,1,1,1,1)
+  method.values <<- c("EM", "EM gen", "NN", "NN SLL", "NN gen", "NN SLL gen", "softmax")
+  method.labels <<- c("EM", "EM (gen)", "NN", "NNs", "NN (gen)", "NNs (gen)", "softmax")
+  color.scale <<- cbPalette[c(2,9,4,3,5,6,7)]
+  shape.scale <<- c(0,9,3,7,4,5,6)
+  linetype.scale <<- c(1,1,1,1,1,1,1)
   
 }
 
@@ -3097,8 +3105,8 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_eps%s_picl%d_K%d_%s.png",
-                         exp.num, plot.epsilon, plot.pi_clean, plot.K, plot.contamination)
+    plot.file <- sprintf("figures/exp%d_eps%s_picl%s_K%d.png",
+                         exp.num, plot.epsilon, plot.pi_clean, plot.K)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
@@ -3117,7 +3125,7 @@ make_figure_625(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                  plot.pi_clean=plot.pi_clean,
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon,
-                 save_plots=FALSE, reload=TRUE)
+                 save_plots=TRUE, reload=TRUE)
 
 ### Experiments 700: Using the estimated T in the adaptive algorithm ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {

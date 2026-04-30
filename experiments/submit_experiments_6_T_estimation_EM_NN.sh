@@ -14,6 +14,7 @@ if [[ $CONF == 620 ]]; then
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("mild")
+  CONTAMINATION_FLAG="false"
   SEED_LIST=(1)
 
 elif [[ $CONF == 621 ]]; then
@@ -27,6 +28,7 @@ elif [[ $CONF == 621 ]]; then
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_FLAG="false"
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 622 ]]; then
@@ -40,6 +42,7 @@ elif [[ $CONF == 622 ]]; then
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_FLAG="false"
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 623 ]]; then
@@ -53,6 +56,7 @@ elif [[ $CONF == 623 ]]; then
   EPSILON_LIST=(0 0.05 0.1 0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_FLAG="false"
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 624 ]]; then
@@ -66,6 +70,7 @@ elif [[ $CONF == 624 ]]; then
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_FLAG="false"
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 625 ]]; then
@@ -79,6 +84,7 @@ elif [[ $CONF == 625 ]]; then
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform" "mild" "asymmetric" "hard")
+  CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=$(seq 1 5)
 
 fi
@@ -124,7 +130,7 @@ for SEED in $SEED_LIST; do
 
                       if [[ $COMPLETE -eq 0 ]]; then
                         # Script to be run
-                        SCRIPT="exp_T_estimation_EM_NN.sh $CONF $DATA $NUM_VAR $K $N $N_CLEAN $PI_CLEAN $RANDOM_FLAG $EPSILON $NU $CONTAMINATION $SEED"
+                        SCRIPT="exp_T_estimation_EM_NN.sh $CONF $DATA $NUM_VAR $K $N $N_CLEAN $PI_CLEAN $RANDOM_FLAG $EPSILON $NU $CONTAMINATION $CONTAMINATION_EXP_FLAG $SEED"
                         # Define job name
                         OUTF=$LOGS"/"$JOBN".out"
                         ERRF=$LOGS"/"$JOBN".err"
