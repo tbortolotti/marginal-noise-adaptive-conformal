@@ -2491,13 +2491,37 @@ make_figure_611(exp.num=exp.num, plot.data=plot.data,
 # }
 
 
+# init_settings <- function(sll_flag=FALSE) {
+#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+#   method.values <<- c("EM", "NN", "NN SLL", "NN16", "softmax")
+#   method.labels <<- c("EM", "NN", "NNs", "NN (simpl)", "softmax")
+#   color.scale <<- cbPalette[c(2,4,3,5,7)]
+#   shape.scale <<- c(0,3,7,4,6)
+#   linetype.scale <<- c(1,1,1,1,1)
+# }
+
+
+# init_settings <- function(sll_flag=FALSE) {
+#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+#   method.values <<- c("EM", "NN SLL", "NN SLL alt", "NN SLL ems",
+#                       "NN SLL ems lbfgs", "NN ems lbfgs", "softmax")
+#   method.labels <<- c("EM", "NNs", "NNs (alt)", "NNs (EMs)",
+#                       "NNs (EMs lbfgs)", "NN (EMs lbfgs)", "softmax")
+#   color.scale <<- cbPalette[c(2,4,3,5,7,8,9)]
+#   shape.scale <<- c(0,3,7,4,6,8,9)
+#   linetype.scale <<- c(1,1,1,1,1,1,1)
+# }
+
+
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("EM", "NN", "NN SLL", "NN16", "softmax")
-  method.labels <<- c("EM", "NN", "NNs", "NN (simpl)", "softmax")
-  color.scale <<- cbPalette[c(2,4,3,5,7)]
-  shape.scale <<- c(0,3,7,4,6)
-  linetype.scale <<- c(1,1,1,1,1)
+  method.values <<- c("EM", "NN SLL", "NN SLL alt", "NN SLL ems",
+                      "NN SLL ems lbfgs", "softmax")
+  method.labels <<- c("EM", "NNs", "NNs (alt)", "NNs (EMs)",
+                      "NNs (EMs lbfgs)", "softmax")
+  color.scale <<- cbPalette[c(2,4,3,5,7,8,9)]
+  shape.scale <<- c(0,3,7,4,6,8,9)
+  linetype.scale <<- c(1,1,1,1,1,1,1)
 }
 
 #### Experiment 621: Impact of size of clean data -----------------
@@ -2596,20 +2620,20 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
 }
 
 exp.num <- 621
-plot.epsilon <- 0.1
+plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.n_clean <- c(100,500,1000,5000)
+plot.n_clean <- c(100,500,1000)
 #plot.n_clean <- c(1000,5000,10000,20000)
 plot.data <- "synthetic6"
 
-make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.n_clean=plot.n_clean,
-                plot.randflag=TRUE,
-                plot.contamination=plot.contamination,
-                plot.epsilon=plot.epsilon,
-                plot.sll_flag=FALSE,
-                save_plots=TRUE, reload=TRUE)
+# make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
+#                 plot.n_clean=plot.n_clean,
+#                 plot.randflag=TRUE,
+#                 plot.contamination=plot.contamination,
+#                 plot.epsilon=plot.epsilon,
+#                 plot.sll_flag=FALSE,
+#                 save_plots=FALSE, reload=TRUE)
 
 make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
@@ -2617,7 +2641,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.sll_flag=FALSE,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 #### Experiment 622: Impact of fraction of clean data -----------------
@@ -2875,7 +2899,7 @@ make_figure_624 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
-  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="NN")
+  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="NNs")
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%

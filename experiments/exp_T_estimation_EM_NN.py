@@ -22,7 +22,7 @@ from cln import data
 from cln import contamination
 from cln.T_estimation_EM import Dataset, run_em, predict
 from cln.T_estimation_NN import NoisyLabelNet, train, train_alternate, train_em_style
-from cln.T_estimation_EM_NN import run_em_nn
+#from cln.T_estimation_EM_NN import run_em_nn
 #from cln.T_estimation_NN import NoisyLabelNet, train
 from cln.T_estimation import evaluate_estimate
 
@@ -304,11 +304,7 @@ def run_experiment(random_state):
     model_NN_sll.eval()
 
     with torch.no_grad():
-        #dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
-        #dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_sll.K)
-        #logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
         logits_Y_sll, _ = model_NN_sll(X_test_torch)
-
 
     predicted_Y_sll = logits_Y_sll.argmax(dim=1)
     Y_test_hat_NN_sll = predicted_Y_sll.numpy()
@@ -316,6 +312,34 @@ def run_experiment(random_state):
     performances = evaluate_estimate(T, T_hat_NN_sll, Y_test, Y_test_hat_NN_sll, Yt_test, K, epsilon0=0)
     res_update = header.copy()
     res_update = res_update.assign(Method='NN SLL', n=n, **performances)
+    res_list.append(res_update)
+    print("Done.")
+    sys.stdout.flush()
+
+
+    #____________________________________________________________________
+    ## Estimate T using the NN algorithm
+    print("Estimating T using the NN...", end=' ')
+    sys.stdout.flush()
+    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
+    history_1 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=100, batch_size=128, lr=5e-2, verbose=False)
+    history_2 = train(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=100, batch_size=128, lr=1e-3, verbose=False)
+
+    T_hat_NN = model_NN.contamination.contamination_matrix()
+    T_hat_NN = T_hat_NN.detach().numpy()
+
+    # predictions on test set
+    model_NN.eval()
+
+    with torch.no_grad():
+        logits_Y, _ = model_NN(X_test_torch)
+
+    predicted_Y = logits_Y.argmax(dim=1)
+    Y_test_hat_NN = predicted_Y.numpy()
+
+    performances = evaluate_estimate(T, T_hat_NN, Y_test, Y_test_hat_NN, Yt_test, K, epsilon0=0)
+    res_update = header.copy()
+    res_update = res_update.assign(Method='NN', n=n, **performances)
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
@@ -335,9 +359,6 @@ def run_experiment(random_state):
     model_NN_sll_alt.eval()
 
     with torch.no_grad():
-        #dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
-        #dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_sll.K)
-        #logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
         logits_Y_sll_alt, _ = model_NN_sll_alt(X_test_torch)
 
 
@@ -347,6 +368,35 @@ def run_experiment(random_state):
     performances = evaluate_estimate(T, T_hat_NN_sll_alt, Y_test, Y_test_hat_NN_sll_alt, Yt_test, K, epsilon0=0)
     res_update = header.copy()
     res_update = res_update.assign(Method='NN SLL alt', n=n, **performances)
+    res_list.append(res_update)
+    print("Done.")
+    sys.stdout.flush()
+
+
+    #____________________________________________________________________
+    ## Estimate T using the NN and alternate training
+    print("Estimating T using the NN and alt train...", end=' ')
+    sys.stdout.flush()
+    model_NN_alt = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
+    history_alt = train_alternate(model_NN_alt, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+    history_alt = train_alternate(model_NN_alt, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+
+    T_hat_NN_alt = model_NN_alt.contamination.contamination_matrix()
+    T_hat_NN_alt = T_hat_NN_alt.detach().numpy()
+
+    # predictions on test set
+    model_NN_alt.eval()
+
+    with torch.no_grad():
+        logits_Y_alt, _ = model_NN_alt(X_test_torch)
+
+
+    predicted_Y_alt = logits_Y_alt.argmax(dim=1)
+    Y_test_hat_NN_alt = predicted_Y_alt.numpy()
+
+    performances = evaluate_estimate(T, T_hat_NN_alt, Y_test, Y_test_hat_NN_alt, Yt_test, K, epsilon0=0)
+    res_update = header.copy()
+    res_update = res_update.assign(Method='NN alt', n=n, **performances)
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
@@ -373,9 +423,6 @@ def run_experiment(random_state):
     model_NN_sll_ems.eval()
 
     with torch.no_grad():
-        #dummy_I     = torch.zeros(X_test_torch.shape[0], dtype=torch.long)
-        #dummy_noise = torch.zeros(X_test_torch.shape[0], model_NN_sll.K)
-        #logits_Y_sll, _ = model_NN_sll(X_test_torch, dummy_I, dummy_noise)
         logits_Y_sll_ems, _ = model_NN_sll_ems(X_test_torch)
 
 
@@ -390,6 +437,41 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
 
+        #____________________________________________________________________
+    ## Estimate T using the NN with SLL and EM-style training
+    print("Estimating T using the NN with SLL and EM-style train...", end=' ')
+    sys.stdout.flush()
+    model_NN_ems = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
+    history_ems = train_em_style(model_NN_ems, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128,
+                                     lr_backbone=5e-2,
+                                     use_closed_form_cont=True,
+                                     verbose=False)
+    history_ems = train_em_style(model_NN_ems, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128,
+                                     lr_backbone=1e-3,
+                                     use_closed_form_cont=True,
+                                     verbose=False)
+
+    T_hat_NN_ems = model_NN_ems.contamination.contamination_matrix()
+    T_hat_NN_ems = T_hat_NN_ems.detach().numpy()
+
+    # predictions on test set
+    model_NN_ems.eval()
+
+    with torch.no_grad():
+        logits_Y_ems, _ = model_NN_ems(X_test_torch)
+
+
+    predicted_Y_ems = logits_Y_ems.argmax(dim=1)
+    Y_test_hat_NN_ems = predicted_Y_ems.numpy()
+
+    performances = evaluate_estimate(T, T_hat_NN_ems, Y_test, Y_test_hat_NN_ems, Yt_test, K, epsilon0=0)
+    res_update = header.copy()
+    res_update = res_update.assign(Method='NN ems', n=n, **performances)
+    res_list.append(res_update)
+    print("Done.")
+    sys.stdout.flush()
+
+    """
     #____________________________________________________________________
     ## Estimate T using the NN with SLL and EM-style training
     print("Estimating T using the NN with SLL and EM-style train and lbfgs full batch...", end=' ')
@@ -454,6 +536,7 @@ def run_experiment(random_state):
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
+    """
 
 
     """
