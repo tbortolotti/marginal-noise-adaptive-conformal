@@ -2746,7 +2746,7 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.sll_flag=FALSE,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 #### Experiment 623: Impact of contamination strength -----------------

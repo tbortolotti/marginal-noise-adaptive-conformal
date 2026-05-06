@@ -78,7 +78,7 @@ def e_step(
     log_gamma -= log_gamma.max(axis=1, keepdims=True)  # numerical stability
     gamma = np.exp(log_gamma)
     gamma /= gamma.sum(axis=1, keepdims=True)
-    return gamma                                  # (n_c, K)
+    return gamma
 
 
 # ---------------------------------------------------------------------------

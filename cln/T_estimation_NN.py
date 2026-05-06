@@ -20,7 +20,7 @@ class RandomizedResponseLayer(nn.Module):
         super().__init__()
         self.K = K
         # Parametrize epsilon via logit so that sigma(logit_eps) in (0,1)
-        logit_init = torch.tensor(epsilon_init).logit()
+        logit_init = torch.tensor(epsilon_init).clamp(1e-6, 1 - 1e-6).logit()
         self.logit_epsilon = nn.Parameter(logit_init)
 
     @property
@@ -58,6 +58,28 @@ class RandomizedResponseLayer(nn.Module):
         return p_Ytilde
     
 
+    # ------------------------------------------------------------------
+    # Closed-form M-step for the RR model (mirrors EM eq. M-eps)
+    # ------------------------------------------------------------------
+    @torch.no_grad()
+    def closed_form_update(self, gamma: torch.Tensor,
+                           Y_tilde: torch.Tensor,
+                           eps_bounds: tuple = (1e-6, 1.0 - 1e-6)):
+        """
+        gamma   : (n_c, K)  responsibilities computed in the E-step
+        Y_tilde : (n_c,)    contaminated labels (long, 0-indexed)
+
+        Closed-form update (from EM M-step for epsilon):
+            eps* = K/(K-1) * (1 - mean_i gamma[i, Y~_i])
+        """
+        K = self.K
+        diag_weight = gamma[torch.arange(len(Y_tilde)), Y_tilde].mean().item()
+        eps_new = (K / (K - 1)) * (1.0 - diag_weight)
+        eps_new = float(np.clip(eps_new, *eps_bounds))
+        # Back-solve: eps_new = sigmoid(phi)  =>  phi = logit(eps_new)
+        self.logit_epsilon.data = torch.tensor(eps_new).logit()
+    
+
 class GeneralContaminationLayer(nn.Module):
 
     def __init__(self, K: int):
@@ -75,6 +97,35 @@ class GeneralContaminationLayer(nn.Module):
     def forward(self, p_Y: torch.Tensor) -> torch.Tensor:
         T = self.contamination_matrix()
         return p_Y @ T.t()                  # [batch, K]
+    
+
+    # ------------------------------------------------------------------
+    # Closed-form M-step for general T (mirrors EM remark on general T)
+    # ------------------------------------------------------------------
+    @torch.no_grad()
+    def closed_form_update(self, gamma: torch.Tensor,
+                           Y_tilde: torch.Tensor,
+                           floor: float = 1e-8):
+        """
+        Aggregated responsibility matrix:
+            N[k, l] = sum_{i : Y~_i = k}  gamma[i, l]
+
+        Closed-form column update:
+            T[:, l] = N[:, l] / sum_k N[k, l]
+
+        We set Psi so that softmax(Psi, dim=0) recovers T_new,
+        i.e. Psi[:, l] = log(T_new[:, l])  (up to a constant).
+        """
+        K = self.K
+        N = torch.zeros(K, K, device=gamma.device)
+        N.index_add_(0, Y_tilde, gamma)       # N[Y~_i, :] += gamma[i, :]
+
+        col_sums = N.sum(dim=0, keepdim=True).clamp(min=1e-12)
+        T_new = (N / col_sums).clamp(min=floor)
+        T_new = T_new / T_new.sum(dim=0, keepdim=True)  # renormalise
+
+        # Recover Psi such that softmax(Psi, dim=0) = T_new
+        self.Psi.data = torch.log(T_new)
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +276,6 @@ def noisy_label_loss(logits_Y: torch.Tensor,
 # ---------------------------------------------------------------------------
 # Training loop
 # ---------------------------------------------------------------------------
-"""
 def train(model: NoisyLabelNet,
           X: torch.Tensor,
           obs_labels: torch.Tensor,
@@ -271,8 +321,395 @@ def train(model: NoisyLabelNet,
         history.append({"epoch": epoch + 1, "loss": avg_loss})
 
     return history
-"""
 
+
+# ---------------------------------------------------------------------------
+# Alternate training loop
+# 1. Freeze contamination, run several gradient steps on backbone
+# 2. Freeze backbone, run several gradient steps on contamination
+# ---------------------------------------------------------------------------
+
+def train_alternate(model: NoisyLabelNet,
+                    X: torch.Tensor,
+                    obs_labels: torch.Tensor,
+                    I: torch.Tensor,
+                    n_epochs: int = 100,
+                    n_grad_steps: int = 50,
+                    batch_size: int = 256,
+                    lr: float = 1e-3,
+                    device: str = "cpu",
+                    loss_type: str = "equal",
+                    verbose: bool = False) -> list[dict]:
+
+    model = model.to(device)
+    X, obs_labels, I = X.to(device), obs_labels.to(device), I.to(device)
+
+    cont_mask  = (I == 0)
+    X_cont  = X[cont_mask]
+    I_cont = I[cont_mask]
+    obs_labels_cont = obs_labels[cont_mask]
+
+    optimizer_backbone      = torch.optim.AdamW(model.backbone.parameters(), lr=lr)
+    optimizer_contamination = torch.optim.AdamW(model.contamination.parameters(), lr=lr)
+
+    dataset = TensorDataset(X, obs_labels, I)
+    history = []
+
+    for epoch in range(n_epochs):
+        model.train()
+        total_loss_1 = 0.0
+        total_loss_2 = 0.0
+
+        # ------------------------------------------------------------------
+        # Phase 1: freeze contamination, update backbone
+        # ------------------------------------------------------------------
+        for p in model.backbone.parameters():
+            p.requires_grad_(True)
+        for p in model.contamination.parameters():
+            p.requires_grad_(False)
+
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        step = 0
+        while step < n_grad_steps:
+            for X_batch, labels_batch, I_batch in loader:
+                logits_Y, logits_Ytilde = model(X_batch)
+                loss = noisy_label_loss(logits_Y, logits_Ytilde,
+                                        labels_batch, I_batch, loss_type)
+                optimizer_backbone.zero_grad()
+                loss.backward()
+                optimizer_backbone.step()
+                total_loss_1 += loss.item()
+                step += 1
+                if step >= n_grad_steps:
+                    break
+
+        # ------------------------------------------------------------------
+        # Phase 2: freeze backbone, update contamination
+        # ------------------------------------------------------------------
+        for p in model.backbone.parameters():
+            p.requires_grad_(False)
+        for p in model.contamination.parameters():
+            p.requires_grad_(True)
+
+        cont_dataset = TensorDataset(X_cont, obs_labels_cont, I_cont)
+        cont_loader  = DataLoader(cont_dataset, batch_size=batch_size, shuffle=True)
+
+        step = 0
+        for _ in range(n_grad_steps):
+            for X_batch, labels_batch, I_batch in cont_loader:
+                logits_Y, logits_Ytilde = model(X_batch)
+                loss = noisy_label_loss(logits_Y, logits_Ytilde,
+                                        labels_batch, I_batch, loss_type)
+                optimizer_contamination.zero_grad()
+                loss.backward()
+                optimizer_contamination.step()
+                step += 1
+                if step >= n_grad_steps:
+                    break
+
+        # Restore all gradients
+        for p in model.parameters():
+            p.requires_grad_(True)
+
+        if verbose and (epoch + 1) % 10 == 0:
+            print(f"Epoch {epoch+1:4d}/{n_epochs} | "
+                  f"loss_backbone={total_loss_1:.4f} | "
+                  f"loss_cont={total_loss_2:.4f}")
+
+        history.append({"epoch": epoch + 1,
+                        "loss_backbone": total_loss_1,
+                        "loss_cont": total_loss_2})
+
+    return history
+
+
+
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# EM-style Alternating Training of the NN
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# E-step  (computes soft responsibilities — no gradient)
+# ---------------------------------------------------------------------------
+
+@torch.no_grad()
+def e_step_nn(
+    model: NoisyLabelNet,
+    X_cont: torch.Tensor,    # (n_c, d)
+    Y_tilde: torch.Tensor,   # (n_c,)  contaminated labels, long
+) -> torch.Tensor:
+    """
+    Compute responsibilities in PyTorch, mirroring the EM E-step:
+
+        gamma[i, l]  proportional to  T[Y~_i, l] * p_l(X_i; theta)
+
+    Returns gamma of shape (n_c, K), no gradient.
+    """
+    model.eval()
+    logits_Y = model.backbone(X_cont)          # (n_c, K)
+    log_p    = F.log_softmax(logits_Y, dim=1)  # (n_c, K)
+
+    T        = model.contamination.contamination_matrix()   # (K, K)
+    log_T    = torch.log(T[Y_tilde, :] + 1e-12)            # (n_c, K)
+
+    log_gamma = log_p + log_T
+    log_gamma = log_gamma - log_gamma.max(dim=1, keepdim=True).values
+    gamma     = torch.exp(log_gamma)
+    gamma     = gamma / gamma.sum(dim=1, keepdim=True)
+    return gamma   # (n_c, K), detached
+
+
+# ---------------------------------------------------------------------------
+# M-step for backbone: soft CE loss with frozen contamination
+# ---------------------------------------------------------------------------
+
+def backbone_loss(
+    model: NoisyLabelNet,
+    X_batch: torch.Tensor,
+    labels_batch: torch.Tensor,
+    I_batch: torch.Tensor,
+    gamma_batch: torch.Tensor,   # same size as batch, zeros for clean
+) -> torch.Tensor:
+
+    logits = model.backbone(X_batch)
+    log_p  = F.log_softmax(logits, dim=1)
+
+    I_bool = I_batch.bool()
+
+    loss = torch.tensor(0.0, device=X_batch.device)
+
+    # Clean part (standard CE)
+    if I_bool.any():
+        loss_clean = F.cross_entropy(
+            logits[I_bool],
+            labels_batch[I_bool],
+            reduction='mean'
+        )
+        loss = loss + loss_clean
+
+    # Contaminated part (soft CE)
+    if (~I_bool).any():
+        soft_ce = -(gamma_batch[~I_bool] * log_p[~I_bool]).sum(dim=1).mean()
+        loss = loss + soft_ce
+
+    return loss
+
+
+# ---------------------------------------------------------------------------
+# EM-style alternating training loop
+# ---------------------------------------------------------------------------
+
+def train_em_style(
+    model: NoisyLabelNet,
+    X: torch.Tensor,
+    obs_labels: torch.Tensor,
+    I: torch.Tensor,
+    n_epochs: int = 100,
+    optimizer_name: str = "adam",
+    # Number of gradient steps on the backbone per EM iteration.
+    # Mimics the inner L-BFGS convergence of the EM M-step.
+    n_backbone_steps: int = 50,
+    # Number of gradient steps on the contamination layer per EM iteration
+    # (only used when closed-form update is disabled).
+    n_grad_steps: int = 10,
+    batch_size: int = 256,
+    lr_backbone: float = 1e-3,
+    lr_cont: float = 1e-2,
+    # If True, use the analytical closed-form update for the contamination
+    # layer (exact EM M-step). If False, use gradient steps instead.
+    use_closed_form_cont: bool = True,
+    device: str = "cpu",
+    verbose: bool = True,
+) -> list[dict]:
+    """
+    EM-style alternating training for NoisyLabelNet.
+
+    Each "epoch" corresponds to one EM iteration:
+
+        1. E-step  : compute soft responsibilities gamma for contaminated
+                     samples using current (theta, T). No gradient.
+        2. M-step backbone : freeze contamination, take n_backbone_steps
+                     gradient steps minimising backbone_loss(theta; gamma).
+                     This optimises the Q-function w.r.t. theta exactly as
+                     the EM M-step for beta does.
+        3. M-step T: freeze backbone.
+                     - If use_closed_form_cont=True: apply the closed-form
+                       update (identical to the EM M-step for epsilon/T).
+                     - Otherwise: take n_grad_steps gradient steps on the
+                       contamination layer parameters.
+
+    Key difference from joint SGD
+    --------------------------------
+    In joint training, theta and phi are updated simultaneously on every
+    mini-batch, so the contamination layer never sees a coherent set of
+    responsibilities. Here, gamma is recomputed once per epoch (E-step)
+    and then held fixed while each parameter group is updated in turn,
+    exactly mirroring the EM's alternating maximisation.
+    """
+    model = model.to(device)
+    X, obs_labels, I = X.to(device), obs_labels.to(device), I.to(device)
+
+    clean_mask = (I == 1)
+    cont_mask  = (I == 0)
+
+    X_clean = X[clean_mask]
+    Y_clean = obs_labels[clean_mask]
+    X_cont  = X[cont_mask]
+    Y_tilde = obs_labels[cont_mask]
+
+    # Separate optimizers — only parameters of the respective module are updated
+    if optimizer_name == "adam":
+        optimizer_backbone = torch.optim.Adam(
+            model.backbone.parameters(), lr=lr_backbone
+        )
+    elif optimizer_name == "lbfgs":
+        optimizer_backbone = torch.optim.LBFGS(
+            model.backbone.parameters(),
+            lr=lr_backbone,
+            max_iter=n_backbone_steps,
+            history_size=10,
+            line_search_fn="strong_wolfe",
+        )
+    else:
+        raise ValueError("optimizer_name must be 'adam' or 'lbfgs'")
+
+    optimizer_contamination = torch.optim.Adam(model.contamination.parameters(), lr=lr_cont)
+
+    history = []
+
+    for epoch in range(n_epochs):
+
+        # ==================================================================
+        # E-step: compute responsibilities (no gradient, full dataset)
+        # ==================================================================
+        gamma = e_step_nn(model, X_cont, Y_tilde)   # (n_c, K), detached
+
+        # Build full gamma tensor aligned with X
+        gamma_full = torch.zeros(X.shape[0], model.K, device=X.device)
+        gamma_full[cont_mask] = gamma
+
+        # ==================================================================
+        # M-step 1: update backbone with contamination frozen
+        # ==================================================================
+        for p in model.contamination.parameters():
+            p.requires_grad_(False)
+        for p in model.backbone.parameters():
+            p.requires_grad_(True)
+
+        model.train()
+        #last_loss = float("nan")
+
+        if optimizer_name == "adam":
+            # Mini-batch
+            dataset = TensorDataset(X, obs_labels, I, gamma_full)
+            loader  = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+
+            step = 0
+            for _ in range(n_backbone_steps):
+                for X_b, y_b, I_b, g_b in loader:
+
+                    loss = backbone_loss(model, X_b, y_b, I_b, g_b)
+
+                    optimizer_backbone.zero_grad()
+                    loss.backward()
+                    optimizer_backbone.step()
+
+                    step += 1
+                    if step >= n_backbone_steps:
+                        break
+                if step >= n_backbone_steps:
+                    break
+
+        elif optimizer_name == "lbfgs":
+            # Full batch
+            def closure():
+                optimizer_backbone.zero_grad()
+                loss = backbone_loss(model, X, obs_labels, I, gamma_full)
+                loss.backward()
+                return loss
+
+            for _ in range(n_backbone_steps):
+                optimizer_backbone.step(closure)
+
+        # ==================================================================
+        # M-step 2: update contamination with backbone frozen
+        # ==================================================================
+        for p in model.backbone.parameters():
+            p.requires_grad_(False)
+        for p in model.contamination.parameters():
+            p.requires_grad_(True)
+
+        if use_closed_form_cont:
+            # Exact EM update — no gradient needed
+            model.contamination.closed_form_update(gamma, Y_tilde)
+        else:
+            # Gradient-based fallback (useful when extending to more complex T)
+            model.train()
+            for _ in range(n_grad_steps):
+                logits_Y  = model.backbone(X_cont)
+                p_Y       = F.softmax(logits_Y, dim=-1).detach()  # backbone frozen
+                p_Ytilde  = model.contamination(p_Y)              # (n_c, K)
+
+                T         = model.contamination.contamination_matrix()  # (K, K)
+                log_T_row = torch.log(T[Y_tilde, :] + 1e-12)           # (n_c, K)
+
+                # Q-function w.r.t. T: sum_{i,l} gamma[i,l] * log T[Y~_i, l]
+                q_T = (gamma * log_T_row).sum()
+                loss_cont = -q_T / len(Y_tilde)
+
+                optimizer_contamination.zero_grad()
+                loss_cont.backward()
+                optimizer_contamination.step()
+
+        # Restore all grads for monitoring
+        for p in model.parameters():
+            p.requires_grad_(True)
+
+        # ==================================================================
+        # Diagnostics
+        # ==================================================================
+        with torch.no_grad():
+            model.eval()
+            # Observed log-likelihood (contaminated part)
+            ll_clean = 0.0
+            if len(X_clean):
+                logits_cl = model.backbone(X_clean)
+                ll_clean  = -F.cross_entropy(logits_cl, Y_clean).item()
+
+            ll_cont = 0.0
+            if len(X_cont):
+                logits_co = model.backbone(X_cont)
+                p_co      = F.softmax(logits_co, dim=-1)
+                T         = model.contamination.contamination_matrix()
+                marginal  = (T[Y_tilde, :] * p_co).sum(dim=1).clamp(min=1e-12)
+                ll_cont   = marginal.log().mean().item()
+
+            eps_val = model.epsilon
+
+        record = {
+            "epoch":    epoch + 1,
+            "ll_clean": ll_clean,
+            "ll_cont":  ll_cont,
+            "epsilon":  eps_val,
+        }
+        history.append(record)
+
+        if verbose and (epoch + 1) % 10 == 0:
+            print(f"Epoch {epoch+1:4d}/{n_epochs} | "
+                  f"ll_clean={ll_clean:.4f} | ll_cont={ll_cont:.4f} | "
+                  f"ε={eps_val:.4f}")
+
+    return history
+
+
+# ---------------------------------------------------------------------------
+# NOTES (code that'll probably be discarded)
+# ---------------------------------------------------------------------------
+
+
+"""
 def train(model: NoisyLabelNet,
           X: torch.Tensor,
           obs_labels: torch.Tensor,
@@ -385,3 +822,4 @@ def train(model: NoisyLabelNet,
         p.requires_grad_(True)
 
     return history
+"""
