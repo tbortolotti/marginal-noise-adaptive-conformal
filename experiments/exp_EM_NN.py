@@ -251,6 +251,8 @@ def run_experiment(random_state):
     data = Dataset(X=X_intercept, Y_obs=Yt_train, I=I_train, K=K)
     result_EM = run_em(data, contamination_model_="uniform", eps_init=epsilon_init, max_iter=100, tol=1e-7, verbose=False)
     T_hat_EM = result_EM.T
+    print("Done.")
+    sys.stdout.flush()
 
 
     #____________________________________________________________________
@@ -268,6 +270,8 @@ def run_experiment(random_state):
 
     T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
     T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
+    print("Done.")
+    sys.stdout.flush()
 
      #____________________________________________________________________
     ## Estimate T using the NN and alternate training
@@ -279,6 +283,8 @@ def run_experiment(random_state):
 
     T_hat_NN = model_NN.contamination.contamination_matrix()
     T_hat_NN = T_hat_NN.detach().numpy()
+    print("Done.")
+    sys.stdout.flush()
 
     alpha = 0.1
     guarantee = 'marginal'
