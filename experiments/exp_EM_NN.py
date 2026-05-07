@@ -75,8 +75,6 @@ epsilon_init = 0
 
 if n_clean == 0:
     n_clean = int(np.round(pi_clean * n_train))
-else:
-    n_train += n_clean
 
 # Initialize the data distribution
 if data_name == "synthetic1":
@@ -325,7 +323,7 @@ def run_experiment(random_state):
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+        "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
