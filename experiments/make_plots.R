@@ -2515,13 +2515,17 @@ make_figure_611(exp.num=exp.num, plot.data=plot.data,
 
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("EM", "NN SLL", "NN SLL alt", "NN SLL ems",
-                      "NN SLL ems lbfgs", "softmax")
-  method.labels <<- c("EM", "NNs", "NNs (alt)", "NNs (EMs)",
-                      "NNs (EMs lbfgs)", "softmax")
-  color.scale <<- cbPalette[c(2,4,3,5,7,8,9)]
-  shape.scale <<- c(0,3,7,4,6,8,9)
-  linetype.scale <<- c(1,1,1,1,1,1,1)
+  
+  method.values <<- c("EM",
+                      "NN SLL alt",
+                      "NN alt",
+                      "softmax")
+  method.labels <<- c("EM", "NNs",
+                      "NN",
+                      "softmax")
+  color.scale <<- cbPalette[c(2,3,5,8,9,6)]
+  shape.scale <<- c(0,3,7,4,6,5)
+  linetype.scale <<- c(1,1,1,1,1,1)
 }
 
 #### Experiment 621: Impact of size of clean data -----------------
@@ -2529,6 +2533,46 @@ init_settings <- function(sll_flag=FALSE) {
 #' increasing the number of clean data
 #' The clean observations are "easy observations"
 #' 
+
+# init_settings <- function(sll_flag=FALSE) {
+#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+#   if(sll_flag){
+#     method.values <<- c("EM",
+#                         "NN SLL", "NN SLL alt", "NN SLL ems",
+#                         "softmax")
+#     method.labels <<- c("EM", "NNs", "NNs (alt)", "NNs (EMs)",
+#                         "softmax")
+#     color.scale <<- cbPalette[c(2,4,3,5,9)]
+#     shape.scale <<- c(0,3,7,4,6)
+#     linetype.scale <<- c(1,1,1,1,1)
+#   } else {
+#     method.values <<- c("EM",
+#                         "NN", "NN alt", "NN ems",
+#                         "softmax")
+#     method.labels <<- c("EM", "NN", "NN (alt)", "NN (EMs)",
+#                         "softmax")
+#     color.scale <<- cbPalette[c(2,7,8,9,6)]
+#     shape.scale <<- c(0,3,7,4,6)
+#     linetype.scale <<- c(1,1,1,1,1)
+#   }
+# }
+
+
+init_settings <- function(sll_flag=FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+
+  method.values <<- c("EM",
+                      "NN SLL alt", "NN SLL ems",
+                      "NN alt", "NN ems",
+                      "softmax")
+  method.labels <<- c("EM", "NNs (alt)", "NNs (EMs)",
+                      "NN (alt)", "NN (EMs)",
+                      "softmax")
+  color.scale <<- cbPalette[c(2,3,5,8,9,6)]
+  shape.scale <<- c(0,3,7,4,6,5)
+  linetype.scale <<- c(1,1,1,1,1,1)
+}
+
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -2554,13 +2598,12 @@ make_figure_621 <- function(exp.num, plot.data="synthetic6", plot.K=4,
                             plot.randflag,
                             plot.contamination="uniform",
                             plot.epsilon=0.2,
-                            plot.sll_flag=FALSE,
-                            save_plots=FALSE, reload=FALSE) {
+                            save_plots=FALSE, reload=FALSE,sll_flag=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
   }
   
-  init_settings(sll_flag=plot.sll_flag)
+  init_settings(sll_flag=sll_flag)
   
   df <- summary %>%
     filter(data==plot.data, num_var==20, K==plot.K,
@@ -2627,20 +2670,11 @@ plot.n_clean <- c(100,500,1000)
 #plot.n_clean <- c(1000,5000,10000,20000)
 plot.data <- "synthetic6"
 
-# make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-#                 plot.n_clean=plot.n_clean,
-#                 plot.randflag=TRUE,
-#                 plot.contamination=plot.contamination,
-#                 plot.epsilon=plot.epsilon,
-#                 plot.sll_flag=FALSE,
-#                 save_plots=FALSE, reload=TRUE)
-
 make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.randflag=FALSE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                plot.sll_flag=FALSE,
                 save_plots=FALSE, reload=TRUE)
 
 
@@ -2650,15 +2684,15 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #' The clean observations are "easy observations"
 #' 
 
-init_settings <- function(sll_flag=FALSE) {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("EM", "NN", "NN SLL", "NN16", "softmax")
-  method.labels <<- c("EM", "NN", "NNs", "NN (simpl)", "softmax")
-  color.scale <<- cbPalette[c(2,4,3,5,7)]
-  shape.scale <<- c(0,3,7,4,6)
-  linetype.scale <<- c(1,1,1,1,1)
-  
-}
+# init_settings <- function(sll_flag=FALSE) {
+#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+#   method.values <<- c("EM", "NN", "NN SLL", "NN16", "softmax")
+#   method.labels <<- c("EM", "NN", "NNs", "NN (simpl)", "softmax")
+#   color.scale <<- cbPalette[c(2,4,3,5,7)]
+#   shape.scale <<- c(0,3,7,4,6)
+#   linetype.scale <<- c(1,1,1,1,1)
+#   
+# }
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -2684,8 +2718,7 @@ make_figure_622 <- function(exp.num, plot.data="synthetic6", plot.K=4,
                             plot.rand_flag,
                             plot.contamination="uniform",
                             plot.epsilon=0.2,
-                            plot.sll_flag=FALSE,
-                            save_plots=FALSE, reload=FALSE) {
+                            save_plots=FALSE, reload=FALSE, sll_flag=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
   }
@@ -2753,7 +2786,7 @@ exp.num <- 622
 plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.pi_clean <- c(0.1,0.2,0.3,0.5)
+plot.pi_clean <- c(0.1,0.3,0.5)
 plot.data <- "synthetic6"
 
 # make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
@@ -2769,9 +2802,7 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.rand_flag=FALSE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                plot.sll_flag=FALSE,
-                save_plots=FALSE, reload=TRUE)
-
+                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 623: Impact of contamination strength -----------------
 #' Plot performance as function of the number of training samples,
@@ -2875,16 +2906,21 @@ make_figure_623(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #### Experiment 624: Different data design -----------------
 #' Plot performance as function of the number of training samples,
 #' changing the data design
+#' 
+
+
+
+
 make_figure_624 <- function(exp.num, plot.data="synthetic6", plot.K=4,
                             plot.n_clean=100,
                             plot.contamination="uniform",
                             plot.epsilon=0.2,
-                            save_plots=FALSE, reload=FALSE) {
+                            save_plots=FALSE, reload=FALSE, sll_flag=TRUE) {
   if(reload) {
     summary <- load_data(exp.num)
   }
   
-  init_settings()
+  init_settings(sll_flag)
   
   df <- summary %>%
     filter(data %in% plot.data, num_var==20, K==plot.K,
@@ -2899,7 +2935,7 @@ make_figure_624 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
-  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="NNs")
+  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="EM")
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
@@ -2941,14 +2977,37 @@ exp.num <- 624
 plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
-plot.n_clean <- 500
+#plot.n_clean <- 500
+plot.n_clean <- 100
 plot.data <- c("synthetic1", "synthetic2", "synthetic3")
+
+init_settings <- function(sll_flag=FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  
+  method.values <<- c("EM",
+                      "NN SLL alt", "NN SLL ems",
+                      "NN alt", "NN ems",
+                      "softmax")
+  method.labels <<- c("EM", "NNs", "NNs (EM-s)",
+                      "NN", "NN (EM-s)",
+                      "softmax")
+  color.scale <<- cbPalette[c(2,3,5,8,9,6)]
+  shape.scale <<- c(0,3,7,4,6,5)
+  linetype.scale <<- c(1,1,1,1,1,1)
+}
 
 make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE, sll_flag=TRUE)
+
+make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
+                plot.n_clean=plot.n_clean,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                save_plots=FALSE, reload=TRUE, sll_flag=FALSE)
+
 
 
 
