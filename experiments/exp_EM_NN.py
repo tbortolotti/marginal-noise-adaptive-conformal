@@ -159,7 +159,7 @@ black_box_SVC = arc.black_boxes.SVC(clip_proba_factor = 1e-5)
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'num_var':[num_var], 'K':[K],
-                       'n_train':[n_train], 'n_clean':[n_clean], 'n_cal':[n_cal],
+                       'n_train':[n_train], 'n_clean':[n_clean], 'pi_clean':[pi_clean], 'n_cal':[n_cal],
                        'epsilon':[epsilon], 'contamination':[contamination_model],
                        'model_name':[model_name], 'estimate':[estimate], 'seed':[seed]})
 
