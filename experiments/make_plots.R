@@ -2558,22 +2558,6 @@ init_settings <- function(sll_flag=FALSE) {
 # }
 
 
-init_settings <- function(sll_flag=FALSE) {
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-
-  method.values <<- c("EM",
-                      "NN SLL alt", "NN SLL ems",
-                      "NN alt", "NN ems",
-                      "softmax")
-  method.labels <<- c("EM", "NNs (alt)", "NNs (EMs)",
-                      "NN (alt)", "NN (EMs)",
-                      "softmax")
-  color.scale <<- cbPalette[c(2,3,5,8,9,6)]
-  shape.scale <<- c(0,3,7,4,6,5)
-  linetype.scale <<- c(1,1,1,1,1,1)
-}
-
-
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -2802,7 +2786,7 @@ make_figure_622(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.rand_flag=FALSE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 #### Experiment 623: Impact of contamination strength -----------------
 #' Plot performance as function of the number of training samples,
@@ -2908,7 +2892,23 @@ make_figure_623(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #' changing the data design
 #' 
 
-
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("epsilon_res", "accuracy"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, contamination, epsilon, n, n_clean, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
 
 
 make_figure_624 <- function(exp.num, plot.data="synthetic6", plot.K=4,
@@ -2977,19 +2977,19 @@ exp.num <- 624
 plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
-#plot.n_clean <- 500
-plot.n_clean <- 100
+plot.n_clean <- 500
+#plot.n_clean <- 100
 plot.data <- c("synthetic1", "synthetic2", "synthetic3")
 
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  
+
   method.values <<- c("EM",
-                      "NN SLL alt", "NN SLL ems",
-                      "NN alt", "NN ems",
+                      "NN SLL", "NN SLL alt",
+                      "NN", "NN alt",
                       "softmax")
-  method.labels <<- c("EM", "NNs", "NNs (EM-s)",
-                      "NN", "NN (EM-s)",
+  method.labels <<- c("EM", "NNs", "NNs (alt)",
+                      "NN", "NN (alt)",
                       "softmax")
   color.scale <<- cbPalette[c(2,3,5,8,9,6)]
   shape.scale <<- c(0,3,7,4,6,5)
@@ -3000,13 +3000,7 @@ make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE, sll_flag=TRUE)
-
-make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.n_clean=plot.n_clean,
-                plot.contamination=plot.contamination,
-                plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE, sll_flag=FALSE)
+                save_plots=FALSE, reload=TRUE)
 
 
 
@@ -3092,14 +3086,14 @@ make_figure_624b <- function(exp.num, plot.data="synthetic6", plot.K=4,
   }
 }
 
-plot.pi_clean <- 0.5
+plot.pi_clean <- 0.1
 plot.data <- c("synthetic1", "synthetic2", "synthetic3")
 
 make_figure_624b(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_clean=plot.pi_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 #### Experiment 625: Different contamination model -----------------
 #' Plot performance as function of the number of training samples,
