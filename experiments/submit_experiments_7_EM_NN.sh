@@ -76,7 +76,7 @@ for SEED in $SEED_LIST; do
                 for N_CLEAN in "${N_CLEAN_LIST[@]}"; do
                   for PI_CLEAN in "${PI_CLEAN_LIST[@]}"; do
                     for N_CAL in "${N_CAL_LIST[@]}"; do
-                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_signal"$SIGNAL"_PI"$PI"_CSCALE"$C_SCALE"_"$MODEL"_flipy"$FLIPY"_eps"$EPSILON"_"$CONTAMINATION"_nt1_"$N_TRAIN1"_nt2_"$N_TRAIN2"_nc"$N_CAL"_seed"$SEED
+                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_"$MODEL"_eps"$EPSILON"_"$CONTAMINATION"_nt_"$N_TRAIN"_ncl_"$N_CLEAN"_picl_"$PI_CLEAN"_nc"$N_CAL"_seed"$SEED
                       OUT_FILE=$OUT_DIR"/"$JOBN".txt"
                       COMPLETE=0
                       #  ls $OUT_FILE
@@ -86,7 +86,7 @@ for SEED in $SEED_LIST; do
 
                       if [[ $COMPLETE -eq 0 ]]; then
                         # Script to be run
-                        SCRIPT="exp_ap.sh $CONF $MODEL $DATA $NUM_VAR $K $EPSILON $CONTAMINATION $N_TRAIN $N_CLEAN $PI_CLEAN $N_CAL $SEED"
+                        SCRIPT="exp_EM_NN.sh $CONF $MODEL $DATA $NUM_VAR $K $EPSILON $CONTAMINATION $N_TRAIN $N_CLEAN $PI_CLEAN $N_CAL $SEED"
                         # Define job name
                         OUTF=$LOGS"/"$JOBN".out"
                         ERRF=$LOGS"/"$JOBN".err"
