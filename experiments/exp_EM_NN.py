@@ -225,7 +225,7 @@ def run_experiment(random_state):
     rfc_easy.fit(X_train0, Yt_train0)
 
     # Assign I=1 to the top clean_frac fraction by confidence
-    n0 = 1/clean_centrality * n_clean
+    n0 = int(1/clean_centrality * n_clean)
     data_distribution.set_seed(random_state+7)
     X0, Y0 = data_distribution.sample(n0)
     Yt0 = contamination_process.sample_labels(Y0)
@@ -243,9 +243,8 @@ def run_experiment(random_state):
 
     # Generate n_cal clean data to show how the calibration on clean data only works
     data_distribution.set_seed(random_state+8)
-    n_new = 1/clean_centrality * n_cal
+    n_new = int(1/clean_centrality * n_cal)
     X_new, Y_new = data_distribution.sample(n_new)
-    Yt_new = contamination_process.sample_labels(Y_new)
     conf_scores = rfc_easy.predict_proba(X_new).max(axis=1)
     threshold = np.quantile(conf_scores, 1 - clean_centrality)
     I_train = (conf_scores >= threshold).astype(int)
