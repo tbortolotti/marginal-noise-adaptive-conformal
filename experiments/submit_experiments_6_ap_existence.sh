@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=610
+CONF=611
 
 if [[ $CONF == 610 ]]; then
   DATA_LIST=("syntheticAP")
@@ -15,7 +15,7 @@ if [[ $CONF == 610 ]]; then
 elif [[ $CONF == 611 ]]; then
   DATA_LIST=("syntheticAP")
   SCENARIO_LIST=("scenario1" "scenario2" "scenario3")
-  EPSILON_LIST=(0.1)
+  EPSILON_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   N_TRAIN1_LIST=(10000)
   N_TRAIN2_LIST=(500 1000 5000 10000)
