@@ -81,6 +81,19 @@ elif [[ $CONF == 715 ]]; then
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
+elif [[ $CONF == 716 ]]; then
+  MODEL_LIST=('RFC')
+  DATA_LIST=("synthetic6")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  EPSILON_LIST=(0.2)
+  CONTAMINATION_LIST=("mild" "block" "RRB")
+  N_TRAIN_LIST=(10000)
+  N_CLEAN_LIST=(500)
+  PI_CLEAN_LIST=(0)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
+  SEED_LIST=$(seq 1 5)
+
 fi
 
 

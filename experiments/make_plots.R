@@ -3645,26 +3645,33 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   return(summary)
 }
 
-init_settings <- function() {
+init_settings <- function(exp_easy=FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  
-  method.values <<- c("Standard",
-                      "Standard using clean",
-                      "Adaptive optimized+",
-                      "Adaptive optimized+ clean",
-                      "Adaptive optimized+ NN SLL")
-  #"Adaptive optimized+ AP param")
-  method.labels <<- c("Standard",
-                      "Standard (clean)",
-                      "Adaptive+",
-                      "Adaptive+ (c/n)",
-                      "Adaptive+ (NN)")
-  #"Adaptive+ (AP RRM)")
-  color.scale <<- cbPalette[c(1,3,4,5,6)]
-  shape.scale <<- c(1,2,3,4,5)
-  linetype.scale <<- c(1,1,1,1,1)
+  if(exp_easy){
+    method.values <<- c("Standard using clean")
+    method.labels <<- c("Standard")
+    color.scale <<- cbPalette[c(1)]
+    shape.scale <<- c(1)
+    linetype.scale <<- c(1)
+    xlab_ <<- "Number of easy clean calibration samples"
+  } else {
+    method.values <<- c("Standard",
+                        "Adaptive optimized+",
+                        "Adaptive optimized+ clean",
+                        "Adaptive optimized+ NN SLL")
+    #"Adaptive optimized+ AP param")
+    method.labels <<- c("Standard",
+                        "Adaptive+",
+                        "Adaptive+ (c/n)",
+                        "Adaptive+ (NN)")
+    #"Adaptive+ (AP RRM)")
+    color.scale <<- cbPalette[c(1,2,3,6)]
+    shape.scale <<- c(1,2,3,4)
+    linetype.scale <<- c(1,1,1,1)
+    xlab_ <<- "Number of noisy calibration samples"
+  }
 }
 
 
@@ -3676,12 +3683,13 @@ init_settings <- function() {
 make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                             plot.contamination="uniform",
                             plot.n_train, plot.n_clean, plot.pi_clean,
-                            plot.epsilon) {
+                            plot.epsilon,
+                            plot.exp_easy=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
   }
   
-  init_settings()
+  init_settings(plot.exp_easy)
   
   df <- summary %>%
     filter(data==plot.data, num_var==20,
@@ -3694,7 +3702,7 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            epsilon==plot.epsilon)
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(N_CLEAN = factor(sprintf("N clean: %d", n_clean), 
@@ -3713,7 +3721,7 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     scale_linetype_manual(values=linetype.scale) +
     #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of calibration samples") +
+    xlab(xlab_) +
     ylab("") +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -3726,8 +3734,8 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nt%d_%s_%s.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.n_train, plot.guarantee, plot.contamination)
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nt%d_%s_%s_expeasy%s.pdf",
+                         exp.num, plot.data, 10000, plot.K, plot.n_train, plot.guarantee, plot.contamination, plot.exp_easy)
     ggsave(file=plot.file, height=4, width=9, units="in")
     return(NULL)
   } else{
@@ -3737,20 +3745,20 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 
 plot.alpha <- 0.1
 plot.epsilon <- 0.2
-plot.n_train <- 10000
+plot.n_train <- 5000
 plot.n_clean <- c(100, 500, 1000)
 plot.pi_clean <- 0
 plot.K <- 4
 plot.contamination <- "uniform"
 exp.num <- 711
 plot.data <- "synthetic6"
+
 make_figure_711(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
                 plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
-
 
 
 #### Experiment 712: Impact of the fraction of clean samples ------------------------
@@ -3840,43 +3848,65 @@ make_figure_712(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                             plot.contamination="uniform",
                             plot.n_train, plot.n_clean, plot.pi_clean,
-                            plot.epsilon) {
+                            plot.epsilon, plot.exp_easy=FALSE) {
   if(reload) {
     summary <- load_data(exp.num)
   }
   
-  init_settings()
+  init_settings(plot.exp_easy)
   
-  df <- summary %>%
-    filter(data==plot.data, num_var==20,
-           n_train %in% plot.n_train, n_clean==plot.n_clean,
-           #pi_clean==plot.pi_clean,
-           K==plot.K, Guarantee==plot.guarantee,
-           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
-           Method %in% method.values,
-           contamination==plot.contamination,
-           epsilon==plot.epsilon)
+  if(plot.exp_easy){
+    df <- summary %>%
+      filter(data==plot.data, num_var==20,
+             n_train==5000, n_clean==plot.n_clean,
+             #pi_clean==plot.pi_clean,
+             K==plot.K, Guarantee==plot.guarantee,
+             Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+             Method %in% method.values,
+             contamination==plot.contamination,
+             epsilon==plot.epsilon)
+    df.range <- tibble(Key=c("Coverage","Coverage", "Size", "Size"), Mean=c(0.8,0.925,1,2), n_cal=1000, Method="Standard")
+  } else {
+    df <- summary %>%
+      filter(data==plot.data, num_var==20,
+             n_train %in% plot.n_train, n_clean==plot.n_clean,
+             #pi_clean==plot.pi_clean,
+             K==plot.K, Guarantee==plot.guarantee,
+             Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+             Method %in% method.values,
+             contamination==plot.contamination,
+             epsilon==plot.epsilon)
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+  }
+
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(N_TRAIN = factor(sprintf("N train: %d", n_train), 
                             levels = sprintf("N train: %d", plot.n_train), 
-                            labels = c("N train: 1000", "N train: 5000",
-                                       "N train: 10000"))) %>%
+                            labels = c("N train: 1000", "N train: 2000",
+                                       "N train: 5000"))) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~N_TRAIN, scales="free") +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1)
+  
+  if(plot.exp_easy){
+    pp <- pp +
+      facet_wrap(.~Key, scales="free")
+  }else{
+    pp <- pp +
+      facet_grid(Key~N_TRAIN, scales="free")
+  }
+  pp <- pp +
     geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of calibration samples") +
+    xlab(xlab_) +
     ylab("") +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -3889,9 +3919,15 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_ncl%d_%s_%s.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.n_clean, plot.guarantee, plot.contamination)
-    ggsave(file=plot.file, height=4, width=9, units="in")
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_ncl%d_%s_%s_expeasy%s.pdf",
+                         exp.num, plot.data, 10000, plot.K, plot.n_clean, plot.guarantee, plot.contamination, plot.exp_easy)
+    
+    if(plot.exp_easy){
+      ggsave(file=plot.file, height=2.5, width=7, units="in")
+    }else{
+      ggsave(file=plot.file, height=4, width=9, units="in")
+    }
+    
     return(NULL)
   } else{
     return(pp)
@@ -3900,8 +3936,8 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 
 plot.alpha <- 0.1
 plot.epsilon <- 0.2
-plot.n_train <- c(100, 5000, 10000)
-plot.n_clean <- 500
+plot.n_train <- c(1000, 2000, 5000)
+plot.n_clean <- 100
 plot.pi_clean <- 0
 plot.K <- 4
 plot.contamination <- "uniform"
@@ -3913,6 +3949,13 @@ make_figure_713(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
                 plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
+
+make_figure_713(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
+                plot.pi_clean=plot.pi_clean,
+                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE, plot.exp_easy=TRUE)
 
 
 
