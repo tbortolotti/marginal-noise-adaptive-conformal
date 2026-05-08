@@ -20,8 +20,8 @@ sys.path.append("../third_party")
 from cln import data
 from cln import contamination
 from cln.T_estimation import TMatrixEstimation
-from cln.T_estimation_EM import Dataset, run_em, predict
-from cln.T_estimation_NN import NoisyLabelNet, train, train_alternate, train_em_style
+from cln.T_estimation_EM import Dataset, run_em
+from cln.T_estimation_NN import NoisyLabelNet, train_alternate
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
 from third_party import arc
@@ -35,7 +35,7 @@ num_var = 20
 K = 4
 epsilon = 0.2
 contamination_model = "uniform"
-n_train = 10000
+n_train = 10000 # This indicates the number of noisy training samples
 n_clean = 500
 pi_clean = 0
 n_cal = 5000
@@ -71,10 +71,13 @@ asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 nu = 0.2
 
+clean_centrality = 0.1
+
 epsilon_init = 0
 
 if n_clean == 0:
-    n_clean = int(np.round(pi_clean * n_train))
+    #n_clean = int(np.round(pi_clean * n_train))
+    n_clean = int(np.round(pi_clean/(1-pi_clean)*n_train))
 
 # Initialize the data distribution
 if data_name == "synthetic1":
@@ -206,7 +209,7 @@ def run_experiment(random_state):
         exit(-1)
 
     # Separate data into training and calibration
-    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+4)
+    X_train, X_cal, Yt_train, Yt_cal = train_test_split(X, Yt, test_size=n_cal, random_state=random_state+4)
 
     #_________________________________________________________________
     # Generate the clean dataset
@@ -218,22 +221,38 @@ def run_experiment(random_state):
     X_train0, Y_train0 = data_distribution.sample(n_train0)
     Yt_train0 = contamination_process.sample_labels(Y_train0)
     # Fit a quick RFC on noisy labels to score each observation's difficulty
-    rfc_easy = RandomForestClassifier(n_estimators=100, random_state=random_state+4)
+    rfc_easy = RandomForestClassifier(n_estimators=100, random_state=random_state+6)
     rfc_easy.fit(X_train0, Yt_train0)
 
     # Assign I=1 to the top clean_frac fraction by confidence
-    conf_scores = rfc_easy.predict_proba(X_train).max(axis=1)
-    clean_frac = np.round(n_clean/n_train, decimals=5)
-    threshold = np.quantile(conf_scores, 1 - clean_frac)
+    n0 = 1/clean_centrality * n_clean
+    data_distribution.set_seed(random_state+7)
+    X0, Y0 = data_distribution.sample(n0)
+    Yt0 = contamination_process.sample_labels(Y0)
+    conf_scores = rfc_easy.predict_proba(X0).max(axis=1)
+    threshold = np.quantile(conf_scores, 1 - clean_centrality)
+    I0 = (conf_scores >= threshold).astype(int)
+
+    X_clean = X0[I0==1]
+    Y_clean = Y0[I0==1]
+    Yt_clean = Yt0[I0==1]
+
+    X_train_full = np.concatenate([X_train, X_clean], axis=0)
+    Yt_train_full = np.concatenate([Yt_train, Y_clean])
+    I_train_full = np.concatenate([np.zeros(len(X_train), dtype=int), np.ones(len(X_clean), dtype=int)])
+
+    # Generate n_cal clean data to show how the calibration on clean data only works
+    data_distribution.set_seed(random_state+8)
+    n_new = 1/clean_centrality * n_cal
+    X_new, Y_new = data_distribution.sample(n_new)
+    Yt_new = contamination_process.sample_labels(Y_new)
+    conf_scores = rfc_easy.predict_proba(X_new).max(axis=1)
+    threshold = np.quantile(conf_scores, 1 - clean_centrality)
     I_train = (conf_scores >= threshold).astype(int)
+    X_clean_cal = X_new[I_train==1]
+    Y_clean_cal = Y_new[I_train==1]
 
-    X_clean = X_train[I_train==1]
-    Y_clean = Y_train[I_train==1]
-    Yt_clean = Yt_train[I_train==1]
-    Yt_train[I_train==1] = Y_clean
     #_________________________________________________________________
-
-    # 
     # Fit the point predictor on the training set (with also the clean samples)
     black_box_pt = copy.deepcopy(black_box)
     black_box_pt.fit(X_train, Yt_train)
@@ -245,18 +264,16 @@ def run_experiment(random_state):
     # EM method for T estimation
     print("Estimating T using EM algorithm...", end=' ')
     sys.stdout.flush()
-    X_intercept = np.hstack([np.ones((n_train, 1)), X_train])
-    data = Dataset(X=X_intercept, Y_obs=Yt_train, I=I_train, K=K)
+    X_intercept = np.hstack([np.ones((n_train + n_clean, 1)), X_train_full])
+    data = Dataset(X=X_intercept, Y_obs=Yt_train_full, I=I_train_full, K=K)
     result_EM = run_em(data, contamination_model_="uniform", eps_init=epsilon_init, max_iter=100, tol=1e-7, verbose=False)
     T_hat_EM = result_EM.T
     print("Done.")
     sys.stdout.flush()
-
-
     #____________________________________________________________________
-    X_torch  = torch.tensor(X_train, dtype=torch.float32)
-    Yt_torch = torch.tensor(Yt_train, dtype=torch.long)
-    I_torch = torch.tensor(I_train, dtype=torch.long)
+    X_torch  = torch.tensor(X_train_full, dtype=torch.float32)
+    Yt_torch = torch.tensor(Yt_train_full, dtype=torch.long)
+    I_torch = torch.tensor(I_train_full, dtype=torch.long)
 
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with SLL
@@ -296,8 +313,8 @@ def run_experiment(random_state):
         "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                        pre_trained=True, random_state=random_state),
 
-        "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box_pt, K, alpha, n_cal=-1,
-                                                                pre_trained=True, random_state=random_state),
+        "Standard using clean": lambda: arc.methods.SplitConformal(X_clean_cal, Y_clean_cal, black_box_pt, K, alpha, n_cal=-1,
+                                                                   pre_trained=True, random_state=random_state),
 
         "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
