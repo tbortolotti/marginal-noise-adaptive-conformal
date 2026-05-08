@@ -230,12 +230,11 @@ def run_experiment(random_state):
     X0, Y0 = data_distribution.sample(n0)
     Yt0 = contamination_process.sample_labels(Y0)
     conf_scores = rfc_easy.predict_proba(X0).max(axis=1)
-    threshold = np.quantile(conf_scores, 1 - clean_centrality)
-    I0 = (conf_scores >= threshold).astype(int)
+    top_indices = np.argsort(conf_scores)[-n_clean:]
 
-    X_clean = X0[I0==1]
-    Y_clean = Y0[I0==1]
-    Yt_clean = Yt0[I0==1]
+    X_clean = X0[top_indices]
+    Y_clean = Y0[top_indices]
+    Yt_clean = Yt0[top_indices]
 
     X_train_full = np.concatenate([X_train, X_clean], axis=0)
     Yt_train_full = np.concatenate([Yt_train, Y_clean])
@@ -246,10 +245,9 @@ def run_experiment(random_state):
     n_new = int(1/clean_centrality * n_cal)
     X_new, Y_new = data_distribution.sample(n_new)
     conf_scores = rfc_easy.predict_proba(X_new).max(axis=1)
-    threshold = np.quantile(conf_scores, 1 - clean_centrality)
-    I_train = (conf_scores >= threshold).astype(int)
-    X_clean_cal = X_new[I_train==1]
-    Y_clean_cal = Y_new[I_train==1]
+    top_indices = np.argsort(conf_scores)[-n_cal:]
+    X_clean_cal = X_new[top_indices]
+    Y_clean_cal = Y_new[top_indices]
 
     #_________________________________________________________________
     # Fit the point predictor on the training set (with also the clean samples)
