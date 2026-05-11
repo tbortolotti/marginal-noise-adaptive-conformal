@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=711
+CONF=710
 
 if [[ $CONF == 710 ]]; then
   MODEL_LIST=('RFC')
@@ -9,7 +9,8 @@ if [[ $CONF == 710 ]]; then
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   EPSILON_LIST=(0.2)
-  CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_LIST=("RRB")
+  CONTAMINATION_EXP_FLAG="true"
   N_TRAIN_LIST=(1000)
   N_CLEAN_LIST=(100)
   PI_CLEAN_LIST=(0)
@@ -23,6 +24,7 @@ elif [[ $CONF == 711 ]]; then
   K_LIST=(4)
   EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_EXP_FLAG="false"
   N_TRAIN_LIST=(5000 10000)
   N_CLEAN_LIST=(100 500 1000)
   PI_CLEAN_LIST=(0)
@@ -36,6 +38,7 @@ elif [[ $CONF == 712 ]]; then
   K_LIST=(4)
   EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_EXP_FLAG="false"
   N_TRAIN_LIST=(5000)
   N_CLEAN_LIST=(0)
   PI_CLEAN_LIST=(0.05 0.1 0.2)
@@ -49,6 +52,7 @@ elif [[ $CONF == 713 ]]; then
   K_LIST=(4)
   EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_EXP_FLAG="false"
   N_TRAIN_LIST=(1000 2000 5000 10000)
   N_CLEAN_LIST=(100 500)
   PI_CLEAN_LIST=(0)
@@ -62,6 +66,7 @@ elif [[ $CONF == 714 ]]; then
   K_LIST=(4)
   EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_EXP_FLAG="false"
   N_TRAIN_LIST=(1000 2000 5000)
   N_CLEAN_LIST=(0)
   PI_CLEAN_LIST=(0.1)
@@ -75,6 +80,7 @@ elif [[ $CONF == 715 ]]; then
   K_LIST=(4)
   EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_EXP_FLAG="false"
   N_TRAIN_LIST=(10000)
   N_CLEAN_LIST=(500)
   PI_CLEAN_LIST=(0)
@@ -88,6 +94,7 @@ elif [[ $CONF == 716 ]]; then
   K_LIST=(4)
   EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("mild" "block" "RRB")
+  CONTAMINATION_EXP_FLAG="true"
   N_TRAIN_LIST=(10000)
   N_CLEAN_LIST=(500)
   PI_CLEAN_LIST=(0)
@@ -138,7 +145,7 @@ for SEED in $SEED_LIST; do
 
                       if [[ $COMPLETE -eq 0 ]]; then
                         # Script to be run
-                        SCRIPT="exp_EM_NN.sh $CONF $MODEL $DATA $NUM_VAR $K $EPSILON $CONTAMINATION $N_TRAIN $N_CLEAN $PI_CLEAN $N_CAL $SEED"
+                        SCRIPT="exp_EM_NN.sh $CONF $MODEL $DATA $NUM_VAR $K $EPSILON $CONTAMINATION $CONTAMINATION_EXP_FLAG $N_TRAIN $N_CLEAN $PI_CLEAN $N_CAL $SEED"
                         # Define job name
                         OUTF=$LOGS"/"$JOBN".out"
                         ERRF=$LOGS"/"$JOBN".err"

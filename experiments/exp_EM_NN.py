@@ -35,6 +35,7 @@ num_var = 20
 K = 4
 epsilon = 0.2
 contamination_model = "uniform"
+contamination_exp_flag = False
 n_train = 10000 # This indicates the number of noisy training samples
 n_clean = 500
 pi_clean = 0
@@ -45,7 +46,7 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 13:
+    if len(sys.argv) != 14:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -56,11 +57,12 @@ if True:
     K = int(sys.argv[5])
     epsilon = float(sys.argv[6])
     contamination_model = sys.argv[7]
-    n_train = int(sys.argv[8])
-    n_clean = int(sys.argv[9])
-    pi_clean = float(sys.argv[10])
-    n_cal = int(sys.argv[11])
-    seed = int(sys.argv[12])
+    contamination_exp_flag = sys.argv[8].lower() == "true"
+    n_train = int(sys.argv[9])
+    n_clean = int(sys.argv[10])
+    pi_clean = float(sys.argv[11])
+    n_cal = int(sys.argv[12])
+    seed = int(sys.argv[13])
 
 # Define other constant parameters
 estimate = "none"
@@ -258,45 +260,87 @@ def run_experiment(random_state):
     T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical_parametricRR")
     T_hat_clean = T_method.get_estimate()
 
-    # EM method for T estimation
-    print("Estimating T using EM algorithm...", end=' ')
-    sys.stdout.flush()
-    X_intercept = np.hstack([np.ones((n_train + n_clean, 1)), X_train_full])
-    data = Dataset(X=X_intercept, Y_obs=Yt_train_full, I=I_train_full, K=K)
-    result_EM = run_em(data, contamination_model_="uniform", eps_init=epsilon_init, max_iter=100, tol=1e-7, verbose=False)
-    T_hat_EM = result_EM.T
-    print("Done.")
-    sys.stdout.flush()
     #____________________________________________________________________
     X_torch  = torch.tensor(X_train_full, dtype=torch.float32)
     Yt_torch = torch.tensor(Yt_train_full, dtype=torch.long)
     I_torch = torch.tensor(I_train_full, dtype=torch.long)
-
     #____________________________________________________________________
-    ## Estimate T using the NN algorithm with SLL
-    print("Estimating T using the NN with SLL...", end=' ')
-    sys.stdout.flush()
-    model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
-    train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-    train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
-    T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
-    T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
-    print("Done.")
-    sys.stdout.flush()
 
-     #____________________________________________________________________
-    ## Estimate T using the NN and alternate training
-    print("Estimating T using the NN...", end=' ')
-    sys.stdout.flush()
-    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
-    train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-    train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+    if not contamination_exp_flag:
+        # EM method for T estimation
+        print("Estimating T using EM algorithm...", end=' ')
+        sys.stdout.flush()
+        X_intercept = np.hstack([np.ones((n_train + n_clean, 1)), X_train_full])
+        data = Dataset(X=X_intercept, Y_obs=Yt_train_full, I=I_train_full, K=K)
+        result_EM = run_em(data, contamination_model_="uniform", eps_init=epsilon_init, max_iter=100, tol=1e-7, verbose=False)
+        T_hat_EM = result_EM.T
+        print("Done.")
+        sys.stdout.flush()
 
-    T_hat_NN = model_NN.contamination.contamination_matrix()
-    T_hat_NN = T_hat_NN.detach().numpy()
-    print("Done.")
-    sys.stdout.flush()
+        #____________________________________________________________________
+        ## Estimate T using the NN algorithm with SLL
+        print("Estimating T using the NN with SLL...", end=' ')
+        sys.stdout.flush()
+        model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+
+        T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
+        T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+        #____________________________________________________________________
+        ## Estimate T using the NN and alternate training
+        print("Estimating T using the NN...", end=' ')
+        sys.stdout.flush()
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+
+        T_hat_NN = model_NN.contamination.contamination_matrix()
+        T_hat_NN = T_hat_NN.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+    if contamination_exp_flag:
+        # EM method for T estimation
+        print("Estimating T using EM algorithm with general contamination...", end=' ')
+        sys.stdout.flush()
+        X_intercept = np.hstack([np.ones((n_train + n_clean, 1)), X_train_full])
+        data = Dataset(X=X_intercept, Y_obs=Yt_train_full, I=I_train_full, K=K)
+        result_EM = run_em(data, contamination_model_="general", eps_init=epsilon_init, max_iter=100, tol=1e-7, verbose=False)
+        T_hat_EM = result_EM.T
+        print("Done.")
+        sys.stdout.flush()
+
+        #____________________________________________________________________
+        ## Estimate T using the NN algorithm with SLL
+        print("Estimating T using the NN with SLL and general contamination...", end=' ')
+        sys.stdout.flush()
+        model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+
+        T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
+        T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+        #____________________________________________________________________
+        ## Estimate T using the NN and alternate training
+        print("Estimating T using the NN and general contamination...", end=' ')
+        sys.stdout.flush()
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+
+        T_hat_NN = model_NN.contamination.contamination_matrix()
+        T_hat_NN = T_hat_NN.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
 
     alpha = 0.1
     guarantee = 'marginal'
