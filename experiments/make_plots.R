@@ -2984,12 +2984,9 @@ plot.data <- c("synthetic1", "synthetic2", "synthetic3")
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
 
-  method.values <<- c("EM",
-                      "NN SLL", "NN SLL alt",
-                      "NN", "NN alt",
+  method.values <<- c("EM", "NN SLL alt", "NN alt",
                       "softmax")
-  method.labels <<- c("EM", "NNs", "NNs (alt)",
-                      "NN", "NN (alt)",
+  method.labels <<- c("EM", "NNs", "NN",
                       "softmax")
   color.scale <<- cbPalette[c(2,3,5,8,9,6)]
   shape.scale <<- c(0,3,7,4,6,5)
@@ -3000,7 +2997,7 @@ make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 
@@ -3660,16 +3657,18 @@ init_settings <- function(exp_easy=FALSE) {
     method.values <<- c("Standard",
                         "Adaptive optimized+",
                         "Adaptive optimized+ clean",
-                        "Adaptive optimized+ NN SLL")
+                        "Adaptive optimized+ NN SLL",
+                        "Adaptive optimized+ NN")
     #"Adaptive optimized+ AP param")
     method.labels <<- c("Standard",
                         "Adaptive+",
                         "Adaptive+ (c/n)",
+                        "Adaptive+ (NNs)",
                         "Adaptive+ (NN)")
     #"Adaptive+ (AP RRM)")
-    color.scale <<- cbPalette[c(1,2,3,6)]
-    shape.scale <<- c(1,2,3,4)
-    linetype.scale <<- c(1,1,1,1)
+    color.scale <<- cbPalette[c(1,2,3,6,7)]
+    shape.scale <<- c(1,2,3,4,5)
+    linetype.scale <<- c(1,1,1,1,1)
     xlab_ <<- "Number of noisy calibration samples"
   }
 }
@@ -3734,8 +3733,8 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nt%d_%s_%s_expeasy%s.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.n_train, plot.guarantee, plot.contamination, plot.exp_easy)
+    plot.file <- sprintf("figures/exp%d_%s_K%d_nt%d_%s_%s_expeasy%s.pdf",
+                         exp.num, plot.data, plot.K, plot.n_train, plot.guarantee, plot.contamination, plot.exp_easy)
     ggsave(file=plot.file, height=4, width=9, units="in")
     return(NULL)
   } else{
@@ -3745,7 +3744,7 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 
 plot.alpha <- 0.1
 plot.epsilon <- 0.2
-plot.n_train <- 5000
+plot.n_train <- 10000
 plot.n_clean <- c(100, 500, 1000)
 plot.pi_clean <- 0
 plot.K <- 4
@@ -3758,7 +3757,7 @@ make_figure_711(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.contamination=plot.contamination,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
+                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 712: Impact of the fraction of clean samples ------------------------
@@ -3818,8 +3817,8 @@ make_figure_712 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nt%d_%s_%s.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.n_train, plot.guarantee, plot.contamination)
+    plot.file <- sprintf("figures/exp%d_%s_K%d_nt%d_%s_%s.pdf",
+                         exp.num, plot.data, plot.K, plot.n_train, plot.guarantee, plot.contamination)
     ggsave(file=plot.file, height=4, width=9, units="in")
     return(NULL)
   } else{
@@ -3885,8 +3884,8 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(N_TRAIN = factor(sprintf("N train: %d", n_train), 
                             levels = sprintf("N train: %d", plot.n_train), 
-                            labels = c("N train: 1000", "N train: 2000",
-                                       "N train: 5000"))) %>%
+                            labels = c("N train: 1000", "N train: 5000",
+                                       "N train: 10000"))) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
@@ -3919,8 +3918,8 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_ncl%d_%s_%s_expeasy%s.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.n_clean, plot.guarantee, plot.contamination, plot.exp_easy)
+    plot.file <- sprintf("figures/exp%d_%s_K%d_ncl%d_%s_%s_expeasy%s.pdf",
+                         exp.num, plot.data, plot.K, plot.n_clean, plot.guarantee, plot.contamination, plot.exp_easy)
     
     if(plot.exp_easy){
       ggsave(file=plot.file, height=2.5, width=7, units="in")
@@ -3936,7 +3935,7 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 
 plot.alpha <- 0.1
 plot.epsilon <- 0.2
-plot.n_train <- c(1000, 2000, 5000)
+plot.n_train <- c(1000, 5000, 10000)
 plot.n_clean <- 100
 plot.pi_clean <- 0
 plot.K <- 4
@@ -3948,14 +3947,14 @@ make_figure_713(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.contamination=plot.contamination,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
+                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
 
 make_figure_713(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE, plot.exp_easy=TRUE)
+                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE, plot.exp_easy=TRUE)
 
 
 
@@ -4016,8 +4015,8 @@ make_figure_714 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_picl_%s_%s_%s.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.pi_clean, plot.guarantee, plot.contamination)
+    plot.file <- sprintf("figures/exp%d_%s_K%d_picl_%s_%s_%s.pdf",
+                         exp.num, plot.data, plot.K, plot.pi_clean, plot.guarantee, plot.contamination)
     ggsave(file=plot.file, height=4, width=9, units="in")
     return(NULL)
   } else{
@@ -4037,6 +4036,171 @@ make_figure_714(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
                 plot.n_train=plot.n_train, plot.pi_clean=plot.pi_clean,
+                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
+#### Experiment 715: Impact of different data distribution ------------------------
+#' Plot marginal coverage as function of the number of calibration samples,
+#' changing the data distribution
+
+
+make_figure_715 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+                            plot.contamination="uniform",
+                            plot.n_train, plot.n_clean, plot.pi_clean,
+                            plot.epsilon,
+                            plot.exp_easy=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.exp_easy)
+  
+  df <- summary %>%
+    filter(data%in%plot.data, num_var==20,
+           n_train==plot.n_train, n_clean==plot.n_clean,
+           K==plot.K, Guarantee==plot.guarantee,
+           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon)
+  
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(DATA = sprintf("Data: %s", data)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~DATA, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab(xlab_) +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          #legend.position = "bottom",
+          #legend.direction = "horizontal",
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_K%d_nt%d_ncl%d_%s_%s_expeasy%s.pdf",
+                         exp.num, plot.K, plot.n_train, plot.n_clean, plot.guarantee, plot.contamination, plot.exp_easy)
+    ggsave(file=plot.file, height=4, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+plot.alpha <- 0.1
+plot.epsilon <- 0.2
+plot.n_train <- 10000
+plot.n_clean <- 500
+plot.pi_clean <- 0
+plot.K <- 4
+plot.contamination <- "uniform"
+exp.num <- 715
+plot.data <- c("synthetic1","synthetic2","synthetic3")
+
+make_figure_715(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
+                plot.pi_clean=plot.pi_clean,
+                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
+#### Experiment 716: Impact of the contamination process ------------------------
+#' Plot marginal coverage as function of the number of calibration samples,
+#' changing the contamination process
+
+make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+                            plot.contamination="uniform",
+                            plot.n_train, plot.n_clean, plot.pi_clean,
+                            plot.epsilon,
+                            plot.exp_easy=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.exp_easy)
+  
+  df <- summary %>%
+    filter(data%in%plot.data, num_var==20,
+           n_train==plot.n_train, n_clean==plot.n_clean,
+           K==plot.K, Guarantee==plot.guarantee,
+           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon)
+  
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(DATA = sprintf("Data: %s", data)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~DATA, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab(xlab_) +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          #legend.position = "bottom",
+          #legend.direction = "horizontal",
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_K%d_nt%d_ncl%d_%s_%s_expeasy%s.pdf",
+                         exp.num, plot.K, plot.n_train, plot.n_clean, plot.guarantee, plot.contamination, plot.exp_easy)
+    ggsave(file=plot.file, height=4, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+plot.alpha <- 0.1
+plot.epsilon <- 0.2
+plot.n_train <- 10000
+plot.n_clean <- 500
+plot.pi_clean <- 0
+plot.K <- 4
+plot.contamination <- "uniform"
+exp.num <- 716
+plot.data <- c("synthetic1","synthetic2","synthetic3")
+
+make_figure_716(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
+                plot.pi_clean=plot.pi_clean,
                 plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
 
 
