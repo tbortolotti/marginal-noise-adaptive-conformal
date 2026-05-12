@@ -3108,11 +3108,11 @@ make_figure_624b(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("EM", "EM gen", "NN gen", "NN alt gen", "NN ems gen", "NN SLL alt gen", "softmax")
-  method.labels <<- c("EM", "EM (gen)", "NN (0 gen)", "NN (gen)", "NN (ems gen)", "NNs (gen)", "softmax")
-  color.scale <<- cbPalette[c(2,9,4,3,5,6,7)]
-  shape.scale <<- c(0,9,3,7,4,5,6)
-  linetype.scale <<- c(1,1,1,1,1,1,1)
+  method.values <<- c("EM gen", "NN alt gen", "NN SLL alt gen", "softmax")
+  method.labels <<- c("EM", "NN (g)", "NNs (g)", "softmax")
+  color.scale <<- cbPalette[c(2,9,6,8)]
+  shape.scale <<- c(0,9,3,7)
+  linetype.scale <<- c(1,1,1,1)
   
 }
 
@@ -3188,8 +3188,8 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_eps%s_ncl%s_K%d.png",
-                         exp.num, plot.epsilon, plot.n_clean, plot.K)
+    plot.file <- sprintf("figures/exp%d_%s_eps%s_ncl%s_K%d.png",
+                         exp.num, plot.data, plot.epsilon, plot.n_clean, plot.K)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
@@ -3202,13 +3202,13 @@ plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- c("uniform", "mild", "RRB")
 plot.n_clean <- 500
-plot.data <- "synthetic6"
+plot.data <- "synthetic1"
 
 make_figure_625(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                  plot.n_clean=plot.n_clean,
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon,
-                 save_plots=FALSE, reload=TRUE)
+                 save_plots=TRUE, reload=TRUE)
 
 ### Experiments 700: Using the estimated T in the adaptive algorithm ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {
@@ -4136,9 +4136,43 @@ make_figure_715(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 #### Experiment 716: Impact of the contamination process ------------------------
 #' Plot marginal coverage as function of the number of calibration samples,
 #' changing the contamination process
+#' 
+#' 
+
+
+init_settings <- function(exp_easy=FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  if(exp_easy){
+    method.values <<- c("Standard using clean")
+    method.labels <<- c("Standard")
+    color.scale <<- cbPalette[c(1)]
+    shape.scale <<- c(1)
+    linetype.scale <<- c(1)
+    xlab_ <<- "Number of easy clean calibration samples"
+  } else {
+    method.values <<- c("Standard",
+                        "Adaptive optimized+",
+                        "Adaptive optimized+ clean",
+                        "Adaptive optimized+ NN SLL",
+                        "Adaptive optimized+ NN")
+    #"Adaptive optimized+ AP param")
+    method.labels <<- c("Standard",
+                        "Adaptive+",
+                        "Adaptive+ (c/n)",
+                        "Adaptive+ (NNs)",
+                        "Adaptive+ (NN)")
+    #"Adaptive+ (AP RRM)")
+    color.scale <<- cbPalette[c(1,2,3,6,7)]
+    shape.scale <<- c(1,2,3,4,5)
+    linetype.scale <<- c(1,1,1,1,1)
+    xlab_ <<- "Number of noisy calibration samples"
+  }
+}
 
 make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
-                            plot.contamination="uniform",
+                            plot.contamination,
                             plot.n_train, plot.n_clean, plot.pi_clean,
                             plot.epsilon,
                             plot.exp_easy=FALSE) {
@@ -4149,24 +4183,24 @@ make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   init_settings(plot.exp_easy)
   
   df <- summary %>%
-    filter(data%in%plot.data, num_var==20,
+    filter(data==plot.data, num_var==20,
            n_train==plot.n_train, n_clean==plot.n_clean,
            K==plot.K, Guarantee==plot.guarantee,
            Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
            Method %in% method.values,
-           contamination==plot.contamination,
+           contamination %in% plot.contamination,
            epsilon==plot.epsilon)
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(DATA = sprintf("Data: %s", data)) %>%
+    mutate(CONT = sprintf("Cont: %s", contamination)) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~DATA, scales="free") +
+    facet_grid(Key~CONT, scales="free") +
     geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
@@ -4187,8 +4221,8 @@ make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_K%d_nt%d_ncl%d_%s_%s_expeasy%s.pdf",
-                         exp.num, plot.K, plot.n_train, plot.n_clean, plot.guarantee, plot.contamination, plot.exp_easy)
+    plot.file <- sprintf("figures/exp%d_%s_K%d_nt%d_ncl%d_%s_expeasy%s.pdf",
+                         exp.num, plot.data, plot.K, plot.n_train, plot.n_clean, plot.guarantee, plot.exp_easy)
     ggsave(file=plot.file, height=4, width=9, units="in")
     return(NULL)
   } else{
@@ -4202,16 +4236,16 @@ plot.n_train <- 10000
 plot.n_clean <- 500
 plot.pi_clean <- 0
 plot.K <- 4
-plot.contamination <- "uniform"
+plot.contamination <- c("block", "RRB", "mild")
 exp.num <- 716
-plot.data <- c("synthetic1","synthetic2","synthetic3")
+plot.data <- "synthetic1"
 
 make_figure_716(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
+                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------

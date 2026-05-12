@@ -74,7 +74,7 @@ elif [[ $CONF == 624 ]]; then
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 625 ]]; then
-  DATA_LIST=("synthetic1")
+  DATA_LIST=("synthetic6")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   N_LIST=(500 1000 2000 5000 10000 20000)
@@ -83,7 +83,7 @@ elif [[ $CONF == 625 ]]; then
   RANDOM_FLAG_LIST=("false")
   EPSILON_LIST=(0.2)
   NU_LIST=(0.2)
-  CONTAMINATION_LIST=("uniform" "mild" "RRB")
+  CONTAMINATION_LIST=("block" "asymmetric")
   CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=$(seq 1 5)
 
