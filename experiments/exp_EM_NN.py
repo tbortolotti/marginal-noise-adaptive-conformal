@@ -320,8 +320,8 @@ def run_experiment(random_state):
         print("Estimating T using the NN with SLL and general contamination...", end=' ')
         sys.stdout.flush()
         model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=100, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=100, batch_size=128, lr=1e-3, verbose=False)
 
         T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
@@ -333,8 +333,8 @@ def run_experiment(random_state):
         print("Estimating T using the NN and general contamination...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=100, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=100, batch_size=128, lr=1e-3, verbose=False)
 
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()

@@ -3108,8 +3108,8 @@ make_figure_624b(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("EM", "EM gen", "NN alt gen", "NN SLL alt gen", "softmax")
-  method.labels <<- c("EM", "EM (gen)", "NN (gen)", "NNs (gen)", "softmax")
+  method.values <<- c("EM", "EM gen", "NN gen", "NN alt gen", "NN ems gen", "NN SLL alt gen", "softmax")
+  method.labels <<- c("EM", "EM (gen)", "NN (0 gen)", "NN (gen)", "NN (ems gen)", "NNs (gen)", "softmax")
   color.scale <<- cbPalette[c(2,9,4,3,5,6,7)]
   shape.scale <<- c(0,9,3,7,4,5,6)
   linetype.scale <<- c(1,1,1,1,1,1,1)
@@ -3200,7 +3200,7 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
 exp.num <- 625
 plot.epsilon <- 0.2
 plot.K <- 4
-plot.contamination <- c("uniform", "mild", "asymmetric")
+plot.contamination <- c("uniform", "mild", "RRB")
 plot.n_clean <- 500
 plot.data <- "synthetic6"
 
