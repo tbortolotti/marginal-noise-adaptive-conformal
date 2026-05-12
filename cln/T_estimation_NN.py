@@ -82,12 +82,20 @@ class RandomizedResponseLayer(nn.Module):
 
 class GeneralContaminationLayer(nn.Module):
 
-    def __init__(self, K: int):
+    def __init__(self, K: int,
+                 epsilon_init: float = 0.0,
+                 floor: float = 1e-6):
         super().__init__()
         self.K = K
+
+        # Build RR-style initialization matrix
+        eps = float(np.clip(epsilon_init, floor, 1.0 - floor))
+        T_init = eps / K * torch.ones(K, K) + (1.0 - eps) * torch.eye(K)
+
         # Free parameters: one K-vector per column of T
         # Shape [K, K]: entry [k, l] = psi_{l,k}
-        self.Psi = nn.Parameter(torch.zeros(K, K))
+        Psi_init = torch.log(T_init)
+        self.Psi = nn.Parameter(Psi_init)
 
     def contamination_matrix(self) -> torch.Tensor:
         # Apply softmax column by column
@@ -167,7 +175,7 @@ class NoisyLabelNet(nn.Module):
     def __init__(self, input_dim: int, K: int,
                  hidden_dims: list[int] = [128, 64],
                  contamination_model_: str = "uniform",
-                 epsilon_init: float = 0.5):
+                 epsilon_init: float = 0):
         super().__init__()
         self.K = K
 
@@ -175,7 +183,7 @@ class NoisyLabelNet(nn.Module):
         if contamination_model_=="uniform":
             self.contamination = RandomizedResponseLayer(K, epsilon_init)
         elif contamination_model_=="general":
-            self.contamination = GeneralContaminationLayer(K)
+            self.contamination = GeneralContaminationLayer(K, epsilon_init)
 
     def forward(self, X: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """
@@ -511,15 +519,8 @@ def train_em_style(
     # Number of gradient steps on the backbone per EM iteration.
     # Mimics the inner L-BFGS convergence of the EM M-step.
     n_backbone_steps: int = 50,
-    # Number of gradient steps on the contamination layer per EM iteration
-    # (only used when closed-form update is disabled).
-    n_grad_steps: int = 10,
     batch_size: int = 256,
     lr_backbone: float = 1e-3,
-    lr_cont: float = 1e-2,
-    # If True, use the analytical closed-form update for the contamination
-    # layer (exact EM M-step). If False, use gradient steps instead.
-    use_closed_form_cont: bool = True,
     device: str = "cpu",
     verbose: bool = True,
 ) -> list[dict]:
@@ -561,7 +562,7 @@ def train_em_style(
 
     # Separate optimizers — only parameters of the respective module are updated
     if optimizer_name == "adam":
-        optimizer_backbone = torch.optim.Adam(
+        optimizer_backbone = torch.optim.AdamW(
             model.backbone.parameters(), lr=lr_backbone
         )
     elif optimizer_name == "lbfgs":
@@ -574,8 +575,6 @@ def train_em_style(
         )
     else:
         raise ValueError("optimizer_name must be 'adam' or 'lbfgs'")
-
-    optimizer_contamination = torch.optim.Adam(model.contamination.parameters(), lr=lr_cont)
 
     history = []
 
@@ -641,27 +640,8 @@ def train_em_style(
         for p in model.contamination.parameters():
             p.requires_grad_(True)
 
-        if use_closed_form_cont:
-            # Exact EM update — no gradient needed
-            model.contamination.closed_form_update(gamma, Y_tilde)
-        else:
-            # Gradient-based fallback (useful when extending to more complex T)
-            model.train()
-            for _ in range(n_grad_steps):
-                logits_Y  = model.backbone(X_cont)
-                p_Y       = F.softmax(logits_Y, dim=-1).detach()  # backbone frozen
-                p_Ytilde  = model.contamination(p_Y)              # (n_c, K)
-
-                T         = model.contamination.contamination_matrix()  # (K, K)
-                log_T_row = torch.log(T[Y_tilde, :] + 1e-12)           # (n_c, K)
-
-                # Q-function w.r.t. T: sum_{i,l} gamma[i,l] * log T[Y~_i, l]
-                q_T = (gamma * log_T_row).sum()
-                loss_cont = -q_T / len(Y_tilde)
-
-                optimizer_contamination.zero_grad()
-                loss_cont.backward()
-                optimizer_contamination.step()
+        # Exact EM update — no gradient needed
+        model.contamination.closed_form_update(gamma, Y_tilde)
 
         # Restore all grads for monitoring
         for p in model.parameters():
@@ -686,20 +666,18 @@ def train_em_style(
                 marginal  = (T[Y_tilde, :] * p_co).sum(dim=1).clamp(min=1e-12)
                 ll_cont   = marginal.log().mean().item()
 
-            eps_val = model.epsilon
+            #eps_val = model.epsilon
 
         record = {
             "epoch":    epoch + 1,
             "ll_clean": ll_clean,
             "ll_cont":  ll_cont,
-            "epsilon":  eps_val,
         }
         history.append(record)
 
         if verbose and (epoch + 1) % 10 == 0:
             print(f"Epoch {epoch+1:4d}/{n_epochs} | "
-                  f"ll_clean={ll_clean:.4f} | ll_cont={ll_cont:.4f} | "
-                  f"ε={eps_val:.4f}")
+                  f"ll_clean={ll_clean:.4f} | ll_cont={ll_cont:.4f}")
 
     return history
 

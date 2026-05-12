@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Parameters
-CONF=625
+CONF=620
 
 if [[ $CONF == 620 ]]; then
-  DATA_LIST=("synthetic6")
+  DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   N_LIST=(1000)
@@ -82,8 +82,8 @@ elif [[ $CONF == 625 ]]; then
   PI_CLEAN_LIST=(0)
   RANDOM_FLAG_LIST=("false")
   EPSILON_LIST=(0.2)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform" "mild" "asymmetric" "hard")
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform" "mild" "RRB")
   CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=$(seq 1 5)
 

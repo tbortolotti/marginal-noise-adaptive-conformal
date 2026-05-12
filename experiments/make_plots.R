@@ -3096,10 +3096,20 @@ make_figure_624b(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #' Plot performance as function of the number of training samples,
 #' changing the contamination model
 
+# init_settings <- function(sll_flag=FALSE) {
+#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+#   method.values <<- c("EM", "EM gen", "NN alt", "NN SLL alt", "NN alt gen", "NN SLL alt gen", "softmax")
+#   method.labels <<- c("EM", "EM (gen)", "NN", "NNs", "NN (gen)", "NNs (gen)", "softmax")
+#   color.scale <<- cbPalette[c(2,9,4,3,5,6,7)]
+#   shape.scale <<- c(0,9,3,7,4,5,6)
+#   linetype.scale <<- c(1,1,1,1,1,1,1)
+#   
+# }
+
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
-  method.values <<- c("EM", "EM gen", "NN", "NN SLL", "NN gen", "NN SLL gen", "softmax")
-  method.labels <<- c("EM", "EM (gen)", "NN", "NNs", "NN (gen)", "NNs (gen)", "softmax")
+  method.values <<- c("EM", "EM gen", "NN alt gen", "NN SLL alt gen", "softmax")
+  method.labels <<- c("EM", "EM (gen)", "NN (gen)", "NNs (gen)", "softmax")
   color.scale <<- cbPalette[c(2,9,4,3,5,6,7)]
   shape.scale <<- c(0,9,3,7,4,5,6)
   linetype.scale <<- c(1,1,1,1,1,1,1)
@@ -3119,14 +3129,14 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   }))    
   summary <- results %>%
     pivot_longer(c("frobenius_d", "accuracy"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, num_var, K, contamination, epsilon, n, pi_clean, randflag, Method, Key) %>%
+    group_by(data, num_var, K, contamination, epsilon, n, n_clean, randflag, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
 
 
 make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
-                             plot.pi_clean=0.5,
+                             plot.n_clean=500,
                              plot.contamination,
                              plot.epsilon=0.2,
                              save_plots=FALSE, reload=FALSE) {
@@ -3139,7 +3149,7 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df <- summary %>%
     filter(data==plot.data, num_var==20, K==plot.K,
            epsilon==plot.epsilon,
-           pi_clean==plot.pi_clean,
+           n_clean==plot.n_clean,
            Method %in% method.values,
            contamination %in% plot.contamination)
   
@@ -3178,8 +3188,8 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_eps%s_picl%s_K%d.png",
-                         exp.num, plot.epsilon, plot.pi_clean, plot.K)
+    plot.file <- sprintf("figures/exp%d_eps%s_ncl%s_K%d.png",
+                         exp.num, plot.epsilon, plot.n_clean, plot.K)
     ggsave(file=plot.file, height=4.5, width=9, units="in")
     return(NULL)
   } else{
@@ -3191,14 +3201,14 @@ exp.num <- 625
 plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- c("uniform", "mild", "asymmetric")
-plot.pi_clean <- 0.5
+plot.n_clean <- 500
 plot.data <- "synthetic6"
 
 make_figure_625(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                 plot.pi_clean=plot.pi_clean,
+                 plot.n_clean=plot.n_clean,
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon,
-                 save_plots=TRUE, reload=TRUE)
+                 save_plots=FALSE, reload=TRUE)
 
 ### Experiments 700: Using the estimated T in the adaptive algorithm ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {

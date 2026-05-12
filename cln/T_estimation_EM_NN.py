@@ -434,7 +434,7 @@ def run_em_nn(
             max_iter=n_steps_per_iter, line_search_fn="strong_wolfe"
         )
     else:
-        optimizer = torch.optim.Adam(classifier.parameters(), lr=lr)
+        optimizer = torch.optim.AdamW(classifier.parameters(), lr=lr)
 
     log_likelihoods: list[float] = []
     converged = False
