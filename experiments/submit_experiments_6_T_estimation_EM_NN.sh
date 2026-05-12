@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=620
+CONF=625
 
 if [[ $CONF == 620 ]]; then
   DATA_LIST=("synthetic1")
@@ -74,7 +74,7 @@ elif [[ $CONF == 624 ]]; then
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 625 ]]; then
-  DATA_LIST=("synthetic6")
+  DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   N_LIST=(500 1000 2000 5000 10000 20000)
