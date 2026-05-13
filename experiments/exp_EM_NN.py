@@ -235,9 +235,9 @@ def run_experiment(random_state):
     data_distribution.set_seed(random_state+7)
     X0, Y0 = data_distribution.sample(n0)
     Yt0 = contamination_process.sample_labels(Y0)
-    #conf_scores = rfc_easy.predict_proba(X0).max(axis=1)
-    #top_indices = np.argsort(conf_scores)[-n_clean:]
-    top_indices = find_central_observations(X0, Y0, K, n_central=n_clean)
+    conf_scores = rfc_easy.predict_proba(X0).max(axis=1)
+    top_indices = np.argsort(conf_scores)[-n_clean:]
+    #top_indices = find_central_observations(X0, Y0, K, n_central=n_clean)
 
     X_clean = X0[top_indices]
     Y_clean = Y0[top_indices]
@@ -251,9 +251,9 @@ def run_experiment(random_state):
     data_distribution.set_seed(random_state+8)
     n_new = int(1/clean_centrality * n_cal)
     X_new, Y_new = data_distribution.sample(n_new)
-    #conf_scores = rfc_easy.predict_proba(X_new).max(axis=1)
-    #top_indices = np.argsort(conf_scores)[-n_cal:]
-    top_indices = find_central_observations(X_new, Y_new, K, n_central=n_cal)
+    conf_scores = rfc_easy.predict_proba(X_new).max(axis=1)
+    top_indices = np.argsort(conf_scores)[-n_cal:]
+    #top_indices = find_central_observations(X_new, Y_new, K, n_central=n_cal)
     X_clean_cal = X_new[top_indices]
     Y_clean_cal = Y_new[top_indices]
 
