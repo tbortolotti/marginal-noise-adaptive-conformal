@@ -75,7 +75,7 @@ elif [[ $CONF == 714 ]]; then
 
 elif [[ $CONF == 715 ]]; then
   MODEL_LIST=('RFC')
-  DATA_LIST=("synthetic1_easy")
+  DATA_LIST=("synthetic1" "synthetic2" "synthetic3")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   EPSILON_LIST=(0.2)
@@ -89,7 +89,7 @@ elif [[ $CONF == 715 ]]; then
 
 elif [[ $CONF == 716 ]]; then
   MODEL_LIST=('RFC')
-  DATA_LIST=("synthetic1_easy" "synthetic6" "synthetic3")
+  DATA_LIST=("synthetic6" "synthetic3")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   EPSILON_LIST=(0.2)

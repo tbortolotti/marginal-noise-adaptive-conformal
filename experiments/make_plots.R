@@ -4074,7 +4074,7 @@ make_figure_715 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   init_settings(plot.exp_easy)
   
   df <- summary %>%
-    filter(data%in%plot.data, num_var==20,
+    filter(data%in%plot.data,
            n_train==plot.n_train, n_clean==plot.n_clean,
            K==plot.K, Guarantee==plot.guarantee,
            Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
@@ -4128,15 +4128,15 @@ plot.n_clean <- 500
 plot.pi_clean <- 0
 plot.K <- 4
 plot.contamination <- "uniform"
-exp.num <- 715
-plot.data <- c("synthetic1_easy","synthetic2","synthetic3")
+exp.num <- 7150
+plot.data <- c("synthetic1","synthetic2","synthetic3")
 
 make_figure_715(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
+                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
@@ -4191,8 +4191,14 @@ make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   init_settings(plot.exp_easy)
   
+  if(plot.data=="synthetic1_easy"){
+    num_var = 2
+  } else {
+    num_var = 2
+  }
+  
   df <- summary %>%
-    filter(data==plot.data, num_var==20,
+    filter(data==plot.data, num_var==num_var,
            n_train==plot.n_train, n_clean==plot.n_clean,
            K==plot.K, Guarantee==plot.guarantee,
            Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
@@ -4203,7 +4209,8 @@ make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Adaptive+")
   pp <- df %>%
-    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(Method = factor(Method, method.values, method.labels),
+           Mean = ifelse((Key == "Coverage") & (Mean<0.8), NA, Mean)) %>%
     mutate(CONT = factor(sprintf("Cont: %s", contamination),
                          levels = sprintf("Cont: %s", plot.contamination),
                          labels = c("Cont: block", "Cont: two-level", "Cont: near-diag"))) %>%
@@ -4249,7 +4256,7 @@ plot.pi_clean <- 0
 plot.K <- 4
 plot.contamination <- c("block", "RRB", "mild")
 exp.num <- 716
-plot.data <- "synthetic1_easy"
+plot.data <- "synthetic6"
 
 make_figure_716(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",

@@ -253,7 +253,7 @@ def run_experiment(random_state):
     X_new, Y_new = data_distribution.sample(n_new)
     #conf_scores = rfc_easy.predict_proba(X_new).max(axis=1)
     #top_indices = np.argsort(conf_scores)[-n_cal:]
-    top_indices = find_central_observations(X_new, Y_new, K, n_central=n_clean)
+    top_indices = find_central_observations(X_new, Y_new, K, n_central=n_cal)
     X_clean_cal = X_new[top_indices]
     Y_clean_cal = Y_new[top_indices]
 
