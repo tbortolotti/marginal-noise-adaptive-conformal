@@ -81,6 +81,8 @@ else:
 # Initialize the data distribution
 if data_name == "synthetic1":
     data_distribution = data.DataModel_1(K, num_var, signal=1, random_state=seed)
+elif data_name == "synthetic1_easy":
+    data_distribution = data.DataModel_1_easy(K, 2, signal=1, random_state=seed)
 elif data_name == "synthetic2":
     data_distribution = data.DataModel_2(K, num_var, signal=1, random_state=seed)
 elif data_name == "synthetic3":

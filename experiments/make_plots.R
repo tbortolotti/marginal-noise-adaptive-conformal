@@ -4136,7 +4136,7 @@ make_figure_715(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.contamination=plot.contamination,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
+                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
@@ -4256,7 +4256,7 @@ make_figure_716(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.contamination=plot.contamination,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
+                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
