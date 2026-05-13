@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=715
+CONF=716
 
 if [[ $CONF == 710 ]]; then
   MODEL_LIST=('RFC')
@@ -89,7 +89,7 @@ elif [[ $CONF == 715 ]]; then
 
 elif [[ $CONF == 716 ]]; then
   MODEL_LIST=('RFC')
-  DATA_LIST=("synthetic1_easy")
+  DATA_LIST=("synthetic1_easy" "synthetic6" "synthetic3")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
   EPSILON_LIST=(0.2)
