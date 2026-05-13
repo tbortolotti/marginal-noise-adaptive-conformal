@@ -3109,7 +3109,7 @@ make_figure_624b(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 init_settings <- function(sll_flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   method.values <<- c("EM gen", "NN alt gen", "NN SLL alt gen", "softmax")
-  method.labels <<- c("EM", "NN (g)", "NNs (g)", "softmax")
+  method.labels <<- c("EM (g)", "NN (g)", "NNs (g)", "softmax")
   color.scale <<- cbPalette[c(2,9,6,8)]
   shape.scale <<- c(0,9,3,7)
   linetype.scale <<- c(1,1,1,1)
@@ -3159,11 +3159,14 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
   df.nominal_accuracy <- tibble(Key="accuracy", Mean=1)
   #df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
   df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
-  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="EM")
+  df.range_accuracy <- tibble(Key=c("accuracy","accuracy"), Mean=c(0.5,1), n=1000, Method="EM (g)")
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(CONT = sprintf("Cont.: %s", contamination)) %>%
+    #mutate(CONT = sprintf("Cont.: %s", contamination)) %>%
+    mutate(CONT = factor(sprintf("Cont: %s", contamination),
+                         levels = sprintf("Cont: %s", plot.contamination),
+                         labels = c("Cont: block", "Cont: two-level", "Cont: near-diag"))) %>%
     ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
@@ -3200,9 +3203,11 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
 exp.num <- 625
 plot.epsilon <- 0.2
 plot.K <- 4
-plot.contamination <- c("uniform", "mild", "RRB")
+#plot.contamination <- c("uniform", "mild", "RRB")
+#plot.contamination <- c("block", "RRB", "mild", "asymmetric")
+plot.contamination <- c("block", "RRB", "mild")
 plot.n_clean <- 500
-plot.data <- "synthetic1"
+plot.data <- "synthetic3"
 
 make_figure_625(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                  plot.n_clean=plot.n_clean,
@@ -3655,7 +3660,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 init_settings <- function(exp_easy=FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#648767")
   if(exp_easy){
     method.values <<- c("Standard using clean")
     method.labels <<- c("Standard")
@@ -3665,21 +3670,23 @@ init_settings <- function(exp_easy=FALSE) {
     xlab_ <<- "Number of easy clean calibration samples"
   } else {
     method.values <<- c("Standard",
+                        "Standard using clean",
                         "Adaptive optimized+",
                         "Adaptive optimized+ clean",
                         "Adaptive optimized+ NN SLL",
                         "Adaptive optimized+ NN")
     #"Adaptive optimized+ AP param")
-    method.labels <<- c("Standard",
+    method.labels <<- c("Standard (noisy)",
+                        "Standard (clean, simple)",
                         "Adaptive+",
                         "Adaptive+ (c/n)",
                         "Adaptive+ (NNs)",
                         "Adaptive+ (NN)")
     #"Adaptive+ (AP RRM)")
-    color.scale <<- cbPalette[c(1,2,3,6,7)]
-    shape.scale <<- c(1,2,3,4,5)
-    linetype.scale <<- c(1,1,1,1,1)
-    xlab_ <<- "Number of noisy calibration samples"
+    color.scale <<- cbPalette[c(1,10,2,3,6,7)]
+    shape.scale <<- c(1,6,2,3,4,5)
+    linetype.scale <<- c(1,1,1,1,1,1)
+    xlab_ <<- "Number of calibration samples"
   }
 }
 
@@ -3711,7 +3718,7 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            epsilon==plot.epsilon)
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Adaptive+")
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(N_CLEAN = factor(sprintf("N clean: %d", n_clean), 
@@ -3754,7 +3761,7 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 
 plot.alpha <- 0.1
 plot.epsilon <- 0.2
-plot.n_train <- 10000
+plot.n_train <- 5000
 plot.n_clean <- c(100, 500, 1000)
 plot.pi_clean <- 0
 plot.K <- 4
@@ -3795,7 +3802,7 @@ make_figure_712 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            epsilon==plot.epsilon)
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Adaptive+")
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(PI_CLEAN = factor(sprintf("Frac. of clean data: %s", pi_clean), 
@@ -3885,7 +3892,7 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
              Method %in% method.values,
              contamination==plot.contamination,
              epsilon==plot.epsilon)
-    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+    df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Adaptive+")
   }
 
   
@@ -4076,7 +4083,7 @@ make_figure_715 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            epsilon==plot.epsilon)
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Adaptive+")
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(DATA = sprintf("Data: %s", data)) %>%
@@ -4143,7 +4150,7 @@ make_figure_715(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 init_settings <- function(exp_easy=FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
   if(exp_easy){
     method.values <<- c("Standard using clean")
     method.labels <<- c("Standard")
@@ -4153,21 +4160,23 @@ init_settings <- function(exp_easy=FALSE) {
     xlab_ <<- "Number of easy clean calibration samples"
   } else {
     method.values <<- c("Standard",
+                        "Standard using clean",
                         "Adaptive optimized+",
                         "Adaptive optimized+ clean",
                         "Adaptive optimized+ NN SLL",
                         "Adaptive optimized+ NN")
     #"Adaptive optimized+ AP param")
-    method.labels <<- c("Standard",
+    method.labels <<- c("Standard (noisy)",
+                        "Standard (clean, simple)",
                         "Adaptive+",
                         "Adaptive+ (c/n)",
                         "Adaptive+ (NNs)",
                         "Adaptive+ (NN)")
     #"Adaptive+ (AP RRM)")
-    color.scale <<- cbPalette[c(1,2,3,6,7)]
-    shape.scale <<- c(1,2,3,4,5)
-    linetype.scale <<- c(1,1,1,1,1)
-    xlab_ <<- "Number of noisy calibration samples"
+    color.scale <<- cbPalette[c(1,10,2,3,6,7)]
+    shape.scale <<- c(1,6,2,3,4,5)
+    linetype.scale <<- c(1,1,1,1,1,1)
+    xlab_ <<- "Number of calibration samples"
   }
 }
 
@@ -4192,10 +4201,12 @@ make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            epsilon==plot.epsilon)
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Adaptive+")
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(CONT = sprintf("Cont: %s", contamination)) %>%
+    mutate(CONT = factor(sprintf("Cont: %s", contamination),
+                         levels = sprintf("Cont: %s", plot.contamination),
+                         labels = c("Cont: block", "Cont: two-level", "Cont: near-diag"))) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
@@ -4238,7 +4249,7 @@ plot.pi_clean <- 0
 plot.K <- 4
 plot.contamination <- c("block", "RRB", "mild")
 exp.num <- 716
-plot.data <- "synthetic1"
+plot.data <- "synthetic3"
 
 make_figure_716(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",

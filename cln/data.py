@@ -3,6 +3,8 @@ from scipy.stats import norm
 from scipy.special import softmax
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import make_classification
+from scipy.spatial.distance import mahalanobis
+from sklearn.covariance import LedoitWolf
 import pdb
 from cln import contamination
 
@@ -36,6 +38,63 @@ def sample_truncated_gaussian(n, R=1.0, A=None, mu=None, batch_size=50000, rando
         filled += take
 
     return out
+
+
+def find_central_observations(X, Y, K, method="mahalanobis", n_central=100):
+    """
+    n_central : total number of central observations to return across all classes,
+                allocated proportionally to class frequencies.
+    """
+    results = {}
+    
+    # Compute per-class counts proportional to class frequencies
+    class_counts = np.array([(Y == k).sum() for k in range(K)])
+    class_freqs = class_counts / class_counts.sum()
+    top_ns = np.round(class_freqs * n_central).astype(int)
+    
+    # Adjust rounding errors so sum is exactly n_central
+    diff = n_central - top_ns.sum()
+    # Distribute remainder to the largest classes
+    order = np.argsort(class_freqs)[::-1]
+    for i in range(abs(diff)):
+        top_ns[order[i % K]] += int(np.sign(diff))
+
+    for k in range(K):
+        mask = Y == k
+        X_k = X[mask]
+        idx_k = np.where(mask)[0]
+        top_n = top_ns[k]
+
+        if method == "centroid":
+            centroid = X_k.mean(axis=0)
+            dists = np.linalg.norm(X_k - centroid, axis=1)
+            scores = -dists
+
+        elif method == "mahalanobis":
+            centroid = X_k.mean(axis=0)
+            cov = LedoitWolf().fit(X_k).covariance_
+            VI = np.linalg.inv(cov)
+            dists = np.array([mahalanobis(x, centroid, VI) for x in X_k])
+            scores = -dists
+
+        elif method == "medoid":
+            diff = X_k[:, None, :] - X_k[None, :, :]
+            D = np.linalg.norm(diff, axis=2)
+            scores = -D.mean(axis=1)
+
+        elif method == "kde":
+            from scipy.stats import gaussian_kde
+            kde = gaussian_kde(X_k.T)
+            scores = kde(X_k.T)
+
+        order_k = np.argsort(scores)[::-1]
+        results[k] = {
+            "global_indices": idx_k[order_k[:top_n]],
+            "scores": scores[order_k[:top_n]],
+        }
+
+    all_central_idx = np.sort(np.concatenate([res["global_indices"] for res in results.values()]))
+    return all_central_idx
 
 class DataModel:
     def __init__(self, K, p, random_state=None):
