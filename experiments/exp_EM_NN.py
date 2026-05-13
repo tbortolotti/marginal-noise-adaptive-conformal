@@ -262,7 +262,10 @@ def run_experiment(random_state):
     black_box_pt.fit(X_train, Yt_train)
 
     # Estimate T using all the clean/noisy labels correspondence on clean dataset
-    T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical_parametricRR")
+    if not contamination_exp_flag:
+        T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical_parametricRR")
+    else:
+        T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical")
     T_hat_clean = T_method.get_estimate()
 
     #____________________________________________________________________

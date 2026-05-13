@@ -4129,7 +4129,7 @@ plot.pi_clean <- 0
 plot.K <- 4
 plot.contamination <- "uniform"
 exp.num <- 715
-plot.data <- c("synthetic1","synthetic2","synthetic3")
+plot.data <- c("synthetic1_easy","synthetic2","synthetic3")
 
 make_figure_715(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
@@ -4249,7 +4249,7 @@ plot.pi_clean <- 0
 plot.K <- 4
 plot.contamination <- c("block", "RRB", "mild")
 exp.num <- 716
-plot.data <- "synthetic3"
+plot.data <- "synthetic1_easy"
 
 make_figure_716(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
