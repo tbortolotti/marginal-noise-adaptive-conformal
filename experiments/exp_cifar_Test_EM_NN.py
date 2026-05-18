@@ -27,7 +27,7 @@ from torch.utils.data import DataLoader
 import gc
 
 # Define default parameters
-exp_num = 811
+exp_num = 821
 epsilon = 0.1
 nu = 0
 contamination_model = "uniform"

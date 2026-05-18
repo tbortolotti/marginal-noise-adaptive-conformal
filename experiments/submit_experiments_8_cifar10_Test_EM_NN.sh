@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Parameters
-CONF=810
+CONF=820
 
-if [[ $CONF == 810 ]]; then
+if [[ $CONF == 820 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
@@ -12,7 +12,7 @@ if [[ $CONF == 810 ]]; then
   PI_CLEAN_LIST=(0)
   SEED_LIST=(1)
 
-elif [[ $CONF == 811 ]]; then
+elif [[ $CONF == 821 ]]; then
   EPSILON_LIST=(0 0.1 0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
