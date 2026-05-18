@@ -196,6 +196,9 @@ class ResNetBackbone(nn.Module):
                 if "linear" not in name:
                     param.requires_grad_(False)
 
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
+        return self.net(X)
+
 
 # ---------------------------------------------------------------------------
 # Full model
