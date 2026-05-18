@@ -19,7 +19,6 @@ sys.path.append("../third_party")
 from cln import contamination
 from cln.T_estimation import evaluate_estimate
 from cln.T_estimation_NN import NoisyLabelNet, train_alternate
-from third_party import arc
 
 #from data_torch import ResNet18
 from data_torch import Cifar10DataSet, ImageNetResNet18Features, ResNet18
@@ -194,7 +193,6 @@ def run_experiment(random_state):
     print("Done.")
     sys.stdout.flush()
 
-
     #____________________________________________________________________
     ## Estimate T using the NN with ResNet
     print("Estimating T using the NN with ResNet...", end=' ')
@@ -219,7 +217,6 @@ def run_experiment(random_state):
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
-
 
     #____________________________________________________________________
     ## Estimate T using the NN algorithm with ResNet and general contamination
