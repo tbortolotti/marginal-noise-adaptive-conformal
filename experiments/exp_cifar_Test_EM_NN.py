@@ -153,7 +153,6 @@ def run_experiment(random_state):
 
     #____________________________________________________________________
     ## Estimate T using the NN algorithm
-    X_torch  = torch.tensor(X, dtype=torch.float32)
     X_feat_torch  = torch.tensor(X_features, dtype=torch.float32)
     Y_obs_torch = torch.tensor(Y_obs, dtype=torch.long)
     I_torch = torch.tensor(I, dtype=torch.long)
