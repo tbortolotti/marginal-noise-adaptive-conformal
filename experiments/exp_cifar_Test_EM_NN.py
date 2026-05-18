@@ -135,8 +135,6 @@ def run_experiment(random_state):
     
     Y = Y.detach().numpy()
 
-    del X; torch.cuda.empty_cache()
-
     # Generate the contaminated labels
     print("Generating contaminated labels...", end=' ')
     sys.stdout.flush()
@@ -155,6 +153,8 @@ def run_experiment(random_state):
     threshold = np.quantile(conf_scores, 1 - clean_frac)
     I = (conf_scores >= threshold).astype(int)
     Y_obs = np.where(I == 1, Y, Yt)
+
+    del X; torch.cuda.empty_cache()
 
     # Initialize an empty list to store the evaluation results
     res_list = []
