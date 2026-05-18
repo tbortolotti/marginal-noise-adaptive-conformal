@@ -36,6 +36,27 @@ class ResNet18:
         Z = self.black_box(X)
         pi_hat = torch.softmax(Z, dim=1).detach().numpy()
         return pi_hat
+    
+class CifarResNet18Features:
+    def __init__(self, device=None):
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        net = cifar_resnet18(pretrained=True)
+        # Remove the final linear layer
+        self.backbone = nn.Sequential(*list(net.children())[:-1])
+        self.backbone.to(self.device)
+        self.backbone.eval()
+        for p in self.backbone.parameters():
+            p.requires_grad = False
+
+    def transform(self, X, batch_size=256):
+        all_feats = []
+        for i in range(0, len(X), batch_size):
+            X_batch = X[i:i+batch_size].to(self.device)
+            with torch.no_grad():
+                feats = self.backbone(X_batch)
+                feats = feats.view(feats.size(0), -1)
+            all_feats.append(feats.cpu())
+        return torch.cat(all_feats, dim=0)
 
 
 class ImageNetResNet18Features:
