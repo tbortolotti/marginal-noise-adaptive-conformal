@@ -17,8 +17,7 @@ sys.path.append("..")
 sys.path.append("../third_party")
 
 from cln import contamination
-from cln.AP_identification import AnchorPointsIdentification
-from cln.T_estimation import TMatrixEstimation
+from cln.T_estimation_NN import NoisyLabelNet, train_alternate
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
 from third_party import arc
@@ -31,7 +30,7 @@ import copy
 
 
 # Define default parameters
-exp_num = 901
+exp_num = 911
 epsilon = 0.1
 nu = 0
 contamination_model = "uniform"
@@ -50,10 +49,9 @@ if True:
     sys.stdout.flush()
     exp_num = int(sys.argv[1])
     epsilon = float(sys.argv[2])
-    nu = float(sys.argv[3])
     contamination_model = sys.argv[4]
-    n_train1 = int(sys.argv[5])
-    n_train2 = int(sys.argv[6])
+    n_train = int(sys.argv[5])
+    n_clean = int(sys.argv[6])
     n_cal = int(sys.argv[7])
     seed = int(sys.argv[8])
 
@@ -63,8 +61,9 @@ K = 10
 num_exp = 5
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
+nu = 0.2
 n_test = 500
-batch_size = n_train1 + n_train2 + n_cal + n_test
+batch_size = n_train + n_clean + n_cal + n_test
 
 allow_empty = True
 asymptotic_h_start = 1/400
@@ -108,14 +107,14 @@ black_box_SVC = arc.black_boxes.SVC(clip_proba_factor = 1e-5)
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'K':[K],
-                       'n_train1':[n_train1], 'n_train2':[n_train2], 'n_cal':[n_cal],
+                       'n_train':[n_train], 'n_clean':[n_train2], 'n_cal':[n_cal],
                        'epsilon':[epsilon], 'contamination':[contamination_model],
                        'seed':[seed]})
 
 # Output file
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_n" + str(batch_size)
 outfile_prefix += "_eps" + str(epsilon) + "_" + contamination_model
-outfile_prefix += "_nt1_" + str(n_train1) + "_nt2_" + str(n_train2) +"_nc" + str(n_cal) + "_seed" + str(seed)
+outfile_prefix += "_nt" + str(n_train) + "_ncl" + str(n_clean) +"_nc" + str(n_cal) + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
 
@@ -153,16 +152,17 @@ def run_experiment(random_state):
     print("Done.")
     sys.stdout.flush()
 
-
     # Separate data into training and calibration
     X_imagenet_train, X_imagenet_cal, _, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X_imagenet, X, Y, Yt, test_size=n_cal, random_state=random_state+3)
     del X_imagenet, X, Y, Yt
 
+    # Separate the clean observations from the noisy training set
+    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_imagenet_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+4)
+
     # Extract features
     print("Extract features for T estimation...", end=' ')
     sys.stdout.flush()
-    # Split training set in two, as it'll be needed to estimate T
-    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_imagenet_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+4)
+
     del X_imagenet_train, Y_train, Yt_train
 
     # Operate transformation of X to fit SVC and identify anchor points

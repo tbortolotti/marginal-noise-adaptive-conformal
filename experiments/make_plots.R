@@ -4691,7 +4691,7 @@ make_figure_821(exp.num=exp.num, plot.data=plot.data,
                 plot.epsilon=plot.epsilon,
                 plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
-                plot.contamination_exp.flag=FALSE,
+                plot.contamination_exp.flag=TRUE,
                 save_plots=FALSE, reload=TRUE)
 
 

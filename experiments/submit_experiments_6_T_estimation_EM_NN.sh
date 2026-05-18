@@ -83,7 +83,7 @@ elif [[ $CONF == 625 ]]; then
   RANDOM_FLAG_LIST=("false")
   EPSILON_LIST=(0.2)
   NU_LIST=(0.2)
-  CONTAMINATION_LIST=("block" "asymmetric")
+  CONTAMINATION_LIST=("uniform")
   CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=$(seq 1 5)
 
