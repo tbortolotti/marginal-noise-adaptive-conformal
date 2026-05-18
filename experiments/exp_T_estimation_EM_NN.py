@@ -173,7 +173,7 @@ def run_experiment(random_state):
     print("Done.")
     sys.stdout.flush()
 
-    # Separate data into training and calibration
+    # Separate data into training and test
     X, X_test, Y, Y_test, Yt, Yt_test = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+3)
 
     if random_flag == True:
