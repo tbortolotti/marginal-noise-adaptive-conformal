@@ -77,6 +77,8 @@ noisy_data_dir = "/home1/tb_214/data/cifar10h"
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
 
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
 dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2026)
 loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
 feature_extractor = ImageNetResNet18Features()
