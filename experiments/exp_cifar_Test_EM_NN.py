@@ -183,8 +183,8 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16, 8], contamination_model_="general", epsilon_init=epsilon_init)
-    train_alternate(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-    train_alternate(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+    train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+    train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
     T_hat_NN = model_NN.contamination.contamination_matrix()
     T_hat_NN = T_hat_NN.detach().numpy()
 
