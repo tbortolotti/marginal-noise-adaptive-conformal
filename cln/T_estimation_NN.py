@@ -3,6 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
+#import torchvision.models as models
+import sys
+sys.path.append("/home1/tb_214/code/PyTorch_CIFAR10")
+from cifar10_models.resnet import resnet18 as cifar_resnet18
 
 class RandomizedResponseLayer(nn.Module):
     """
@@ -160,6 +164,38 @@ class ClassifierBackbone(nn.Module):
         """Returns logits of shape [batch, K]."""
         return self.net(X)
 
+"""
+class ResNetBackbone(nn.Module):
+    def __init__(self, K: int, freeze_features: bool = False):
+        super().__init__()
+        resnet = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+        
+        # Replace the final FC layer to output K logits
+        in_features = resnet.fc.in_features  # 512 for ResNet-18
+        resnet.fc = nn.Linear(in_features, K)
+        
+        self.net = resnet
+        
+        if freeze_features:
+            # Freeze everything except the final FC layer
+            for name, param in self.net.named_parameters():
+                if name not in ("fc.weight", "fc.bias"):
+                    param.requires_grad_(False)
+
+    def forward(self, X: torch.Tensor) -> torch.Tensor:
+        return self.net(X)
+"""
+
+class ResNetBackbone(nn.Module):
+    def __init__(self, K: int, freeze_features: bool = False):
+        super().__init__()
+        self.net = cifar_resnet18(pretrained=True)
+        
+        if freeze_features:
+            for name, param in self.net.named_parameters():
+                if "linear" not in name:
+                    param.requires_grad_(False)
+
 
 # ---------------------------------------------------------------------------
 # Full model
@@ -172,14 +208,21 @@ class NoisyLabelNet(nn.Module):
         X -> (logits_Y, logits_Ytilde)
     """
 
-    def __init__(self, input_dim: int, K: int,
+    def __init__(self, input_dim: int = None,
+                 K: int = 2,
+                 backbone_model_: str = "MLP",
                  hidden_dims: list[int] = [128, 64],
+                 freeze_features: bool = False,
                  contamination_model_: str = "uniform",
                  epsilon_init: float = 0):
         super().__init__()
         self.K = K
 
-        self.backbone = ClassifierBackbone(input_dim, K, hidden_dims)
+        if backbone_model_=="resnet":
+            self.backbone = ResNetBackbone(K, freeze_features=freeze_features)
+        else:
+            self.backbone = ClassifierBackbone(input_dim, K, hidden_dims)
+
         if contamination_model_=="uniform":
             self.contamination = RandomizedResponseLayer(K, epsilon_init)
         elif contamination_model_=="general":

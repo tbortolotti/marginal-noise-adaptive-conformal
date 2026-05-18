@@ -3166,7 +3166,7 @@ make_figure_625 <- function(exp.num, plot.data="synthetic6", plot.K=4,
     #mutate(CONT = sprintf("Cont.: %s", contamination)) %>%
     mutate(CONT = factor(sprintf("Cont: %s", contamination),
                          levels = sprintf("Cont: %s", plot.contamination),
-                         labels = c("Cont: block", "Cont: two-level", "Cont: near-diag"))) %>%
+                         labels = c("Cont: RRM", "Cont: block", "Cont: two-level", "Cont: near-diag"))) %>%
     ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
@@ -3205,15 +3205,15 @@ plot.epsilon <- 0.2
 plot.K <- 4
 #plot.contamination <- c("uniform", "mild", "RRB")
 #plot.contamination <- c("block", "RRB", "mild", "asymmetric")
-plot.contamination <- c("block", "RRB", "mild")
+plot.contamination <- c("uniform", "block", "RRB", "mild")
 plot.n_clean <- 500
-plot.data <- "synthetic3"
+plot.data <- "synthetic6"
 
 make_figure_625(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                  plot.n_clean=plot.n_clean,
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon,
-                 save_plots=TRUE, reload=TRUE)
+                 save_plots=FALSE, reload=TRUE)
 
 ### Experiments 700: Using the estimated T in the adaptive algorithm ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {
