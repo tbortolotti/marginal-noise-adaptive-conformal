@@ -50,8 +50,8 @@ if True:
     n = int(sys.argv[5])
     n_clean = int(sys.argv[6])
     pi_clean = float(sys.argv[7])
-    contamination_exp_flag = sys.argv[12].lower() == "true"
-    seed = int(sys.argv[8])
+    contamination_exp_flag = sys.argv[8].lower() == "true"
+    seed = int(sys.argv[9])
 
 
 # Define other constant parameters
