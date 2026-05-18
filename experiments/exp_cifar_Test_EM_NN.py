@@ -126,7 +126,6 @@ def run_experiment(random_state):
     X, _, Y, _, _, _, _ = next(iter(loader))
     X_features = feature_extractor.transform(X)
     X_features = X_features.numpy()
-    del X; torch.cuda.empty_cache()
     num_var = X_features.shape[1]
     
     Y = Y.detach().numpy()
@@ -145,6 +144,7 @@ def run_experiment(random_state):
 
     # Identify the set of clean observations
     conf_scores = black_box.predict_proba(X).max(axis=1)
+    del X; torch.cuda.empty_cache()
     clean_frac = np.round(n_clean/n, decimals=5)
     threshold = np.quantile(conf_scores, 1 - clean_frac)
     I = (conf_scores >= threshold).astype(int)
