@@ -4614,7 +4614,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   }))    
   summary <- results %>%
     pivot_longer(c("epsilon_res","frobenius_d"), names_to = "Key", values_to = "Value") %>%
-    group_by(data, K, contamination, epsilon, n, n_clean, pi_clean, Method, Key) %>%
+    group_by(data, K, contamination, epsilon, n, n_noisy, n_clean, pi_clean, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
   return(summary)
 }
@@ -4636,8 +4636,8 @@ make_figure_821 <- function(exp.num,plot.data="cifar10",
   df <- summary %>%
     filter(data==plot.data, Method %in% method.values,
            contamination==plot.contamination,
-           epsilon%in%plot.epsilon,
-           n_clean==plot.n_clean,
+           epsilon==plot.epsilon,
+           n_clean%in%plot.n_clean,
            pi_clean==plot.pi_clean)
   
   df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
@@ -4645,19 +4645,21 @@ make_figure_821 <- function(exp.num,plot.data="cifar10",
   
   pp <- df %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Epsilon = sprintf("Contam: %.2f", epsilon)) %>%
-    ggplot(aes(x=n, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    mutate(N_CLEAN = factor(sprintf("Size of clean data: %d", n_clean),
+                            levels = sprintf("Size of clean data: %d", plot.n_clean),
+                            labels = sprintf("Size of clean data: %d", plot.n_clean))) %>%
+    ggplot(aes(x=n_noisy, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~Epsilon, scales="free") +
+    facet_grid(Key~N_CLEAN, scales="free") +
     geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
     geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of samples in the training set") +
+    xlab("Number of noisy training samples") +
     ylab("") +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -4678,9 +4680,9 @@ make_figure_821 <- function(exp.num,plot.data="cifar10",
 }
 
 exp.num <- 821
-plot.epsilon <- c(0, 0.1, 0.2)
+plot.epsilon <- 0.2
 plot.contamination <- "uniform"
-plot.n_clean <- 500
+plot.n_clean <- c(100, 500, 1000)
 plot.pi_clean <- 0
 
 plot.data <- "cifar10"
@@ -4690,6 +4692,83 @@ make_figure_821(exp.num=exp.num, plot.data=plot.data,
                 plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
                 plot.contamination_exp.flag=FALSE,
+                save_plots=FALSE, reload=TRUE)
+
+
+#### Experiment 822: Different contamination model -----------------
+#' Plot marginal coverage as function of the number of calibration samples, changing the contamination model
+make_figure_822 <- function(exp.num,plot.data="cifar10",
+                            plot.contamination="uniform",
+                            plot.epsilon,
+                            plot.n_clean=500,
+                            plot.pi_clean=0,
+                            plot.contamination_exp.flag=FALSE,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.contamination_exp.flag)
+  
+  df <- summary %>%
+    filter(data==plot.data, Method %in% method.values,
+           contamination%in%plot.contamination,
+           epsilon==plot.epsilon,
+           n_clean==plot.n_clean,
+           pi_clean==plot.pi_clean)
+  
+  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+  df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(CONT = factor(sprintf("Cont: %s", contamination),
+                         levels = sprintf("Cont: %s", plot.contamination),
+                         labels = c("Cont: RRM", "Cont: block", "Cont: two-level"))) %>%
+    ggplot(aes(x=n_noisy, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~CONT, scales="free") +
+    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of noisy training samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_%s_ncl%d_picl%s.png",
+                         exp.num, plot.data, plot.contamination, plot.n_clean, plot.pi_clean)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 822
+plot.epsilon <- 0.2
+plot.contamination <- c("uniform", "block", "RRB")
+plot.n_clean <- 500
+plot.pi_clean <- 0
+
+plot.data <- "cifar10"
+make_figure_822(exp.num=exp.num, plot.data=plot.data,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                plot.n_clean=plot.n_clean,
+                plot.pi_clean=plot.pi_clean,
+                plot.contamination_exp.flag=TRUE,
                 save_plots=FALSE, reload=TRUE)
 
 #' ---------------------------------------------------------------------------------------------------------------------
