@@ -39,7 +39,7 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 9:
+    if len(sys.argv) != 10:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -50,6 +50,7 @@ if True:
     n = int(sys.argv[5])
     n_clean = int(sys.argv[6])
     pi_clean = float(sys.argv[7])
+    contamination_exp_flag = sys.argv[12].lower() == "true"
     seed = int(sys.argv[8])
 
 
@@ -158,93 +159,94 @@ def run_experiment(random_state):
     Y_obs_torch = torch.tensor(Y_obs, dtype=torch.long)
     I_torch = torch.tensor(I, dtype=torch.long)
 
-    #____________________________________________________________________
-    ## Estimate T using the NN with MLP
-    print("Estimating T using the NN...", end=' ')
-    sys.stdout.flush()
-    model_NN_alt = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
-    train_alternate(model_NN_alt, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-    train_alternate(model_NN_alt, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+    if not contamination_exp_flag:
+        #____________________________________________________________________
+        ## Estimate T using the NN with MLP
+        print("Estimating T using the NN...", end=' ')
+        sys.stdout.flush()
+        model_NN_alt = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN_alt, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN_alt, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
-    T_hat_NN_alt = model_NN_alt.contamination.contamination_matrix()
-    T_hat_NN_alt = T_hat_NN_alt.detach().numpy()
+        T_hat_NN_alt = model_NN_alt.contamination.contamination_matrix()
+        T_hat_NN_alt = T_hat_NN_alt.detach().numpy()
 
-    performances = evaluate_estimate(T, T_hat_NN_alt, K, epsilon0=0)
-    res_update = header.copy()
-    res_update = res_update.assign(Method='NN alt', n=n, **performances)
-    res_list.append(res_update)
-    print("Done.")
-    sys.stdout.flush()
+        performances = evaluate_estimate(T, T_hat_NN_alt, K, epsilon0=0)
+        res_update = header.copy()
+        res_update = res_update.assign(Method='NN alt', n=n, **performances)
+        res_list.append(res_update)
+        print("Done.")
+        sys.stdout.flush()
 
+        #____________________________________________________________________
+        ## Estimate T using the NN with ResNet
+        print("Estimating T using the NN with ResNet...", end=' ')
+        sys.stdout.flush()
+        model_resnet = NoisyLabelNet(K=K, backbone_model_="resnet", freeze_features=True, contamination_model_="uniform", epsilon_init=epsilon_init)
+        history1 = train_alternate(model_resnet, X, Y_obs_torch, I_torch,
+                            n_epochs=20, n_grad_steps=50,
+                            batch_size=128, lr=1e-3)
+        for param in model_resnet.backbone.net.parameters():
+            param.requires_grad_(True)
 
-    #____________________________________________________________________
-    ## Estimate T using the NN algorithm with MLP and general contamination
-    print("Estimating T using NN with MLP and general contamination...", end=' ')
-    sys.stdout.flush()
+        history2 = train_alternate(model_resnet, X, Y_obs_torch, I_torch,
+                                n_epochs=50, n_grad_steps=50,
+                                batch_size=128, lr=1e-4)
 
-    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16, 8], contamination_model_="general", epsilon_init=epsilon_init)
-    train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-    train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
-    T_hat_NN = model_NN.contamination.contamination_matrix()
-    T_hat_NN = T_hat_NN.detach().numpy()
+        T_hat_resnet = model_resnet.contamination.contamination_matrix()
+        T_hat_resnet = T_hat_resnet.detach().numpy()
 
-    performances = evaluate_estimate(T, T_hat_NN, K, epsilon0=0)
-    res_update = header.copy()
-    res_update = res_update.assign(Method='NN alt gen',  **performances)
-    res_list.append(res_update)
-    print("Done.")
-    sys.stdout.flush()
+        performances = evaluate_estimate(T, T_hat_resnet, K, epsilon0=0)
+        res_update = header.copy()
+        res_update = res_update.assign(Method='ResNet', n=n, **performances)
+        res_list.append(res_update)
+        print("Done.")
+        sys.stdout.flush()
 
-    #____________________________________________________________________
-    ## Estimate T using the NN with ResNet
-    print("Estimating T using the NN with ResNet...", end=' ')
-    sys.stdout.flush()
-    model_resnet = NoisyLabelNet(K=K, backbone_model_="resnet", freeze_features=True, contamination_model_="uniform", epsilon_init=epsilon_init)
-    history1 = train_alternate(model_resnet, X, Y_obs_torch, I_torch,
-                           n_epochs=20, n_grad_steps=50,
-                           batch_size=128, lr=1e-3)
-    for param in model_resnet.backbone.net.parameters():
-        param.requires_grad_(True)
+    else:
+        #____________________________________________________________________
+        ## Estimate T using the NN algorithm with MLP and general contamination
+        print("Estimating T using NN with MLP and general contamination...", end=' ')
+        sys.stdout.flush()
 
-    history2 = train_alternate(model_resnet, X, Y_obs_torch, I_torch,
-                            n_epochs=50, n_grad_steps=50,
-                            batch_size=128, lr=1e-4)
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16, 8], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        T_hat_NN = model_NN.contamination.contamination_matrix()
+        T_hat_NN = T_hat_NN.detach().numpy()
 
-    T_hat_resnet = model_resnet.contamination.contamination_matrix()
-    T_hat_resnet = T_hat_resnet.detach().numpy()
+        performances = evaluate_estimate(T, T_hat_NN, K, epsilon0=0)
+        res_update = header.copy()
+        res_update = res_update.assign(Method='NN alt gen',  **performances)
+        res_list.append(res_update)
+        print("Done.")
+        sys.stdout.flush()
 
-    performances = evaluate_estimate(T, T_hat_resnet, K, epsilon0=0)
-    res_update = header.copy()
-    res_update = res_update.assign(Method='ResNet', n=n, **performances)
-    res_list.append(res_update)
-    print("Done.")
-    sys.stdout.flush()
+        #____________________________________________________________________
+        ## Estimate T using the NN algorithm with ResNet and general contamination
+        print("Estimating T using NN with ResNet and general contamination...", end=' ')
+        sys.stdout.flush()
 
-    #____________________________________________________________________
-    ## Estimate T using the NN algorithm with ResNet and general contamination
-    print("Estimating T using NN with ResNet and general contamination...", end=' ')
-    sys.stdout.flush()
+        model_resnet_gen = NoisyLabelNet(K=K, backbone_model_="resnet", freeze_features=True, contamination_model_="general", epsilon_init=epsilon_init)
+        history1 = train_alternate(model_resnet_gen, X, Y_obs_torch, I_torch,
+                            n_epochs=20, n_grad_steps=50,
+                            batch_size=128, lr=1e-3)
+        for param in model_resnet_gen.backbone.net.parameters():
+            param.requires_grad_(True)
 
-    model_resnet_gen = NoisyLabelNet(K=K, backbone_model_="resnet", freeze_features=True, contamination_model_="general", epsilon_init=epsilon_init)
-    history1 = train_alternate(model_resnet_gen, X, Y_obs_torch, I_torch,
-                           n_epochs=20, n_grad_steps=50,
-                           batch_size=128, lr=1e-3)
-    for param in model_resnet_gen.backbone.net.parameters():
-        param.requires_grad_(True)
+        history2 = train_alternate(model_resnet_gen, X, Y_obs_torch, I_torch,
+                                n_epochs=50, n_grad_steps=50,
+                                batch_size=128, lr=1e-4)
 
-    history2 = train_alternate(model_resnet_gen, X, Y_obs_torch, I_torch,
-                            n_epochs=50, n_grad_steps=50,
-                            batch_size=128, lr=1e-4)
+        T_hat_resnet_gen = model_resnet_gen.contamination.contamination_matrix()
+        T_hat_resnet_gen = T_hat_resnet_gen.detach().numpy()
 
-    T_hat_resnet_gen = model_resnet_gen.contamination.contamination_matrix()
-    T_hat_resnet_gen = T_hat_resnet_gen.detach().numpy()
-
-    performances = evaluate_estimate(T, T_hat_resnet_gen, K, epsilon0=0)
-    res_update = header.copy()
-    res_update = res_update.assign(Method='ResNet gen',  **performances)
-    res_list.append(res_update)
-    print("Done.")
-    sys.stdout.flush()
+        performances = evaluate_estimate(T, T_hat_resnet_gen, K, epsilon0=0)
+        res_update = header.copy()
+        res_update = res_update.assign(Method='ResNet gen',  **performances)
+        res_list.append(res_update)
+        print("Done.")
+        sys.stdout.flush()
 
     # Combine all results into a single DataFrame
     res = pd.concat(res_list, ignore_index=True)

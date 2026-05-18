@@ -10,6 +10,7 @@ if [[ $CONF == 820 ]]; then
   N_LIST=(5000)
   N_CLEAN_LIST=(500)
   PI_CLEAN_LIST=(0)
+  CONTAMINATION_EXP_FLAG="false"
   SEED_LIST=(1)
 
 elif [[ $CONF == 821 ]]; then
@@ -19,6 +20,7 @@ elif [[ $CONF == 821 ]]; then
   N_LIST=(500 1000 2000 5000 9000)
   N_CLEAN_LIST=(100 500 1000)
   PI_CLEAN_LIST=(0)
+  CONTAMINATION_EXP_FLAG="false"
   SEED_LIST=$(seq 1 10)
 
 elif [[ $CONF == 822 ]]; then
@@ -28,6 +30,7 @@ elif [[ $CONF == 822 ]]; then
   N_LIST=(500 1000 2000 5000 9000)
   N_CLEAN_LIST=(500 1000)
   PI_CLEAN_LIST=(0)
+  CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=$(seq 1 10)
 fi
 
@@ -74,7 +77,7 @@ for SEED in $SEED_LIST; do
 
               if [[ $COMPLETE -eq 0 ]]; then
                 # Script to be run
-                SCRIPT="exp_cifar_Test_EM_NN.sh $CONF $EPSILON $NU $CONTAMINATION $N $N_CLEAN $PI_CLEAN $SEED"
+                SCRIPT="exp_cifar_Test_EM_NN.sh $CONF $EPSILON $NU $CONTAMINATION $N $N_CLEAN $PI_CLEAN $CONTAMINATION_EXP_FLAG $SEED"
                 # Define job name
                 OUTF=$LOGS"/"$JOBN".out"
                 ERRF=$LOGS"/"$JOBN".err"
