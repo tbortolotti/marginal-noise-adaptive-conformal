@@ -130,11 +130,12 @@ def run_experiment(random_state):
     X_features = X_features.numpy()
     num_var = X_features.shape[1]
 
-    
     X_cifar_feat = cifar_feature_extractor.transform(X).numpy()
     num_var_cifar = X_features.shape[1]
     
     Y = Y.detach().numpy()
+
+    del X; torch.cuda.empty_cache()
 
     # Generate the contaminated labels
     print("Generating contaminated labels...", end=' ')
