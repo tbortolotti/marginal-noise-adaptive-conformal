@@ -13,9 +13,18 @@ if [[ $CONF == 820 ]]; then
   SEED_LIST=(1)
 
 elif [[ $CONF == 821 ]]; then
-  EPSILON_LIST=(0 0.1 0.2)
+  EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
+  N_LIST=(500 1000 2000 5000 9000)
+  N_CLEAN_LIST=(100 500 1000)
+  PI_CLEAN_LIST=(0)
+  SEED_LIST=$(seq 1 10)
+
+elif [[ $CONF == 822 ]]; then
+  EPSILON_LIST=(0.2)
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform" "block" "RRB")
   N_LIST=(500 1000 2000 5000 9500)
   N_CLEAN_LIST=(500)
   PI_CLEAN_LIST=(0)
