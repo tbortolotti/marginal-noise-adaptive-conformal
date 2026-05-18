@@ -201,13 +201,13 @@ def run_experiment(random_state):
     print("Estimating T using the NN with ResNet...", end=' ')
     sys.stdout.flush()
     model_resnet = NoisyLabelNet(K=K, backbone_model_="resnet", freeze_features=True, contamination_model_="uniform", epsilon_init=epsilon_init)
-    history1 = train_alternate(model_resnet, X_torch, Y_obs_torch, I_torch,
+    history1 = train_alternate(model_resnet, X, Y_obs_torch, I_torch,
                            n_epochs=20, n_grad_steps=50,
                            batch_size=128, lr=1e-3)
     for param in model_resnet.backbone.net.parameters():
         param.requires_grad_(True)
 
-    history2 = train_alternate(model_resnet, X_torch, Y_obs_torch, I_torch,
+    history2 = train_alternate(model_resnet, X, Y_obs_torch, I_torch,
                             n_epochs=50, n_grad_steps=50,
                             batch_size=128, lr=1e-4)
 
@@ -228,13 +228,13 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     model_resnet_gen = NoisyLabelNet(K=K, backbone_model_="resnet", freeze_features=True, contamination_model_="general", epsilon_init=epsilon_init)
-    history1 = train_alternate(model_resnet_gen, X_torch, Y_obs_torch, I_torch,
+    history1 = train_alternate(model_resnet_gen, X, Y_obs_torch, I_torch,
                            n_epochs=20, n_grad_steps=50,
                            batch_size=128, lr=1e-3)
     for param in model_resnet_gen.backbone.net.parameters():
         param.requires_grad_(True)
 
-    history2 = train_alternate(model_resnet_gen, X_torch, Y_obs_torch, I_torch,
+    history2 = train_alternate(model_resnet_gen, X, Y_obs_torch, I_torch,
                             n_epochs=50, n_grad_steps=50,
                             batch_size=128, lr=1e-4)
 
