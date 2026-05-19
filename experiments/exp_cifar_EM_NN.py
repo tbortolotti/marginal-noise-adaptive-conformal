@@ -165,7 +165,7 @@ def run_experiment(random_state):
     Yt_clean = Yt_train[top_indices]
     I = np.zeros(len(Y_train))
     I[top_indices] = 1
-    Y_obs = np.where(I == 1, Y, Yt)
+    Y_obs = np.where(I == 1, Y_train, Yt_train)
     print("Done.")
     sys.stdout.flush()
 
