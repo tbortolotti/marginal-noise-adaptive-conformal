@@ -18,13 +18,13 @@ sys.path.append("../third_party")
 
 from cln import contamination
 from cln.T_estimation_NN import NoisyLabelNet, train_alternate
+from cln.T_estimation import TMatrixEstimation
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
 from third_party import arc
 
-from data_torch import Cifar10DataSet, ImageNetResNet18Features, ResNet18
+from data_torch import Cifar10DataSet, CifarResNet18Features, ResNet18
 from torch.utils.data import DataLoader
-
 import gc
 import copy
 
@@ -34,8 +34,8 @@ exp_num = 911
 epsilon = 0.1
 nu = 0
 contamination_model = "uniform"
-n_train1 = 1000
-n_train2 = 1000
+n_train = 2000
+n_clean = 500
 n_cal = 1000
 seed = 1
 
@@ -43,7 +43,7 @@ seed = 1
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 9:
+    if len(sys.argv) != 10:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
@@ -53,21 +53,21 @@ if True:
     n_train = int(sys.argv[5])
     n_clean = int(sys.argv[6])
     n_cal = int(sys.argv[7])
-    seed = int(sys.argv[8])
+    contamination_exp_flag = sys.argv[8].lower() == "true"
+    seed = int(sys.argv[9])
 
 # Define other constant parameters
 data_name = "cifar10"
 K = 10
 num_exp = 5
+allow_empty = True
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 nu = 0.2
 n_test = 500
 batch_size = n_train + n_clean + n_cal + n_test
 
-allow_empty = True
-asymptotic_h_start = 1/400
-asymptotic_MC_samples = 10000
+epsilon_init = 0
 
 # Set default directories
 data_dir = "/home1/tb_214/data/cifar10"
@@ -76,13 +76,15 @@ noisy_data_dir = "/home1/tb_214/data/cifar10h"
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
 
-dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2024)
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2026)
 
 #print(f"\nOverall numerosity of dataset {len(dataset)}")
 #sys.stdout.flush()
 
 loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
-feature_extractor = ImageNetResNet18Features()
+feature_extractor = CifarResNet18Features()
 
 # Initialize noise contamination process
 if contamination_model == "uniform":
@@ -100,14 +102,10 @@ else:
 
 # Initialize black-box model
 black_box = ResNet18()
-#black_box = arc.black_boxes.MLPBlackBox(clip_proba_factor=1e-5)
-
-# Initialize the black-box model
-black_box_SVC = arc.black_boxes.SVC(clip_proba_factor = 1e-5)
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'K':[K],
-                       'n_train':[n_train], 'n_clean':[n_train2], 'n_cal':[n_cal],
+                       'n_train':[n_train], 'n_clean':[n_clean], 'n_cal':[n_cal],
                        'epsilon':[epsilon], 'contamination':[contamination_model],
                        'seed':[seed]})
 
@@ -127,14 +125,14 @@ def run_experiment(random_state):
     # Generate a large data set
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
-    X_all, X_all_imagenet, Y_all, _, _, _, _ = next(iter(loader))
+    X_all, _, Y_all, _, _, _, _ = next(iter(loader))
     Y_all = Y_all.detach().numpy()
     print("Done.")
     sys.stdout.flush()
 
     # Separate the test set
-    X, X_test, X_imagenet, _, Y, Y_test = train_test_split(X_all, X_all_imagenet, Y_all, test_size=n_test, random_state=random_state+1)
-    del X_all, X_all_imagenet, Y_all
+    X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
+    del X_all, Y_all
 
     # Generate the contaminated labels
     print("Generating contaminated labels...", end=' ')
@@ -153,98 +151,92 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Separate data into training and calibration
-    X_imagenet_train, X_imagenet_cal, _, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X_imagenet, X, Y, Yt, test_size=n_cal, random_state=random_state+3)
-    del X_imagenet, X, Y, Yt
+    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+3)
+    del X, Y, Yt
 
-    # Separate the clean observations from the noisy training set
-    X_train1, X_train2, _, Y_train2, Yt_train1, Yt_train2 = train_test_split(X_imagenet_train, Y_train, Yt_train, test_size=n_train2, random_state=random_state+4)
+    # Identify the central observations in the training set to build the clean dataset
+    conf_scores = black_box.predict_proba(X_train).max(axis=1)
+    top_indices = np.argsort(conf_scores)[-n_clean:]
+
+    X_clean = X_train[top_indices]
+    Y_clean = Y_train[top_indices]
+    Yt_clean = Yt_train[top_indices]
+    I = np.zeros(len(Y_obs))
+    I[top_indices] = 1
+    Y_obs = np.where(I == 1, Y, Yt)
 
     # Extract features
     print("Extract features for T estimation...", end=' ')
     sys.stdout.flush()
 
-    del X_imagenet_train, Y_train, Yt_train
+    X_cifar_feat = feature_extractor.transform(X_train)
+    num_var_cifar = X_cifar_feat.shape[1]
+    X_cifar_feat_torch = X_cifar_feat.to(device)
+    Y_obs_torch = torch.tensor(Y_obs, dtype=torch.long)
+    I_torch = torch.tensor(I, dtype=torch.long)
 
-    # Operate transformation of X to fit SVC and identify anchor points
-    X_features_train1 = feature_extractor.transform(X_train1).numpy()
-    del X_train1; torch.cuda.empty_cache()
+    del X_train, X_cifar_feat
 
-    X_features_train2 = feature_extractor.transform(X_train2).numpy()
-    del X_train2; torch.cuda.empty_cache()
+    # Use extracted features to estimate the contamination
+    if not contamination_exp_flag:
+        #____________________________________________________________________
+        ## Estimate T using the clean/noisy correspondence
+        T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical_parametricRR")
+        T_hat_clean = T_method.get_estimate()
 
-    X_features_cal = feature_extractor.transform(X_imagenet_cal).numpy()
-    del X_imagenet_cal; torch.cuda.empty_cache()
+        #____________________________________________________________________
+        ## Estimate T using the NN with cifar features and MLP
+        print("Estimating T using the NN with cifar features...", end=' ')
+        sys.stdout.flush()
+        model_NN_cifar = NoisyLabelNet(input_dim=num_var_cifar, K=K, hidden_dims=[64], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        T_hat_NN_cifar = model_NN_cifar.contamination.contamination_matrix()
+        T_hat_NN_cifar = T_hat_NN_cifar.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
 
-    print("Done.")
-    sys.stdout.flush()
+        #____________________________________________________________________
+        ## Estimate T using the NN with cifar features and MLP
+        print("Estimating T using the NN with cifar features and SLL...", end=' ')
+        sys.stdout.flush()
+        model_NN_cifar = NoisyLabelNet(input_dim=num_var_cifar, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        T_hat_NN_cifar_sll = model_NN_cifar.contamination.contamination_matrix()
+        T_hat_NN_cifar_sll = T_hat_NN_cifar_sll.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
 
-    # Train MLP black box on the training set
-    #print("Training MLP black box...", end=' ')
-    #sys.stdout.flush()
-    #X_features_train_all = np.concatenate([X_features_train1, X_features_train2])
-    #Y_train_all = np.concatenate([Yt_train1, Yt_train2])
+    else:
+        #____________________________________________________________________
+        ## Estimate T using the clean/noisy correspondence
+        T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical")
+        T_hat_clean = T_method.get_estimate()
 
-    #black_box_MLP = copy.deepcopy(black_box)
-    #black_box_MLP.fit(X_features_train_all, Y_train_all)
-    #del X_features_train_all, Y_train_all
-    #torch.cuda.empty_cache()
-    #print("Done.")
-    #sys.stdout.flush()
+        #____________________________________________________________________
+        ## Estimate T using the NN with cifar features and MLP
+        print("Estimating T using the NN with cifar features...", end=' ')
+        sys.stdout.flush()
+        model_NN_cifar = NoisyLabelNet(input_dim=num_var_cifar, K=K, hidden_dims=[64], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        T_hat_NN_cifar = model_NN_cifar.contamination.contamination_matrix()
+        T_hat_NN_cifar = T_hat_NN_cifar.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
 
-    print("Estimating contamination matrix...", end=' ')
-    sys.stdout.flush()
-    # Estimate T using all the clean/noisy labels correspondence
-    T_method = TMatrixEstimation(Y_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
-    T_hat_clean = T_method.get_estimate()
-
-    ## Anchor points method for T estimation, using SVC as classifier
-    method = AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, Yt_train2, K,
-                                        use_classifier=True, black_box=black_box_SVC,
-                                        calibrate_gamma=True)
-    Ya_train2, _, _, _ = method.get_anchor_points()
-    T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
-    T_hat_SVC = T_method.get_estimate()
-
-    # Anchor points method for T estimation, using combination of outlier detectors as classifier
-    method = AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_train2, Yt_train2, K,
-                                        black_box=black_box_SVC,
-                                        optimal_method=True,
-                                        random_state=random_state+5)
-    Ya_train2, _, _, _ = method.get_anchor_points()
-    T_method = TMatrixEstimation(Ya_train2, Yt_train2, K, estimation_method="empirical_parametricRR")
-    T_hat_opt = T_method.get_estimate()
-
-    del X_features_train2
-    print("Done.")
-    sys.stdout.flush()
-
-    print("Identifying set of anchor points...", end=' ')
-    sys.stdout.flush()
-    # Create dataset of sole anchor points
-    method = AnchorPointsIdentification(X_features_train1, Yt_train1, X_features_cal, Yt_cal, K,
-                                        black_box=black_box_SVC,
-                                        optimal_method=True,
-                                        random_state=random_state+6)
-    Ya_cal, _, _, _ = method.get_anchor_points()
-    idxs_anchor = (Ya_cal != -1)
-    X_anchor = X_cal[idxs_anchor,]
-    Y_anchor = Ya_cal[idxs_anchor]
-    del X_features_train1, X_features_cal
-    #Y_anchor = Y_cal[idxs_anchor]
-    print("Done.")
-    sys.stdout.flush()
-
-    # Compute size of AP set and imbalance ratio
-    size_ap = np.sum(Y_anchor!=-1)
-    Y_anchor_valid = Y_anchor[Y_anchor != -1]
-    counts = np.bincount(Y_anchor_valid, minlength=K)
-    IR = np.inf if np.any(counts == 0) else counts.max() / counts.min()
-
-    print("Frequencies in the anchor points sets...", end=' ')
-    sys.stdout.flush()
-    print(counts)
-    print("Done.")
-    sys.stdout.flush()
+        #____________________________________________________________________
+        ## Estimate T using the NN with cifar features and MLP
+        print("Estimating T using the NN with cifar features and SLL...", end=' ')
+        sys.stdout.flush()
+        model_NN_cifar = NoisyLabelNet(input_dim=num_var_cifar, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        T_hat_NN_cifar_sll = model_NN_cifar.contamination.contamination_matrix()
+        T_hat_NN_cifar_sll = T_hat_NN_cifar_sll.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
 
     # Force garbage collection
     gc.collect()
@@ -276,7 +268,7 @@ def run_experiment(random_state):
         "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                        pre_trained=True, random_state=random_state),
 
-        "Standard using AP": lambda: arc.methods.SplitConformal(X_anchor, Y_anchor, black_box, K, alpha, n_cal=-1,
+        "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
                                                                 pre_trained=True, random_state=random_state),
 
         "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
@@ -291,14 +283,14 @@ def run_experiment(random_state):
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ AP SVC": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_SVC, rho_tilde=rho_tilde_hat,
+        "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                    epsilon=epsilon, T=T_hat_NN_cifar, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ AP opt": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_opt, rho_tilde=rho_tilde_hat,
+        "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                    epsilon=epsilon, T=T_hat_NN_cifar_sll, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state)
@@ -322,8 +314,6 @@ def run_experiment(random_state):
 
         # Evaluate the method
         res_new = evaluate_predictions(predictions, X_test, Y_test, K, verbose=False)
-        res_new['size_ap'] = size_ap
-        res_new['ir'] = IR
         res_new['Method'] = method_name
         res_new['Guarantee'] = guarantee
         res_new['Alpha'] = alpha

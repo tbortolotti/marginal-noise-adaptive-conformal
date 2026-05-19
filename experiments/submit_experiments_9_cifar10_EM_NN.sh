@@ -1,25 +1,37 @@
 #!/bin/bash
 
 # Parameters
-CONF=900
+CONF=910
 
-if [[ $CONF == 900 ]]; then
+if [[ $CONF == 910 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN1_LIST=(1000)
-  N_TRAIN2_LIST=(3000)
+  N_TRAIN_LIST=(1000)
+  N_CLEAN_LIST=(500)
   N_CAL_LIST=(5000)
+  CONTAMINATION_EXP_FLAG="false"
   SEED_LIST=(1)
 
-elif [[ $CONF == 901 ]]; then
+elif [[ $CONF == 911 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_TRAIN1_LIST=(1000)
-  N_TRAIN2_LIST=(1000 2000 3000)
-  N_CAL_LIST=(500 1000 2000 5000)
-  SEED_LIST=$(seq 1 8)
+  N_TRAIN_LIST=(2000)
+  N_CLEAN_LIST=(500)
+  N_CAL_LIST=(500 1000 2000 5000 7000)
+  CONTAMINATION_EXP_FLAG="false"
+  SEED_LIST=$(seq 1 10)
+
+elif [[ $CONF == 912 ]]; then
+  EPSILON_LIST=(0.2)
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform" "block" "RRB")
+  N_LIST=(2000)
+  N_CLEAN_LIST=(500)
+  N_CAL_LIST=(500 1000 2000 5000 7000)
+  CONTAMINATION_EXP_FLAG="true"
+  SEED_LIST=$(seq 1 10)
 
 fi
 
@@ -53,11 +65,11 @@ for SEED in $SEED_LIST; do
   for EPSILON in "${EPSILON_LIST[@]}"; do
     for NU in "${NU_LIST[@]}"; do
       for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
-        for N_TRAIN1 in "${N_TRAIN1_LIST[@]}"; do
-          for N_TRAIN2 in "${N_TRAIN2_LIST[@]}"; do
+        for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
+          for N_CLEAN in "${N_CLEAN_LIST[@]}"; do
             for N_CAL in "${N_CAL_LIST[@]}"; do
               JOBN="exp"$CONF"/cifar10_eps"$EPSILON
-              JOBN=$JOBN"_nu"$NU"_"$CONTAMINATION"_nt1_"$N_TRAIN1"_nt2_"$N_TRAIN2"_nc"$N_CAL"_seed"$SEED
+              JOBN=$JOBN"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_ncl"$N_CLEAN"_nc"$N_CAL"_seed"$SEED
               OUT_FILE=$OUT_DIR"/"$JOBN".txt"
               COMPLETE=0
               #  ls $OUT_FILE
@@ -67,7 +79,7 @@ for SEED in $SEED_LIST; do
 
               if [[ $COMPLETE -eq 0 ]]; then
                 # Script to be run
-                SCRIPT="exp_cifar_ap.sh $CONF $EPSILON $NU $CONTAMINATION $N_TRAIN1 $N_TRAIN2 $N_CAL $SEED"
+                SCRIPT="exp_cifar_EM_NN.sh $CONF $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CLEAN $N_CAL $CONTAMINATION_EXP_FLAG $SEED"
                 # Define job name
                 OUTF=$LOGS"/"$JOBN".out"
                 ERRF=$LOGS"/"$JOBN".err"
