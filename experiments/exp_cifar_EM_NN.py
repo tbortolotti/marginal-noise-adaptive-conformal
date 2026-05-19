@@ -161,7 +161,7 @@ def run_experiment(random_state):
     X_clean = X_train[top_indices]
     Y_clean = Y_train[top_indices]
     Yt_clean = Yt_train[top_indices]
-    I = np.zeros(n_train)
+    I = np.zeros(len(Y_train))
     I[top_indices] = 1
     Y_obs = np.where(I == 1, Y, Yt)
 
