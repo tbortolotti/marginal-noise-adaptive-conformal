@@ -24,7 +24,7 @@ elif [[ $CONF == 911 ]]; then
   SEED_LIST=$(seq 1 10)
 
 elif [[ $CONF == 912 ]]; then
-  EPSILON_LIST=(0.2)
+  EPSILON_LIST=(0.1)
   NU_LIST=(0.2)
   CONTAMINATION_LIST=("uniform" "block" "RRB")
   N_LIST=(2000)
