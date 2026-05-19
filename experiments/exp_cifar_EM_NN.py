@@ -154,6 +154,8 @@ def run_experiment(random_state):
     X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+3)
     del X, Y, Yt
 
+    print("Generating clean dataset...", end=' ')
+    sys.stdout.flush()
     # Identify the central observations in the training set to build the clean dataset
     conf_scores = black_box.predict_proba(X_train).max(axis=1)
     top_indices = np.argsort(conf_scores)[-n_clean:]
@@ -164,6 +166,8 @@ def run_experiment(random_state):
     I = np.zeros(len(Y_train))
     I[top_indices] = 1
     Y_obs = np.where(I == 1, Y, Yt)
+    print("Done.")
+    sys.stdout.flush()
 
     # Extract features
     print("Extract features for T estimation...", end=' ')
