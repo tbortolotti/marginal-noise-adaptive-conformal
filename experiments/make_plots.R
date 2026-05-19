@@ -4586,14 +4586,14 @@ init_settings <- function(contamination_exp.flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   
   if(contamination_exp.flag){
-    method.values <<- c("NN alt gen", "NN SLL alt gen")
-    method.labels <<- c("NN (g)", "NNs (g)")
+    method.values <<- c("NN gen", "NN cifar gen")
+    method.labels <<- c("NN (g)", "NN cifar (g)")
     color.scale <<- cbPalette[c(9,6)]
     shape.scale <<- c(9,3)
     linetype.scale <<- c(1,1)
   } else {
-    method.values <<- c("NN SLL alt", "NN alt")
-    method.labels <<- c("NNs", "NN")
+    method.values <<- c("NN", "NN cifar")
+    method.labels <<- c("NN", "NN cifar")
     color.scale <<- cbPalette[c(3,5)]
     shape.scale <<- c(3,7)
     linetype.scale <<- c(1,1)
