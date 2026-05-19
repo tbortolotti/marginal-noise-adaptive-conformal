@@ -146,7 +146,7 @@ def run_experiment(random_state):
     print("Estimating label proportions...", end=' ')
     sys.stdout.flush()
     rho_tilde_hat = estimate_rho(Yt, K)
-    print(rho_tilde_hat)
+    #print(rho_tilde_hat)
     print("Done.")
     sys.stdout.flush()
 
@@ -161,7 +161,7 @@ def run_experiment(random_state):
     X_clean = X_train[top_indices]
     Y_clean = Y_train[top_indices]
     Yt_clean = Yt_train[top_indices]
-    I = np.zeros(len(Y_obs))
+    I = np.zeros(n_train)
     I[top_indices] = 1
     Y_obs = np.where(I == 1, Y, Yt)
 
