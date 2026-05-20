@@ -19,7 +19,7 @@ elif [[ $CONF == 1101 ]]; then
   CONTAMINATION_LIST=("uniform")
   N_TRAIN_LIST=(2000)
   N_CLEAN_LIST=(500)
-  N_CAL_LIST=(500 1000 2000 5000 7000)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000)
   CONTAMINATION_EXP_FLAG="false"
   SEED_LIST=$(seq 1 10)
 
@@ -45,8 +45,8 @@ fi
 #ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
 #ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=main"
 
-MEMO=32G 
-TIME=00-04:00:00
+MEMO=64G 
+TIME=00-06:00:00
 CORE=1
 ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=gpu --gres=gpu:p100:1"
 
