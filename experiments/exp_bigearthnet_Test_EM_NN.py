@@ -203,7 +203,7 @@ def run_experiment(random_state):
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features...", end=' ')
         sys.stdout.flush()
-        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[64], contamination_model_="uniform", epsilon_init=epsilon_init)
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[256,64], contamination_model_="uniform", epsilon_init=epsilon_init)
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
@@ -258,7 +258,7 @@ def run_experiment(random_state):
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features...", end=' ')
         sys.stdout.flush()
-        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[64], contamination_model_="general", epsilon_init=epsilon_init)
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[256,64], contamination_model_="general", epsilon_init=epsilon_init)
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 

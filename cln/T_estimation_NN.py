@@ -199,6 +199,8 @@ class ResNetBackbone(nn.Module):
 
     def forward(self, X: torch.Tensor) -> torch.Tensor:
         return self.net(X)
+    
+
 
 # ---------------------------------------------------------------------------
 # Full model

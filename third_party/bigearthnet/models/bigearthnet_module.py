@@ -22,6 +22,7 @@ from sklearn.metrics import (
 )
 from torch import optim
 import torch.nn.functional as F
+import kornia.augmentation as K
 
 
 log = logging.getLogger(__name__)
@@ -38,29 +39,30 @@ class BigEarthNetFeatureExtractor:
         return features.cpu()
 
 class TorchGeoFeatureExtractor:
-    """
-    Wraps a TorchGeo pretrained ResNet-18 (Sentinel-2, all 13 bands)
-    and extracts 512-D penultimate-layer embeddings.
-    """
     def __init__(self, device="cpu"):
         self.device = device
 
-        # Load pretrained ResNet-18 with all 13 Sentinel-2 channels
-        weights = ResNet18_Weights.SENTINEL2_ALL_MOCO
+        weights = ResNet18_Weights.SENTINEL2_RGB_MOCO
         self.model = get_model("resnet18", weights=weights)
-
-        # Remove the final classification head -> outputs 512-D embeddings
         self.model.fc = nn.Identity()
         self.model.eval().to(device)
 
+        # Your dataloader's normalization (BigEarthNet stats, raw pixel scale)
+        self.ben_mean = torch.tensor([439.32135, 623.25812, 599.88867]).view(1,3,1,1)
+        self.ben_std  = torch.tensor([606.13904, 612.57300, 702.53802]).view(1,3,1,1)
+
+        # What SENTINEL2_RGB_MOCO expects (ImageNet stats, [0,1] scale)
+        self.tg_mean = torch.tensor([0.485, 0.456, 0.406]).view(1,3,1,1)
+        self.tg_std  = torch.tensor([0.229, 0.224, 0.225]).view(1,3,1,1)
+
     @torch.no_grad()
     def transform(self, X: torch.Tensor) -> torch.Tensor:
-        """
-        Args:
-            X: image batch, shape [batch, 13, H, W]
-        Returns:
-            features: shape [batch, 512]
-        """
+        X = X.float()
+        X = X * self.ben_std + self.ben_mean
+        X = X / 10000.0
+        X = (X - self.tg_mean) / self.tg_std
+        X = F.interpolate(X, size=(224, 224),
+                        mode='bilinear', align_corners=False)
         X = X.to(self.device)
         return self.model(X).cpu()
 
