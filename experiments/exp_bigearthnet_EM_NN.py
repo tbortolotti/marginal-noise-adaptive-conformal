@@ -64,7 +64,7 @@ if True:
 
 # Define other constant parameters
 data_name = "bigearthnet"
-K = 10
+K = 6
 num_exp = 5
 allow_empty = True
 asymptotic_h_start = 1/400
