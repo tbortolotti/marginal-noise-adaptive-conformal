@@ -6,6 +6,11 @@ import typing
 import numpy as np
 import copy
 
+import timm
+import torch
+import torch.nn as nn
+from torchgeo.models import ResNet18_Weights, get_model
+
 import pytorch_lightning as pl
 import torch
 from hydra.utils import instantiate
@@ -31,6 +36,33 @@ class BigEarthNetFeatureExtractor:
         with torch.no_grad():
             features = self.model.extract_features(X)
         return features.cpu()
+
+class TorchGeoFeatureExtractor:
+    """
+    Wraps a TorchGeo pretrained ResNet-18 (Sentinel-2, all 13 bands)
+    and extracts 512-D penultimate-layer embeddings.
+    """
+    def __init__(self, device="cpu"):
+        self.device = device
+
+        # Load pretrained ResNet-18 with all 13 Sentinel-2 channels
+        weights = ResNet18_Weights.SENTINEL2_ALL_MOCO
+        self.model = get_model("resnet18", weights=weights)
+
+        # Remove the final classification head -> outputs 512-D embeddings
+        self.model.fc = nn.Identity()
+        self.model.eval().to(device)
+
+    @torch.no_grad()
+    def transform(self, X: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            X: image batch, shape [batch, 13, H, W]
+        Returns:
+            features: shape [batch, 512]
+        """
+        X = X.to(self.device)
+        return self.model(X).cpu()
 
 
 class BigEarthNetModule(pl.LightningModule):

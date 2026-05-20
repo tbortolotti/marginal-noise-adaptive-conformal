@@ -5300,3 +5300,196 @@ make_figure_1012(exp.num=exp.num, plot.data=plot.data,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon, plot.n_train1=plot.n_train1,
                 save_plots=TRUE, reload=TRUE)
+
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
+### Experiments 1020: T estimation via NN in CIFAR-10 dataset ------------------------
+init_settings <- function(contamination_exp.flag=FALSE) {
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
+  
+  if(contamination_exp.flag){
+    method.values <<- c("NN gen", "NN light gen", "NN SLL")
+    method.labels <<- c("NN 64(g)", "NN (g)", "NN SLL (g)")
+    color.scale <<- cbPalette[c(9,6,7)]
+    shape.scale <<- c(9,3,4)
+    linetype.scale <<- c(1,1,1)
+  } else {
+    method.values <<- c("NN", "NN light", "NN SLL")
+    method.labels <<- c("NN 64", "NN", "NN SLL")
+    color.scale <<- cbPalette[c(3,5,4)]
+    shape.scale <<- c(3,7,6)
+    linetype.scale <<- c(1,1,1)
+  }
+}
+
+#### Experiment 1021: Impact of numerosity of the training set -----------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("epsilon_res","frobenius_d"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, K, contamination, epsilon, n, n_noisy, n_clean, pi_clean, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+#' Plot marginal coverage as function of the number of calibration samples, increasing the contamination strength
+make_figure_1021 <- function(exp.num,plot.data="bigearthnet",
+                            plot.contamination="uniform",
+                            plot.epsilon,
+                            plot.n_clean=500,
+                            plot.pi_clean=0,
+                            plot.contamination_exp.flag=FALSE,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.contamination_exp.flag)
+  
+  df <- summary %>%
+    filter(data==plot.data, Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon,
+           n_clean%in%plot.n_clean,
+           pi_clean==plot.pi_clean)
+  
+  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+  df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(N_CLEAN = factor(sprintf("Size of clean data: %d", n_clean),
+                            levels = sprintf("Size of clean data: %d", plot.n_clean),
+                            labels = sprintf("Size of clean data: %d", plot.n_clean))) %>%
+    ggplot(aes(x=n_noisy, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~N_CLEAN, scales="free") +
+    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of noisy training samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_%s_ncl%d_picl%s.png",
+                         exp.num, plot.data, plot.contamination, plot.n_clean, plot.pi_clean)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 1021
+plot.epsilon <- 0.2
+plot.contamination <- "uniform"
+plot.n_clean <- c(100, 500, 1000)
+plot.pi_clean <- 0
+
+plot.data <- "bigearthnet"
+make_figure_1021(exp.num=exp.num, plot.data=plot.data,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                plot.n_clean=plot.n_clean,
+                plot.pi_clean=plot.pi_clean,
+                plot.contamination_exp.flag=FALSE,
+                save_plots=FALSE, reload=TRUE)
+
+
+#### Experiment 1022: Different contamination model -----------------
+#' Plot marginal coverage as function of the number of calibration samples, changing the contamination model
+make_figure_1022 <- function(exp.num,plot.data="bigearthnet",
+                            plot.contamination="uniform",
+                            plot.epsilon,
+                            plot.n_clean=500,
+                            plot.pi_clean=0,
+                            plot.contamination_exp.flag=FALSE,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.contamination_exp.flag)
+  
+  df <- summary %>%
+    filter(data==plot.data, Method %in% method.values,
+           contamination%in%plot.contamination,
+           epsilon==plot.epsilon,
+           n_clean==plot.n_clean,
+           pi_clean==plot.pi_clean)
+  
+  df.nominal_residual <- tibble(Key="epsilon_res", Mean=0)
+  df.nominal_res_dist <- tibble(Key="frobenius_d", Mean=0)
+  
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(CONT = factor(sprintf("Cont: %s", contamination),
+                         levels = sprintf("Cont: %s", plot.contamination),
+                         labels = c("Cont: RRM", "Cont: block", "Cont: two-level"))) %>%
+    ggplot(aes(x=n_noisy, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~CONT, scales="free") +
+    geom_hline(data=df.nominal_residual, aes(yintercept=Mean), linetype="dashed") +
+    geom_hline(data=df.nominal_res_dist, aes(yintercept=Mean), linetype="dashed") +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of noisy training samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_%s_ncl%d_picl%s.png",
+                         exp.num, plot.data, plot.contamination, plot.n_clean, plot.pi_clean)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 1022
+plot.epsilon <- 0.2
+plot.contamination <- c("uniform", "block", "RRB")
+plot.n_clean <- 500
+plot.pi_clean <- 0
+
+plot.data <- "bigearthnet"
+make_figure_1022(exp.num=exp.num, plot.data=plot.data,
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                plot.n_clean=plot.n_clean,
+                plot.pi_clean=plot.pi_clean,
+                plot.contamination_exp.flag=TRUE,
+                save_plots=FALSE, reload=TRUE)

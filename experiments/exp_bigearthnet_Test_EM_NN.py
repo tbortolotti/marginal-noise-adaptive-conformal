@@ -21,7 +21,8 @@ from cln import contamination
 from cln.T_estimation import evaluate_estimate
 from cln.T_estimation_NN import NoisyLabelNet, train_alternate
 from third_party.bigearthnet.datamodules.bigearthnet_datamodule import BigEarthNetDataModule
-from third_party.bigearthnet.models.bigearthnet_module import BigEarthNetModule, BigEarthNetFeatureExtractor
+#from third_party.bigearthnet.models.bigearthnet_module import BigEarthNetModule, BigEarthNetFeatureExtractor, TorchGeoFeatureExtractor
+from third_party.bigearthnet.models.bigearthnet_module import BigEarthNetModule, TorchGeoFeatureExtractor
 
 # Define default parameters
 exp_num = 1021
@@ -109,7 +110,8 @@ mod_path = os.path.join(cfg.out_directory.dir, "trained_model.pth")
 black_box_model.load_state_dict(torch.load(mod_path))
 black_box_model.eval()
 
-feature_extractor = BigEarthNetFeatureExtractor(black_box_model)
+#feature_extractor = BigEarthNetFeatureExtractor(black_box_model)
+feature_extractor = TorchGeoFeatureExtractor(black_box_model)
 
 # Define dataloader
 datamodule = BigEarthNetDataModule(cfg.datamodule.dataset_dir,
@@ -144,6 +146,9 @@ def run_experiment(random_state):
     dataloader = datamodule.train_dataloader(seed=random_state)
     batch = next(iter(dataloader))
     X = batch['data']
+
+    print("Shape:", X.shape)
+    print("Min:", X.min().item(), "Max:", X.max().item())
 
     # Retrieve the corresponding clean (v2-grouped) labels from the CSV,
     # using the same generator the datamodule used to shuffle its dataset.
