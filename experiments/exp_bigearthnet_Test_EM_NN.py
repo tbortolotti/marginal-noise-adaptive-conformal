@@ -111,7 +111,7 @@ black_box_model.load_state_dict(torch.load(mod_path))
 black_box_model.eval()
 
 #feature_extractor = BigEarthNetFeatureExtractor(black_box_model)
-feature_extractor = TorchGeoFeatureExtractor(black_box_model)
+feature_extractor = TorchGeoFeatureExtractor(device=device)
 
 # Define dataloader
 datamodule = BigEarthNetDataModule(cfg.datamodule.dataset_dir,
