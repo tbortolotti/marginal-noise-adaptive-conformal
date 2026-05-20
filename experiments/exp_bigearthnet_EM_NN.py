@@ -219,8 +219,8 @@ def run_experiment(random_state):
         T_hat_clean = T_method.get_estimate()
 
         #____________________________________________________________________
-        ## Estimate T using the NN with cifar features and MLP
-        print("Estimating T using the NN with cifar features...", end=' ')
+        ## Estimate T using the NN with features and MLP
+        print("Estimating T using the NN with features...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
@@ -231,8 +231,8 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
         #____________________________________________________________________
-        ## Estimate T using the NN with cifar features and MLP
-        print("Estimating T using the NN with cifar features and SLL...", end=' ')
+        ## Estimate T using the NN with features and MLP
+        print("Estimating T using the NN with features and SLL...", end=' ')
         sys.stdout.flush()
         model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
         train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
@@ -249,8 +249,8 @@ def run_experiment(random_state):
         T_hat_clean = T_method.get_estimate()
 
         #____________________________________________________________________
-        ## Estimate T using the NN with cifar features and MLP
-        print("Estimating T using the NN with cifar features...", end=' ')
+        ## Estimate T using the NN with features and MLP
+        print("Estimating T using the NN with features...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
@@ -261,8 +261,8 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
         #____________________________________________________________________
-        ## Estimate T using the NN with cifar features and MLP
-        print("Estimating T using the NN with cifar features and SLL...", end=' ')
+        ## Estimate T using the NN with features and MLP
+        print("Estimating T using the NN with features and SLL...", end=' ')
         sys.stdout.flush()
         model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
         train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
