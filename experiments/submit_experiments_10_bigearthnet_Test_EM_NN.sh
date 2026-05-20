@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Parameters
+CONF=1020
+
+if [[ $CONF == 1020 ]]; then
+  EPSILON_LIST=(0.2)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("uniform")
+  N_LIST=(5000)
+  N_CLEAN_LIST=(500)
+  PI_CLEAN_LIST=(0)
+  CONTAMINATION_EXP_FLAG="false"
+  SEED_LIST=(1)
+
+elif [[ $CONF == 1021 ]]; then
+  EPSILON_LIST=(0.2)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("uniform")
+  N_LIST=(500 1000 2000 5000)
+  N_CLEAN_LIST=(100 500 1000)
+  PI_CLEAN_LIST=(0)
+  CONTAMINATION_EXP_FLAG="false"
+  SEED_LIST=$(seq 1 10)
+
+elif [[ $CONF == 1022 ]]; then
+  EPSILON_LIST=(0.2)
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform" "block" "RRB")
+  N_LIST=(500 1000 2000 5000)
+  N_CLEAN_LIST=(500)
+  PI_CLEAN_LIST=(0)
+  CONTAMINATION_EXP_FLAG="true"
+  SEED_LIST=$(seq 1 10)
+fi
+
+
+# Slurm parameters
+MEMO=64G
+TIME=00-03:00:00
+CORE=1
+
+# Assemble order prefix
+ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=main"
+
+# Create directory for log files
+LOGS="logs"
+mkdir -p $LOGS
+mkdir -p $LOGS"/exp"$CONF
+
+OUT_DIR="results"
+mkdir -p $OUT_DIR
+mkdir -p $OUT_DIR"/exp"$CONF
+
+
+# Loop over configurations
+for SEED in $SEED_LIST; do
+  for EPSILON in "${EPSILON_LIST[@]}"; do
+    for NU in "${NU_LIST[@]}"; do
+      for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
+        for N_TRAIN1 in "${N_TRAIN1_LIST[@]}"; do
+          for N_TRAIN2 in "${N_TRAIN2_LIST[@]}"; do
+            JOBN="exp"$CONF"/bigearthnet_eps"$EPSILON
+            JOBN=$JOBN"_nu"$NU"_"$CONTAMINATION
+            JOBN=$JOBN"_n"$N"_ncl"$N_CLEAN"_picl"$PI_CLEAN"_"$SEED
+            OUT_FILE=$OUT_DIR"/"$JOBN".txt"
+            COMPLETE=0
+            if [[ -f $OUT_FILE ]]; then
+              COMPLETE=1
+            fi
+
+            if [[ $COMPLETE -eq 0 ]]; then
+              # Script to be run
+              SCRIPT="exp_bigearthnet_Test_EM_NN.sh $CONF $EPSILON $NU $CONTAMINATION $N $N_CLEAN $PI_CLEAN $CONTAMINATION_EXP_FLAG $SEED"
+              # Define job name
+              OUTF=$LOGS"/"$JOBN".out"
+              ERRF=$LOGS"/"$JOBN".err"
+              # Assemble slurm order for this job
+              ORD=$ORDP" -J "$JOBN" -o "$OUTF" -e "$ERRF" "$SCRIPT
+              # Print order
+              echo $ORD
+              # Submit order
+              $ORD
+              # Run command now
+              #./$SCRIPT
+            fi
+          done
+        done
+      done
+    done
+  done
+done

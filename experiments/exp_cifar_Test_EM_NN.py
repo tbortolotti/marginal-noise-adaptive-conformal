@@ -59,8 +59,6 @@ if True:
 data_name = "cifar10"
 K = 10
 num_exp = 5
-asymptotic_h_start = 1/400
-asymptotic_MC_samples = 10000
 epsilon_init = 0
 
 if n_clean == 0:
@@ -341,7 +339,7 @@ def run_experiment(random_state):
 
         performances = evaluate_estimate(T, T_hat_NN_cifar, K, epsilon0=0)
         res_update = header.copy()
-        res_update = res_update.assign(Method='NN cifar SLL', n=n, **performances)
+        res_update = res_update.assign(Method='NN cifar SLL gen', n=n, **performances)
         res_list.append(res_update)
         print("Done.")
         sys.stdout.flush()

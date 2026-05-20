@@ -4586,17 +4586,18 @@ init_settings <- function(contamination_exp.flag=FALSE) {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#8A2BE2", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#F0E442")
   
   if(contamination_exp.flag){
-    method.values <<- c("NN gen", "NN cifar gen")
-    method.labels <<- c("NN (g)", "NN cifar (g)")
-    color.scale <<- cbPalette[c(9,6)]
-    shape.scale <<- c(9,3)
-    linetype.scale <<- c(1,1)
+    #method.values <<- c("NN cifar gen", "NN cifar light gen", "NN cifar SLL gen")
+    method.values <<- c("NN cifar gen", "NN cifar light gen", "NN cifar SLL")
+    method.labels <<- c("NN 64(g)", "NN (g)", "NN SLL (g)")
+    color.scale <<- cbPalette[c(9,6,7)]
+    shape.scale <<- c(9,3,4)
+    linetype.scale <<- c(1,1,1)
   } else {
-    method.values <<- c("NN", "NN cifar")
-    method.labels <<- c("NN", "NN cifar")
-    color.scale <<- cbPalette[c(3,5)]
-    shape.scale <<- c(3,7)
-    linetype.scale <<- c(1,1)
+    method.values <<- c("NN cifar", "NN cifar light", "NN cifar SLL")
+    method.labels <<- c("NN 64", "NN", "NN SLL")
+    color.scale <<- cbPalette[c(3,5,4)]
+    shape.scale <<- c(3,7,6)
+    linetype.scale <<- c(1,1,1)
   }
 }
 
@@ -4691,7 +4692,7 @@ make_figure_821(exp.num=exp.num, plot.data=plot.data,
                 plot.epsilon=plot.epsilon,
                 plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
-                plot.contamination_exp.flag=TRUE,
+                plot.contamination_exp.flag=FALSE,
                 save_plots=FALSE, reload=TRUE)
 
 
@@ -4888,6 +4889,199 @@ make_figure_901(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                  plot.epsilon=plot.epsilon,
                  plot.n_train1=plot.n_train1, plot.n_train2=plot.n_train2,
                  save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
+### Experiments 910: Noise-adaptive conformal in CIFAR-10 dataset ------------------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, contamination, epsilon, n_train, n_clean, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    filter(seed %in% (1:20)) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+
+init_settings <- function(plot.optimistic = FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  
+  method.values <<- c("Standard",
+                      "Standard using clean",
+                      "Adaptive optimized+",
+                      "Adaptive optimized+ clean",
+                      "Adaptive optimized+ NN")
+  #"Adaptive optimized+ AP param")
+  method.labels <<- c("Standard",
+                      "Standard (clean, simple)",
+                      "Adaptive+",
+                      "Adaptive+ (clean)",
+                      "Adaptive+ (NN)")
+  #"Adaptive+ (AP RRM)")
+  color.scale <<- cbPalette[c(1,3,4,5,6)]
+  shape.scale <<- c(1,2,3,4,5)
+  linetype.scale <<- c(1,1,1,1,1)
+}
+
+#### Experiments 911: Impact of the size of clean data ------------------------
+make_figure_911 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.guarantee="marginal",
+                            plot.contamination="uniform",
+                            plot.epsilon=0.1,
+                            plot.nu=0,
+                            plot.n_train=1000,
+                            plot.n_clean,
+                            plot.optimistic=TRUE,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic = plot.optimistic)
+  
+  df <- summary %>%
+    filter(data==plot.data, n_train==plot.n_train, Guarantee==plot.guarantee,
+           Label=="marginal", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon, n_clean %in% plot.n_clean)
+  
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(N_CLEAN = factor(sprintf("Size of clean set: %d", n_clean), 
+                           levels = sprintf("Size of clean set: %d", c(500)), 
+                           labels = c("Size of clean set: 500"))) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~N_CLEAN, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_nt1_%d_eps%s_nu%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train1, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 911
+plot.data <- "cifar10"
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.contamination <- "uniform"
+
+plot.n_train <- 2000
+plot.n_clean <- c(500)
+make_figure_911(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
+                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
+
+#### Experiments 912: Different contamination model ------------------------
+make_figure_912 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.guarantee="marginal",
+                            plot.contamination="uniform",
+                            plot.epsilon=0.1,
+                            plot.nu=0.2,
+                            plot.n_train=1000,
+                            plot.n_clean,
+                            plot.optimistic=TRUE,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic = plot.optimistic)
+  
+  df <- summary %>%
+    filter(data==plot.data, n_train==plot.n_train, Guarantee==plot.guarantee,
+           Label=="marginal", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination%in%plot.contamination,
+           epsilon==plot.epsilon, n_clean==plot.n_clean)
+  
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(CONT = factor(sprintf("Cont: %s", contamination),
+                         levels = sprintf("Cont: %s", plot.contamination),
+                         labels = c("Cont: RRM", "Cont: block", "Cont: two-level"))) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~CONT, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_nt1_%d_eps%s_nu%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train1, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 912
+plot.data <- "cifar10"
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.contamination <- c("uniform", "block", "RRB")
+
+plot.n_train <- 2000
+plot.n_clean <- 500
+make_figure_912(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
+                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
