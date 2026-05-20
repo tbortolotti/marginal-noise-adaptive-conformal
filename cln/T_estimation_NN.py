@@ -1,9 +1,10 @@
+from __future__ import annotations
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
-#import torchvision.models as models
 import sys
 sys.path.append("/home1/tb_214/code/PyTorch_CIFAR10")
 from cifar10_models.resnet import resnet18 as cifar_resnet18
