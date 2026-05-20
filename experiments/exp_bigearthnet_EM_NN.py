@@ -169,10 +169,6 @@ def run_experiment(random_state):
     print(f"Done. Batch size after NaN removal: {len(Y_all)}")
     sys.stdout.flush()
 
-    # Feature extraction
-    X_feat = feature_extractor.transform(X).numpy()
-    num_var = X_feat.shape[1]
-
     # Separate the test set
     X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
     del X_all, Y_all
