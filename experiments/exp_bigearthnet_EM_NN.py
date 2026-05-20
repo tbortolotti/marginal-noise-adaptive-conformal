@@ -209,7 +209,7 @@ def run_experiment(random_state):
     Y_obs_torch = torch.tensor(Y_obs, dtype=torch.long)
     I_torch = torch.tensor(I, dtype=torch.long)
 
-    del X_train, X_cifar_feat
+    del X_train
 
     # Use extracted features to estimate the contamination
     if not contamination_exp_flag:
