@@ -31,6 +31,7 @@ contamination_model = "uniform"
 n = 1000
 n_clean = 500
 pi_clean = 0
+contamination_exp_flag = False
 seed = 1
 
 # Parse input parameters
@@ -170,12 +171,16 @@ def run_experiment(random_state):
     sys.stdout.flush()
 
     # Identify the set of clean observations
+    print("Generating clean dataset...", end=' ')
+    sys.stdout.flush()
+    # Identify the central observations in the training set to build the clean dataset
     conf_scores = black_box_model.predict_proba(X).max(axis=1)
-    clean_frac = np.round(n_clean/n, decimals=5)
-    threshold = np.quantile(conf_scores, 1 - clean_frac)
-    I = (conf_scores >= threshold).astype(int)
+    top_indices = np.argsort(conf_scores)[-n_clean:]
+    I = np.zeros(len(Y))
+    I[top_indices] = 1
     Y_obs = np.where(I == 1, Y, Yt)
-
+    print("Done.")
+    sys.stdout.flush()
     del X; torch.cuda.empty_cache()
 
     # Initialize an empty list to store the evaluation results
@@ -184,7 +189,7 @@ def run_experiment(random_state):
     #____________________________________________________________________
     ## Estimate T using the NN algorithm
     #X_feat_torch  = torch.tensor(X_features, dtype=torch.float32)
-    X_cifar_feat_torch = X_feat.to(device)
+    X_feat_torch = torch.tensor(X_feat, dtype=torch.float32).to(device)
     Y_obs_torch = torch.tensor(Y_obs, dtype=torch.long)
     I_torch = torch.tensor(I, dtype=torch.long)
 
@@ -193,14 +198,14 @@ def run_experiment(random_state):
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features...", end=' ')
         sys.stdout.flush()
-        model_NN_cifar = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[64], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[64], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
-        T_hat_NN_cifar = model_NN_cifar.contamination.contamination_matrix()
-        T_hat_NN_cifar = T_hat_NN_cifar.detach().numpy()
+        T_hat_NN = model_NN.contamination.contamination_matrix()
+        T_hat_NN = T_hat_NN.detach().numpy()
 
-        performances = evaluate_estimate(T, T_hat_NN_cifar, K, epsilon0=0)
+        performances = evaluate_estimate(T, T_hat_NN, K, epsilon0=0)
         res_update = header.copy()
         res_update = res_update.assign(Method='NN', n=n, **performances)
         res_list.append(res_update)
@@ -211,14 +216,14 @@ def run_experiment(random_state):
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features and easier MLP...", end=' ')
         sys.stdout.flush()
-        model_NN_cifar = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        model_NN_light = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN_light, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_light, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
-        T_hat_NN_cifar = model_NN_cifar.contamination.contamination_matrix()
-        T_hat_NN_cifar = T_hat_NN_cifar.detach().numpy()
+        T_hat_NN_light = model_NN_light.contamination.contamination_matrix()
+        T_hat_NN_light = T_hat_NN_light.detach().numpy()
 
-        performances = evaluate_estimate(T, T_hat_NN_cifar, K, epsilon0=0)
+        performances = evaluate_estimate(T, T_hat_NN_light, K, epsilon0=0)
         res_update = header.copy()
         res_update = res_update.assign(Method='NN light', n=n, **performances)
         res_list.append(res_update)
@@ -229,14 +234,14 @@ def run_experiment(random_state):
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features and SLL...", end=' ')
         sys.stdout.flush()
-        model_NN_cifar = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
-        T_hat_NN_cifar = model_NN_cifar.contamination.contamination_matrix()
-        T_hat_NN_cifar = T_hat_NN_cifar.detach().numpy()
+        T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
+        T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
 
-        performances = evaluate_estimate(T, T_hat_NN_cifar, K, epsilon0=0)
+        performances = evaluate_estimate(T, T_hat_NN_sll, K, epsilon0=0)
         res_update = header.copy()
         res_update = res_update.assign(Method='NN SLL', n=n, **performances)
         res_list.append(res_update)
@@ -248,14 +253,14 @@ def run_experiment(random_state):
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features...", end=' ')
         sys.stdout.flush()
-        model_NN_cifar = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[64], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[64], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
-        T_hat_NN_cifar = model_NN_cifar.contamination.contamination_matrix()
-        T_hat_NN_cifar = T_hat_NN_cifar.detach().numpy()
+        T_hat_NN = model_NN.contamination.contamination_matrix()
+        T_hat_NN = T_hat_NN.detach().numpy()
 
-        performances = evaluate_estimate(T, T_hat_NN_cifar, K, epsilon0=0)
+        performances = evaluate_estimate(T, T_hat_NN, K, epsilon0=0)
         res_update = header.copy()
         res_update = res_update.assign(Method='NN gen', n=n, **performances)
         res_list.append(res_update)
@@ -266,14 +271,14 @@ def run_experiment(random_state):
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features...", end=' ')
         sys.stdout.flush()
-        model_NN_cifar = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        model_NN_light = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN_light, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_light, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
-        T_hat_NN_cifar = model_NN_cifar.contamination.contamination_matrix()
-        T_hat_NN_cifar = T_hat_NN_cifar.detach().numpy()
+        T_hat_NN_light = model_NN_light.contamination.contamination_matrix()
+        T_hat_NN_light = T_hat_NN_light.detach().numpy()
 
-        performances = evaluate_estimate(T, T_hat_NN_cifar, K, epsilon0=0)
+        performances = evaluate_estimate(T, T_hat_NN_light, K, epsilon0=0)
         res_update = header.copy()
         res_update = res_update.assign(Method='NN light gen', n=n, **performances)
         res_list.append(res_update)
@@ -284,14 +289,14 @@ def run_experiment(random_state):
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features and SLL...", end=' ')
         sys.stdout.flush()
-        model_NN_cifar = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_cifar, X_cifar_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
-        T_hat_NN_cifar = model_NN_cifar.contamination.contamination_matrix()
-        T_hat_NN_cifar = T_hat_NN_cifar.detach().numpy()
+        T_hat_NN_sll= model_NN_sll.contamination.contamination_matrix()
+        T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
 
-        performances = evaluate_estimate(T, T_hat_NN_cifar, K, epsilon0=0)
+        performances = evaluate_estimate(T, T_hat_NN_sll, K, epsilon0=0)
         res_update = header.copy()
         res_update = res_update.assign(Method='NN SLL gen', n=n, **performances)
         res_list.append(res_update)
