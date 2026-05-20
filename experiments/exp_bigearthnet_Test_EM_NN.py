@@ -147,9 +147,6 @@ def run_experiment(random_state):
     batch = next(iter(dataloader))
     X = batch['data']
 
-    print("Shape:", X.shape)
-    print("Min:", X.min().item(), "Max:", X.max().item())
-
     # Retrieve the corresponding clean (v2-grouped) labels from the CSV,
     # using the same generator the datamodule used to shuffle its dataset.
     shuffled_csv = v1v2_corresp_train.iloc[datamodule.last_train_indices].reset_index(drop=True)
