@@ -5493,3 +5493,122 @@ make_figure_1022(exp.num=exp.num, plot.data=plot.data,
                 plot.pi_clean=plot.pi_clean,
                 plot.contamination_exp.flag=TRUE,
                 save_plots=FALSE, reload=TRUE)
+
+
+#' ---------------------------------------------------------------------------------------------------------------------
+### Experiments 1100: Noise-adaptive conformal in BigEarthNet dataset ------------------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }        
+  ifile.list <- list.files(idir, recursive = FALSE) 
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))    
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, contamination, epsilon, n_train, n_clean, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    filter(seed %in% (1:20)) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))  
+  return(summary)
+}
+
+
+init_settings <- function(plot.optimistic = FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  
+  method.values <<- c("Standard",
+                      "Standard using clean",
+                      "Adaptive optimized+",
+                      "Adaptive optimized+ clean",
+                      "Adaptive optimized+ NN")
+  #"Adaptive optimized+ AP param")
+  method.labels <<- c("Standard",
+                      "Standard (clean, simple)",
+                      "Adaptive+",
+                      "Adaptive+ (clean)",
+                      "Adaptive+ (NN)")
+  #"Adaptive+ (AP RRM)")
+  color.scale <<- cbPalette[c(1,3,4,5,6)]
+  shape.scale <<- c(1,2,3,4,5)
+  linetype.scale <<- c(1,1,1,1,1)
+}
+
+#### Experiments 1101: Impact of the size of clean data ------------------------
+make_figure_1101 <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.guarantee="marginal",
+                            plot.contamination="uniform",
+                            plot.epsilon=0.1,
+                            plot.nu=0,
+                            plot.n_train=1000,
+                            plot.n_clean,
+                            plot.optimistic=TRUE,
+                            save_plots=FALSE, reload=FALSE) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings(plot.optimistic = plot.optimistic)
+  
+  df <- summary %>%
+    filter(data==plot.data, n_train==plot.n_train, Guarantee==plot.guarantee,
+           Label=="marginal", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon, n_clean %in% plot.n_clean)
+  
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(N_CLEAN = factor(sprintf("Size of clean set: %d", n_clean), 
+                            levels = sprintf("Size of clean set: %d", c(500)), 
+                            labels = c("Size of clean set: 500"))) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
+    facet_grid(Key~N_CLEAN, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 1, 1, -10))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_%s_nt1_%d_eps%s_nu%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train1, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+exp.num <- 1101
+plot.data <- "bigearthnet"
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.contamination <- "uniform"
+
+plot.n_train <- 5000
+plot.n_clean <- c(500)
+make_figure_911(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
+                plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon,
+                plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
+                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
