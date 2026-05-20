@@ -59,32 +59,34 @@ for SEED in $SEED_LIST; do
   for EPSILON in "${EPSILON_LIST[@]}"; do
     for NU in "${NU_LIST[@]}"; do
       for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
-        for N_TRAIN1 in "${N_TRAIN1_LIST[@]}"; do
-          for N_TRAIN2 in "${N_TRAIN2_LIST[@]}"; do
-            JOBN="exp"$CONF"/bigearthnet_eps"$EPSILON
-            JOBN=$JOBN"_nu"$NU"_"$CONTAMINATION
-            JOBN=$JOBN"_n"$N"_ncl"$N_CLEAN"_picl"$PI_CLEAN"_"$SEED
-            OUT_FILE=$OUT_DIR"/"$JOBN".txt"
-            COMPLETE=0
-            if [[ -f $OUT_FILE ]]; then
-              COMPLETE=1
-            fi
+        for N in "${N_LIST[@]}"; do
+          for N_CLEAN in "${N_CLEAN_LIST[@]}"; do
+            for PI_CLEAN in "${PI_CLEAN_LIST[@]}"; do
+              JOBN="exp"$CONF"/bigearthnet_eps"$EPSILON
+              JOBN=$JOBN"_nu"$NU"_"$CONTAMINATION
+              JOBN=$JOBN"_n"$N"_ncl"$N_CLEAN"_picl"$PI_CLEAN"_"$SEED
+              OUT_FILE=$OUT_DIR"/"$JOBN".txt"
+              COMPLETE=0
+              if [[ -f $OUT_FILE ]]; then
+                COMPLETE=1
+              fi
 
-            if [[ $COMPLETE -eq 0 ]]; then
-              # Script to be run
-              SCRIPT="exp_bigearthnet_Test_EM_NN.sh $CONF $EPSILON $NU $CONTAMINATION $N $N_CLEAN $PI_CLEAN $CONTAMINATION_EXP_FLAG $SEED"
-              # Define job name
-              OUTF=$LOGS"/"$JOBN".out"
-              ERRF=$LOGS"/"$JOBN".err"
-              # Assemble slurm order for this job
-              ORD=$ORDP" -J "$JOBN" -o "$OUTF" -e "$ERRF" "$SCRIPT
-              # Print order
-              echo $ORD
-              # Submit order
-              $ORD
-              # Run command now
-              #./$SCRIPT
-            fi
+              if [[ $COMPLETE -eq 0 ]]; then
+                # Script to be run
+                SCRIPT="exp_bigearthnet_Test_EM_NN.sh $CONF $EPSILON $NU $CONTAMINATION $N $N_CLEAN $PI_CLEAN $CONTAMINATION_EXP_FLAG $SEED"
+                # Define job name
+                OUTF=$LOGS"/"$JOBN".out"
+                ERRF=$LOGS"/"$JOBN".err"
+                # Assemble slurm order for this job
+                ORD=$ORDP" -J "$JOBN" -o "$OUTF" -e "$ERRF" "$SCRIPT
+                # Print order
+                echo $ORD
+                # Submit order
+                $ORD
+                # Run command now
+                #./$SCRIPT
+              fi
+            done
           done
         done
       done
