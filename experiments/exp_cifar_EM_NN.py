@@ -118,7 +118,7 @@ def run_experiment(random_state):
     # Generate a large data set
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
-    if contamination=="true":
+    if contamination_model == "true":
         X_all, _, Y_all, _, Yt_all, _, _ = next(iter(loader))
         Y_all = Y_all.detach().numpy()
         Yt_all = Yt_all.detach().numpy()
