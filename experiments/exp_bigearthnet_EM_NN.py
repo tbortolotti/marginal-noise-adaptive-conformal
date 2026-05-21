@@ -103,11 +103,11 @@ with open('../third_party/bigearthnet/data/label_mapping.json', 'r') as f:
     label_mapping = json.load(f)
 
 dataset_name = cfg.datamodule.dataset_name
-file_path_train = os.path.join(
+file_path = os.path.join(
     '../third_party/bigearthnet/data',
-    f'train_{dataset_name}.csv'
+    f'test_{dataset_name}.csv'
 )
-v1v2_corresp_train = pd.read_csv(file_path_train, header=0)
+v1v2_corresp = pd.read_csv(file_path, header=0)
 
 # Load the pre-trained BigEarthNet model and use it as a feature extractor.
 # We call it in eval mode and extract the penultimate-layer embeddings
@@ -147,13 +147,13 @@ def run_experiment(random_state):
 
     print("\nLoad data...", end=' ')
     sys.stdout.flush()
-    dataloader = datamodule.train_dataloader(seed=random_state)
+    dataloader = datamodule.test_dataloader(seed=random_state)
     batch = next(iter(dataloader))
     X_all = batch['data']
 
     # Retrieve the corresponding clean (v2-grouped) labels from the CSV,
     # using the same generator the datamodule used to shuffle its dataset.
-    shuffled_csv = v1v2_corresp_train.iloc[datamodule.last_train_indices].reset_index(drop=True)
+    shuffled_csv = v1v2_corresp.iloc[datamodule.last_train_indices].reset_index(drop=True)
     batch_csv = shuffled_csv.iloc[:batch_size]
     Y_all = batch_csv['v2-labels-grouped'].to_numpy()
 
