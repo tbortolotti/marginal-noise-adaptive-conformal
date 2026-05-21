@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # Parameters
-CONF=1020
+CONF=1022
 
 if [[ $CONF == 1020 ]]; then
   EPSILON_LIST=(0.2)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_LIST=(5000)
+  N_LIST=(2000)
   N_CLEAN_LIST=(500)
   PI_CLEAN_LIST=(0)
   CONTAMINATION_EXP_FLAG="false"

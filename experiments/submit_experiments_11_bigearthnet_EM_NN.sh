@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=1100
+CONF=1103
 
 if [[ $CONF == 1100 ]]; then
   EPSILON_LIST=(0.1)
@@ -21,7 +21,7 @@ elif [[ $CONF == 1101 ]]; then
   N_CLEAN_LIST=(500)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000)
   CONTAMINATION_EXP_FLAG="false"
-  SEED_LIST=$(seq 1 10)
+  SEED_LIST=$(seq 1 20)
 
 elif [[ $CONF == 1102 ]]; then
   EPSILON_LIST=(0.1)
@@ -32,7 +32,7 @@ elif [[ $CONF == 1102 ]]; then
   N_CLEAN_LIST=(500)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000)
   CONTAMINATION_EXP_FLAG="true"
-  SEED_LIST=$(seq 1 10)
+  SEED_LIST=$(seq 1 20)
 
 elif [[ $CONF == 1103 ]]; then
   EPSILON_LIST=(0.1)
@@ -42,7 +42,7 @@ elif [[ $CONF == 1103 ]]; then
   N_CLEAN_LIST=(500)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000)
   CONTAMINATION_EXP_FLAG="true"
-  SEED_LIST=$(seq 1 10)
+  SEED_LIST=$(seq 1 20)
 
 fi
 

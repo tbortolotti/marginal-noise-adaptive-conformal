@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=820
+CONF=822
 
 if [[ $CONF == 820 ]]; then
   EPSILON_LIST=(0.1)
@@ -28,7 +28,7 @@ elif [[ $CONF == 822 ]]; then
   NU_LIST=(0.2)
   CONTAMINATION_LIST=("uniform" "block" "RRB")
   N_LIST=(500 1000 2000 5000 9000)
-  N_CLEAN_LIST=(500 1000)
+  N_CLEAN_LIST=(500)
   PI_CLEAN_LIST=(0)
   CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=$(seq 1 10)
