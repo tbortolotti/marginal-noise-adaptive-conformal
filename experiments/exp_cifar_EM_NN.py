@@ -116,9 +116,9 @@ def run_experiment(random_state):
 
     # Generate dataset for calibration and test
     # Generate a large data set
-    print("\nGenerating data...", end=' ')
-    sys.stdout.flush()
     if contamination_model == "true":
+        print("\nGenerating data...", end=' ')
+        sys.stdout.flush()
         X_all, _, Y_all, _, Yt_all, _, _ = next(iter(loader))
         Y_all = Y_all.detach().numpy()
         Yt_all = Yt_all.detach().numpy()
@@ -129,6 +129,8 @@ def run_experiment(random_state):
         X, X_test, Y, Y_test, Yt, Yt_test = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
         del X_all, Y_all, Yt_all, Yt_test
     else:
+        print("\nGenerating data...", end=' ')
+        sys.stdout.flush()
         X_all, _, Y_all, _, _, _, _ = next(iter(loader))
         Y_all = Y_all.detach().numpy()
         print("Done.")
