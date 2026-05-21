@@ -295,17 +295,19 @@ class BigEarthNetDataModule(pl.LightningDataModule):
             num_workers=self.num_workers,
         )
 
-    def test_dataloader(self) -> torch.utils.data.dataloader.DataLoader:
+    def test_dataloader(self, seed=None) -> torch.utils.data.dataloader.DataLoader:
         """Creates the testing dataloader using the testing data dataset."""
         assert self.test_dataset is not None, "must call 'setup' first!"
 
+        actual_seed = seed if seed is not None else self.random_seed
+
         # Create the sampler to shuffle the data
-        sampler = self.create_sampler(len(self.test_dataset), shuffle=True)
+        sampler = self.create_sampler(len(self.test_dataset), shuffle=True, seed=actual_seed)
 
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.test_dataset,
-            #batch_size=self.batch_size,
-            batch_size=int(0.15*self.batch_size),
+            batch_size=self.batch_size,
+            #batch_size=int(0.15*self.batch_size),
             #shuffle=False,
             sampler=sampler,
             num_workers=self.num_workers,
