@@ -116,7 +116,7 @@ def run_experiment(random_state):
 
     # Generate dataset for calibration and test
     # Generate a large data set
-    if contamination_model == "true":
+    if contamination_model == "real":
         print("\nGenerating data...", end=' ')
         sys.stdout.flush()
         X_all, _, Y_all, _, Yt_all, _, _ = next(iter(loader))
@@ -275,7 +275,7 @@ def run_experiment(random_state):
     print("\nSeeking {:s} coverage at level {:.2f}.".format(guarantee, 1-alpha))
 
     # Define a dictionary of methods with their names and corresponding initialization parameters
-    if contamination_model=="true":
+    if contamination_model=="real":
         methods = {
             "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                         pre_trained=True, random_state=random_state),

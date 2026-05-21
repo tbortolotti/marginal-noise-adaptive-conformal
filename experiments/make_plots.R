@@ -5049,7 +5049,7 @@ make_figure_912 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.gu
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(CONT = factor(sprintf("Cont: %s", contamination),
                          levels = sprintf("Cont: %s", plot.contamination),
-                         labels = c("Cont: RRM", "Cont: block", "Cont: two-level"))) %>%
+                         labels = c("Cont: RRM", "Cont: block", "Cont: two-level", "Cont: true"))) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
@@ -5084,14 +5084,14 @@ exp.num <- 912
 plot.data <- "cifar10"
 plot.alpha <- 0.1
 plot.epsilon <- 0.1
-plot.contamination <- c("uniform", "block", "RRB")
+plot.contamination <- c("uniform", "block", "RRB", "TRUE")
 plot.n_train <- 2000
 plot.n_clean <- 500
 make_figure_912(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
 
 

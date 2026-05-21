@@ -157,24 +157,28 @@ def run_experiment(random_state):
     batch_csv = shuffled_csv.iloc[:batch_size]
     Y_all = batch_csv['v2-labels-grouped'].to_numpy()
 
+    if contamination_model == "real":
+        Yt_all = batch['labels']
+    else:
+        # Generate the contaminated labels
+        print("Generating contaminated labels...", end=' ')
+        sys.stdout.flush()
+        contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+2)
+        Yt_all = contamination_process.sample_labels(Y_all)
+        print("Done.")
+        sys.stdout.flush()
+
     # Drop rows where clean label is NaN
     valid = ~np.isnan(Y_all)
     X_all = X_all[valid]
     Y_all = Y_all[valid].astype(int)
+    Yt_all = Yt_all[valid].astype(int)
     print(f"Done. Batch size after NaN removal: {len(Y_all)}")
     sys.stdout.flush()
 
     # Separate the test set
-    X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
-    del X_all, Y_all
-
-    # Generate the contaminated labels
-    print("Generating contaminated labels...", end=' ')
-    sys.stdout.flush()
-    contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+2)
-    Yt = contamination_process.sample_labels(Y)
-    print("Done.")
-    sys.stdout.flush()
+    X, X_test, Y, Y_test, Yt, Yt_test = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
+    del X_all, Y_all, Yt_test, Yt_all
 
     # Estimate the label proportions from the whole data set
     print("Estimating label proportions...", end=' ')
@@ -287,38 +291,66 @@ def run_experiment(random_state):
     print("\nSeeking {:s} coverage at level {:.2f}.".format(guarantee, 1-alpha))
 
     # Define a dictionary of methods with their names and corresponding initialization parameters
-    methods = {
-        "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                       pre_trained=True, random_state=random_state),
+    if contamination_model == "real":
+        methods = {
+            "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                        pre_trained=True, random_state=random_state),
 
-        "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
-                                                                pre_trained=True, random_state=random_state),
-
-        "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
+            "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
+            "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state)
+
+        }
+    else:
+        methods = {
+            "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                        pre_trained=True, random_state=random_state),
+
+            "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
-                                                                    pre_trained=True, random_state=random_state),
+            "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
-                                                                    pre_trained=True, random_state=random_state)
+            "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
 
-    }
+            "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state)
+
+        }
     
     # Initialize an empty list to store the evaluation results
     res_list = []
