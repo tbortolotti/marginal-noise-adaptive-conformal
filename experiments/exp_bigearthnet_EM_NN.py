@@ -24,7 +24,7 @@ sys.path.append("../third_party")
 from cln import contamination
 from cln.T_estimation_NN import NoisyLabelNet, train_alternate
 from cln.T_estimation import TMatrixEstimation
-from cln.utils import evaluate_predictions
+from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
 from third_party import arc
 
@@ -72,12 +72,7 @@ asymptotic_MC_samples = 10000
 nu = 0.2
 n_test = 500
 batch_size = n_train + n_clean + n_cal + n_test
-
 epsilon_init = 0
-
-# Oracle parameters
-rho_hat = [0.114, 0.032, 0.026, 0.138, 0.001, 0.689]
-rho_tilde_hat = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
@@ -178,6 +173,13 @@ def run_experiment(random_state):
     sys.stdout.flush()
     contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+2)
     Yt = contamination_process.sample_labels(Y)
+    print("Done.")
+    sys.stdout.flush()
+
+    # Estimate the label proportions from the whole data set
+    print("Estimating label proportions...", end=' ')
+    sys.stdout.flush()
+    rho_tilde_hat = estimate_rho(Yt, K)
     print("Done.")
     sys.stdout.flush()
 
@@ -328,7 +330,7 @@ def run_experiment(random_state):
 
         # Initialize and apply the method
         method = method_func()
-        predictions = method.predict(X_test)
+        predictions = method.predict(X_test, random_state=2026)
 
         print("Done.")
         sys.stdout.flush()

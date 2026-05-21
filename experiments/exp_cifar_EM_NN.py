@@ -66,7 +66,6 @@ asymptotic_MC_samples = 10000
 nu = 0.2
 n_test = 500
 batch_size = n_train + n_clean + n_cal + n_test
-
 epsilon_init = 0
 
 # Set default directories
@@ -93,12 +92,6 @@ elif contamination_model == "block":
     T = contamination.construct_T_matrix_block(K, epsilon)
 elif contamination_model == "RRB":
     T = contamination.construct_T_matrix_block_RR(K, epsilon, nu)
-elif contamination_model == "random":
-    T = contamination.construct_T_matrix_random(K, epsilon, random_state=seed)
-else:
-    print("Unknown contamination (M) model!")
-    sys.stdout.flush()
-    exit(-1)
 
 # Initialize black-box model
 black_box = ResNet18()
@@ -125,22 +118,34 @@ def run_experiment(random_state):
     # Generate a large data set
     print("\nGenerating data...", end=' ')
     sys.stdout.flush()
-    X_all, _, Y_all, _, _, _, _ = next(iter(loader))
-    Y_all = Y_all.detach().numpy()
-    print("Done.")
-    sys.stdout.flush()
+    if contamination=="true":
+        X_all, _, Y_all, _, Yt_all, _, _ = next(iter(loader))
+        Y_all = Y_all.detach().numpy()
+        Yt_all = Yt_all.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
 
-    # Separate the test set
-    X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
-    del X_all, Y_all
+        # Separate the test set
+        X, X_test, Y, Y_test, Yt, Yt_test = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
+        del X_all, Y_all, Yt_all, Yt_test
+    else:
+        X_all, _, Y_all, _, _, _, _ = next(iter(loader))
+        Y_all = Y_all.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
 
-    # Generate the contaminated labels
-    print("Generating contaminated labels...", end=' ')
-    sys.stdout.flush()
-    contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+2)
-    Yt = contamination_process.sample_labels(Y)
-    print("Done.")
-    sys.stdout.flush()
+        # Separate the test set
+        X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
+        del X_all, Y_all
+
+        # Generate the contaminated labels
+        print("Generating contaminated labels...", end=' ')
+        sys.stdout.flush()
+        contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+2)
+        Yt = contamination_process.sample_labels(Y)
+        print("Done.")
+        sys.stdout.flush()
+
 
     # Estimate the label proportions from the whole data set
     print("Estimating label proportions...", end=' ')

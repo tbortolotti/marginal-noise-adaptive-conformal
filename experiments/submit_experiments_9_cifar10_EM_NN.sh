@@ -6,11 +6,11 @@ CONF=910
 if [[ $CONF == 910 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform")
-  N_TRAIN_LIST=(1000)
+  CONTAMINATION_LIST=("true")
+  N_TRAIN_LIST=(2000)
   N_CLEAN_LIST=(500)
   N_CAL_LIST=(5000)
-  CONTAMINATION_EXP_FLAG="false"
+  CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=(1)
 
 elif [[ $CONF == 911 ]]; then
@@ -26,7 +26,8 @@ elif [[ $CONF == 911 ]]; then
 elif [[ $CONF == 912 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0.2)
-  CONTAMINATION_LIST=("uniform" "block" "RRB")
+  #CONTAMINATION_LIST=("uniform" "block" "RRB")
+  CONTAMINATION_LIST=("true")
   N_LIST=(2000)
   N_CLEAN_LIST=(500)
   N_CAL_LIST=(500 1000 2000 5000 7000)
