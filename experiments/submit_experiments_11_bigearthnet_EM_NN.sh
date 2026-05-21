@@ -34,6 +34,16 @@ elif [[ $CONF == 1102 ]]; then
   CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=$(seq 1 10)
 
+elif [[ $CONF == 1103 ]]; then
+  EPSILON_LIST=(0.1)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("real")
+  N_TRAIN_LIST=(5000)
+  N_CLEAN_LIST=(500)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000)
+  CONTAMINATION_EXP_FLAG="true"
+  SEED_LIST=$(seq 1 10)
+
 fi
 
 

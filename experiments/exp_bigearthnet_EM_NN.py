@@ -85,10 +85,6 @@ elif contamination_model == "RRB":
     T = contamination.construct_T_matrix_block_RR(K, epsilon, nu)
 elif contamination_model == "random":
     T = contamination.construct_T_matrix_random(K, epsilon, random_state=seed)
-else:
-    print("Unknown contamination model!")
-    sys.stdout.flush()
-    exit(-1)
 
 ## BigEarthNet setup
 # Clear any previous Hydra instances
