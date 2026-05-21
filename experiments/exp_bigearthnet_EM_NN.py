@@ -154,7 +154,8 @@ def run_experiment(random_state):
     Y_all = batch_csv['v2-labels-grouped'].to_numpy()
 
     if contamination_model == "real":
-        Yt_all = batch['labels']
+        #Yt_all = batch['labels']
+        Yt_all = batch_csv['v1-labels-grouped'].to_numpy()
     else:
         # Generate the contaminated labels
         print("Generating contaminated labels...", end=' ')
