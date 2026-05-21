@@ -275,38 +275,66 @@ def run_experiment(random_state):
     print("\nSeeking {:s} coverage at level {:.2f}.".format(guarantee, 1-alpha))
 
     # Define a dictionary of methods with their names and corresponding initialization parameters
-    methods = {
-        "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                       pre_trained=True, random_state=random_state),
+    if contamination_model=="true":
+        methods = {
+            "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                        pre_trained=True, random_state=random_state),
 
-        "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
-                                                                pre_trained=True, random_state=random_state),
-
-        "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
+            "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
+            "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN_cifar, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN_cifar_sll, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state)
+
+        }
+    else:
+        methods = {
+            "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                        pre_trained=True, random_state=random_state),
+
+            "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_NN_cifar, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
-                                                                    pre_trained=True, random_state=random_state),
+            "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_NN_cifar_sll, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
-                                                                    pre_trained=True, random_state=random_state)
+            "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
 
-    }
+            "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN_cifar, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN_cifar_sll, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state)
+
+        }
     
     # Initialize an empty list to store the evaluation results
     res_list = []
