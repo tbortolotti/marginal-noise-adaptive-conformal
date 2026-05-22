@@ -5094,29 +5094,30 @@ make_figure_912(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
 #### Experiments 913: Different contamination model ------------------------
-
 init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
   
   method.values <<- c("Standard",
                       "Standard using clean",
-                      "Adaptive optimized+",
                       "Adaptive optimized+ clean",
-                      "Adaptive optimized+ NN SLL uniform",
-                      "Adaptive optimized+ NN SLL")
+                      "Adaptive optimized+ NN SLL",
+                      "Adaptive optimized+ NN",
+                      "__spacer__",
+                      "Standard (clean) line")
   #"Adaptive optimized+ AP param")
   method.labels <<- c("Standard",
-                      "Standard (clean, simple)",
-                      "Adaptive+",
+                      "Standard (clean)",
                       "Adaptive+ (clean)",
                       "Adaptive+ (NNs)",
-                      "Adaptive+ (NNs g)")
+                      "Adaptive+ (NN)",
+                      "",
+                      "Standard (clean, simple)")
   #"Adaptive+ (AP RRM)")
-  color.scale <<- cbPalette[c(1,3,4,5,6)]
-  shape.scale <<- c(1,2,3,4,5)
-  linetype.scale <<- c(1,1,1,1,1)
+  color.scale <<- cbPalette[c(1,3,4,5,NA,10)]
+  shape.scale <<- c(1,2,3,4,NA,NA)
+  linetype.scale <<- c(1,1,1,1,0,4)
 }
 
 make_figure_913 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.guarantee="marginal",
@@ -5140,26 +5141,58 @@ make_figure_913 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.gu
            contamination==plot.contamination,
            epsilon==plot.epsilon, n_clean %in% plot.n_clean)
   
+  df.clean.values <- df %>%
+    filter(Method=="Standard using clean") %>%
+    group_by(Key) %>%
+    summarise(mean_values=mean(Mean))
+  df.clean.coverage <- as.numeric(df.clean.values[1,2])
+  df.clean.size <- as.numeric(df.clean.values[2,2])
+  df.clean <- tibble(Key=c("Coverage","Size"), Mean=c(df.clean.coverage,df.clean.size))
+  
+  df.clean.legend <- df %>%
+    group_by(Key) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal)) %>%
+    left_join(df.clean, by = "Key") %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "Standard (clean) line", SE = 0)
+  
+  df.spacer.legend <- df %>%
+    group_by(Key) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal)) %>%
+    left_join(df.clean, by = "Key") %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "__spacer__", SE = 0)
+  
+  # Aggiunge la riga fittizia al df principale (senza Standard using clean)
+  df.plot <- df %>%
+    filter(Method != "Standard using clean") %>%
+    bind_rows(df.clean.legend) %>%
+    bind_rows(df.spacer.legend)
+  
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.94), n_cal=1000, Method="Standard")
-  pp <- df %>%
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,0.92), n_cal=1000, Method="Standard")
+  
+  pp <- df.plot %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(N_CLEAN = factor(sprintf("Size of clean set: %d", n_clean), 
-                            levels = sprintf("Size of clean set: %d", c(100,500,1000)), 
-                            labels = c("Size of clean set: 100","Size of clean set: 500","Size of clean set: 1000"))) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
     geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width = 0.1) +
-    facet_grid(Key~N_CLEAN, scales="free") +
+    facet_wrap(~Key, scales = "free_y", labeller = as_labeller(c("Coverage" = "Coverage", "Size" = "Size"))) +
+    #facet_grid(Key~N_CLEAN, scales="free") +
     geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
     geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
     scale_color_manual(values=color.scale) +
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of calibration samples") +
+    xlab("Number of noisy calibration samples") +
     ylab("") +
+    guides(                                                                # <--
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1)))
+    ) +
     theme_bw() +
     theme(text = element_text(size = 12),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
@@ -5774,12 +5807,12 @@ init_settings <- function(plot.optimistic = FALSE) {
   
   method.values <<- c("Standard",
                       "Standard using clean",
-                      "Adaptive optimized+ clean",
-                      "Adaptive optimized+ NN uniform",
-                      "Adaptive optimized+ NN SLL uniform",
+                      "Adaptive+ clean uniform",
+                      "Adaptive+ NN uniform",
+                      "Adaptive+ NN SLL uniform",
                       "__spacer__",
                       "Standard (clean) line")
-  #"Adaptive optimized+ AP param")
+
   method.labels <<- c("Standard",
                       "Standard (clean)",
                       "Adaptive+ (clean)",
@@ -5787,7 +5820,6 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Adaptive+ (NNs)",
                       "",
                       "Standard (clean, simple)")
-  #"Adaptive+ (AP RRM)")
   color.scale <<- cbPalette[c(1,3,4,5,NA,10)]
   shape.scale <<- c(1,2,3,4,NA,NA)
   linetype.scale <<- c(1,1,1,1,0,4)
@@ -5889,7 +5921,7 @@ make_figure_1103 <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.
 exp.num <- 1103
 plot.data <- "bigearthnet"
 plot.alpha <- 0.1
-plot.epsilon <- 0.1
+plot.epsilon <- 0.016
 plot.contamination <- "real"
 plot.n_train <- 5000
 plot.n_clean <- c(500)

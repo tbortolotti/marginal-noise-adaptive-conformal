@@ -88,9 +88,12 @@ class MarginalLabelNoiseConformal:
 
         # Define the F-hat functions
         F_hat, scores = self.compute_F_hat_scores(grey_box, Y_calib, random_noise)
-        cal_sizes = np.array([len(scores[k,0]) for k in range(self.K)])
-        n_min = np.min(cal_sizes)
-        rho_tilde_hat = np.divide(cal_sizes,n_cal)
+        #cal_sizes = np.array([len(scores[k,0]) for k in range(self.K)])
+        #n_min = np.min(cal_sizes)
+        #rho_tilde_hat = np.divide(cal_sizes,n_cal)
+        cal_sizes = np.bincount(Y_calib, minlength=self.K)
+        n_min = np.min(cal_sizes[cal_sizes > 0])
+        rho_tilde_hat = cal_sizes/n_cal
         
         # Sort the conformity scores
         scores_sorted = np.concatenate([scores[(k,k)] for k in range(self.K)])
@@ -135,13 +138,18 @@ class MarginalLabelNoiseConformal:
             print('Calibration of conformity scores completed.')
             sys.stdout.flush()
 
+    """
     def compute_F_hat_scores(self, grey_box, Y_calib, random_noise):
         n_cal = len(Y_calib)
         K = self.K
         scores = dict()
         F_hat = dict()
+
+        # Store the idx_l arrays to avoid recomputation
+        idx_dict = {l: np.where(Y_calib == l)[0] for l in range(K)}
+
         for l in range(K):
-            idx_l = np.where(Y_calib==l)[0]
+            idx_l = idx_dict[l]
             if len(idx_l)>0:
                 for k in range(K):
                     # Make place-holder labels
@@ -149,6 +157,38 @@ class MarginalLabelNoiseConformal:
                     # Calculate conformity scores using place-holder labels
                     scores[(l,k)] = 1.0 - grey_box.calibrate_scores(Y_k, epsilon=random_noise)[idx_l]
                     F_hat[(l,k)] = ECDF(scores[(l,k)])
+
+        return F_hat, scores
+    """
+    
+    def compute_F_hat_scores(self, grey_box, Y_calib, random_noise):
+        n_cal = len(Y_calib)
+        K = self.K
+        scores = dict()
+        F_hat = dict()
+
+        idx_dict = {l: np.where(Y_calib == l)[0] for l in range(K)}
+
+        # Precompute global scores for fallback
+        global_scores = {}
+        for k in range(K):
+            Y_k = k * np.ones((n_cal,)).astype(int)
+            global_scores[k] = 1.0 - grey_box.calibrate_scores(Y_k, epsilon=random_noise)
+
+        for l in range(K):
+            idx_l = idx_dict[l]
+            for k in range(K):
+                if len(idx_l) > 0:
+                    #Y_k = k * np.ones((n_cal,)).astype(int)
+                    #scores[(l,k)] = 1.0 - grey_box.calibrate_scores(Y_k, epsilon=random_noise)[idx_l]
+                    scores[(l,k)] = global_scores[k][idx_l]
+                else:
+                    # Fallback: use global scores for this k (option 2)
+                    scores[(l,k)] = global_scores[k]
+                    print(f"Warning: no calibration samples for label l={l}, using global fallback.")
+                    # Alternative: replace with uniform:
+                    # scores[(l,k)] = np.linspace(0, 1, 100)
+                F_hat[(l,k)] = ECDF(scores[(l,k)])
 
         return F_hat, scores
 
@@ -160,7 +200,8 @@ class MarginalLabelNoiseConformal:
         Delta_hat = np.zeros((n,))
         for k in range(K):
             for l in range(K):
-                partial_sum += (W[k,l] * rho_tilde_hat[l]) * F_hat[(l,k)](scores_sorted)
+                if rho_tilde_hat[l] > 0:
+                    partial_sum += (W[k,l] * rho_tilde_hat[l]) * F_hat[(l,k)](scores_sorted)
         Delta_hat = partial_sum - F_hat_marg(scores_sorted)
         return Delta_hat
 
