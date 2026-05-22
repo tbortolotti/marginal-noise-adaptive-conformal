@@ -38,7 +38,7 @@ class MarginalLabelNoiseConformal:
             # Use provided label noise model
             self.known_noise = True
             self.T = T
-            assert T.shape[1] == K # T must be a square matrix
+            assert T.shape[1] == K
             self.W = np.linalg.inv(T)
             self.epsilon = epsilon
         else:

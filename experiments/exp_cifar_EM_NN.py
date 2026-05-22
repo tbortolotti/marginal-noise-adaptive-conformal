@@ -339,32 +339,32 @@ def run_experiment(random_state):
 
             "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="improved",
+                                                                        allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
             "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="improved",
+                                                                        allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
             "Adaptive optimized+ NN uniform": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_NN_uniform, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="improved",
+                                                                        allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
             "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="improved",
+                                                                        allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
             
             "Adaptive optimized+ NN SLL uniform": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_NN_sll_uniform, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="improved",
+                                                                        allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),                                                           
 
