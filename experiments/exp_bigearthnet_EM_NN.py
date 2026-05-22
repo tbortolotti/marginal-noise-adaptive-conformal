@@ -101,7 +101,7 @@ with open('../third_party/bigearthnet/data/label_mapping.json', 'r') as f:
 dataset_name = cfg.datamodule.dataset_name
 file_path = os.path.join(
     '../third_party/bigearthnet/data',
-    f'test_{dataset_name}.csv'
+    f'train_{dataset_name}.csv'
 )
 v1v2_corresp = pd.read_csv(file_path, header=0)
 
@@ -145,7 +145,7 @@ def run_experiment(random_state):
     # Get reproducible random samples
     print("\nLoad data...", end=' ')
     sys.stdout.flush()
-    dataloader = datamodule.test_dataloader()
+    dataloader = datamodule.train_dataloader()
     batch = next(iter(dataloader))
     X_batch = batch['data']
     Yt_batch = batch['labels']

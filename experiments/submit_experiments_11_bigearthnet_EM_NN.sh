@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Parameters
-CONF=1103
+CONF=1100
 
 if [[ $CONF == 1100 ]]; then
-  EPSILON_LIST=(0.1)
+  EPSILON_LIST=(0.016)
   NU_LIST=(0)
   CONTAMINATION_LIST=("real")
   N_TRAIN_LIST=(5000)
