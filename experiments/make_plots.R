@@ -5180,10 +5180,10 @@ make_figure_913 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.gu
 exp.num <- 913
 plot.data <- "cifar10"
 plot.alpha <- 0.1
-plot.epsilon <- 0.1
+plot.epsilon <- 0.051
 plot.contamination <- "real"
 plot.n_train <- 2000
-plot.n_clean <- c(500,1000)
+plot.n_clean <- c(500)
 make_figure_913(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,

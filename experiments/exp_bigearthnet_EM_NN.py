@@ -266,6 +266,7 @@ def run_experiment(random_state):
     elif contamination_model == "real":
         #____________________________________________________________________
         ## Estimate T using the clean/noisy correspondence
+        """
         print("Estimating T using the clean/noise pairs...", end=' ')
         sys.stdout.flush()
         T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical")
@@ -275,13 +276,15 @@ def run_experiment(random_state):
             print(f"Invertible: {np.linalg.matrix_rank(T_hat_clean) == T_hat_clean.shape[0]}")
         print("Done.")
         sys.stdout.flush()
+        """
 
         #____________________________________________________________________
         ## Estimate T using the clean/noisy correspondence
-        print("Estimating T using the clean/noise pairs assuming RRM...", end=' ')
+        print("Estimating T using the clean/noise pairs assuming uniform contamination...", end=' ')
         sys.stdout.flush()
         T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical_parametricRR")
         T_hat_clean_uniform = T_method.get_estimate()
+        print("\n")
         with np.printoptions(precision=3, suppress=True):
             print(T_hat_clean_uniform)
             print(f"Invertible: {np.linalg.matrix_rank(T_hat_clean_uniform) == T_hat_clean_uniform.shape[0]}")
@@ -297,9 +300,10 @@ def run_experiment(random_state):
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN_uniform = model_NN.contamination.contamination_matrix()
         T_hat_NN_uniform = T_hat_NN_uniform.detach().numpy()
+        print("\n")
         with np.printoptions(precision=3, suppress=True):
             print(T_hat_NN_uniform)
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_uniform) == T_hat_NN_uniform.shape[0]}")
+            print(f"\nInvertible: {np.linalg.matrix_rank(T_hat_NN_uniform) == T_hat_NN_uniform.shape[0]}")
         print("Done.")
         sys.stdout.flush()
 
@@ -312,12 +316,14 @@ def run_experiment(random_state):
         train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN_sll_uniform = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll_uniform = T_hat_NN_sll_uniform.detach().numpy()
+        print("\n")
         with np.printoptions(precision=3, suppress=True):
             print(T_hat_NN_sll_uniform)
             print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll_uniform) == T_hat_NN_sll_uniform.shape[0]}")
         print("Done.")
         sys.stdout.flush()
 
+        """
         #____________________________________________________________________
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features...", end=' ')
@@ -347,6 +353,7 @@ def run_experiment(random_state):
             print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll) == T_hat_NN_sll.shape[0]}")
         print("Done.")
         sys.stdout.flush()
+        """
 
     else:
         #____________________________________________________________________
@@ -399,32 +406,14 @@ def run_experiment(random_state):
             "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
                                                                     pre_trained=True, random_state=random_state),
 
-            "Adaptive+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
             "Adaptive+ clean uniform": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_clean_uniform, rho_tilde=rho_tilde_hat,
                                                                         allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
-            "Adaptive+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
             "Adaptive+ NN uniform": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_NN_uniform, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
-            "Adaptive+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
                                                                         allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
