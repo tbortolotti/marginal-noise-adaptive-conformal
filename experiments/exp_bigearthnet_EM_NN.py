@@ -114,15 +114,6 @@ black_box.eval()
 
 feature_extractor = TorchGeoFeatureExtractor(device=device)
 
-# Define dataloader
-datamodule = BigEarthNetDataModule(cfg.datamodule.dataset_dir,
-                                   cfg.datamodule.dataset_name,
-                                   batch_size,
-                                   cfg.datamodule.num_workers,
-                                   transforms,
-                                   label_mapping)
-datamodule.setup()
-
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'K':[K],
                        'n_train':[n_train], 'n_clean':[n_clean], 'n_cal':[n_cal],
@@ -141,22 +132,52 @@ def run_experiment(random_state):
     print("\nRunning experiment in batch {:d}...".format(random_state))
     sys.stdout.flush()
 
+    # Define dataloader
+    datamodule = BigEarthNetDataModule(cfg.datamodule.dataset_dir,
+                                    cfg.datamodule.dataset_name,
+                                    batch_size,
+                                    cfg.datamodule.num_workers,
+                                    transforms,
+                                    label_mapping,
+                                    int(seed*random_state))
+    datamodule.setup()
+
+    # Get reproducible random samples
     print("\nLoad data...", end=' ')
     sys.stdout.flush()
-    dataloader = datamodule.test_dataloader(seed=random_state)
+    dataloader = datamodule.test_dataloader()
     batch = next(iter(dataloader))
-    X_all = batch['data']
+    X_batch = batch['data']
+    Yt_batch = batch['labels']
+    generator = torch.Generator().manual_seed(datamodule.random_seed)
+    indices_df = torch.randperm(len(datamodule.train_dataset), generator=generator).tolist()
+    shuffled_csv_df = v1v2_corresp.iloc[indices_df].reset_index(drop=True)
+    batch_df = shuffled_csv_df.iloc[0 : int(batch_size)]
+    Y_batch = batch_df['v2-labels-grouped'].to_numpy()
+    valid_indices = torch.tensor(~np.isnan(Y_batch), dtype=torch.bool)
+    X_all = X_batch[valid_indices,:,:,:]
+    Yt_all = Yt_batch[valid_indices]
+    Yt_all = Yt_all.detach.numpy()
+    Y_all = Y_batch[valid_indices].astype(int)
+    print(f"Done. The dimension of the current batch is: {len(Yt_all)}")
+    sys.stdout.flush()
+    del X_batch
 
-    # Retrieve the corresponding clean (v2-grouped) labels from the CSV,
-    # using the same generator the datamodule used to shuffle its dataset.
-    shuffled_csv = v1v2_corresp.iloc[datamodule.last_train_indices].reset_index(drop=True)
-    batch_csv = shuffled_csv.iloc[:batch_size]
-    Y_all = batch_csv['v2-labels-grouped'].to_numpy()
+    #dataloader = datamodule.test_dataloader(seed=random_state)
+    #batch = next(iter(dataloader))
+    #X_all = batch['data']
+    #shuffled_csv = v1v2_corresp.iloc[datamodule.last_train_indices].reset_index(drop=True)
+    #batch_csv = shuffled_csv.iloc[:batch_size]
+    #Y_all = batch_csv['v2-labels-grouped'].to_numpy()
+    # Drop rows where clean label is NaN
+    #valid = ~np.isnan(Y_all)
+    #X_all = X_all[valid]
+    #Y_all = Y_all[valid].astype(int)
+    #Yt_all = Yt_all[valid].astype(int)
+    #print(f"Done. Batch size after NaN removal: {len(Y_all)}")
+    #sys.stdout.flush()
 
-    if contamination_model == "real":
-        #Yt_all = batch['labels']
-        Yt_all = batch_csv['v1-labels-grouped'].to_numpy()
-    else:
+    if contamination_model != "real":
         # Generate the contaminated labels
         print("Generating contaminated labels...", end=' ')
         sys.stdout.flush()
@@ -164,14 +185,6 @@ def run_experiment(random_state):
         Yt_all = contamination_process.sample_labels(Y_all)
         print("Done.")
         sys.stdout.flush()
-
-    # Drop rows where clean label is NaN
-    valid = ~np.isnan(Y_all)
-    X_all = X_all[valid]
-    Y_all = Y_all[valid].astype(int)
-    Yt_all = Yt_all[valid].astype(int)
-    print(f"Done. Batch size after NaN removal: {len(Y_all)}")
-    sys.stdout.flush()
 
     # Separate the test set
     X, X_test, Y, Y_test, Yt, Yt_test = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
