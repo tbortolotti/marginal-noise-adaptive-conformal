@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=1101
+CONF=1103
 
 if [[ $CONF == 1100 ]]; then
   EPSILON_LIST=(0.1)
@@ -26,8 +26,7 @@ elif [[ $CONF == 1101 ]]; then
 elif [[ $CONF == 1102 ]]; then
   EPSILON_LIST=(0.1)
   NU_LIST=(0.2)
-  #CONTAMINATION_LIST=("uniform" "block" "RRB")
-  CONTAMINATION_LIST=("real")
+  CONTAMINATION_LIST=("uniform" "block" "RRB")
   N_TRAIN_LIST=(5000)
   N_CLEAN_LIST=(500)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000)
@@ -35,7 +34,7 @@ elif [[ $CONF == 1102 ]]; then
   SEED_LIST=$(seq 1 20)
 
 elif [[ $CONF == 1103 ]]; then
-  EPSILON_LIST=(0.1)
+  EPSILON_LIST=(0.016)
   NU_LIST=(0)
   CONTAMINATION_LIST=("real")
   N_TRAIN_LIST=(5000)
