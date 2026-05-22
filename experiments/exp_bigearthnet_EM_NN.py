@@ -157,7 +157,7 @@ def run_experiment(random_state):
     valid_indices = torch.tensor(~np.isnan(Y_batch), dtype=torch.bool)
     X_all = X_batch[valid_indices,:,:,:]
     Yt_all = Yt_batch[valid_indices]
-    Yt_all = Yt_all.detach.numpy()
+    Yt_all = Yt_all.detach().numpy()
     Y_all = Y_batch[valid_indices].astype(int)
     print(f"Done. The dimension of the current batch is: {len(Yt_all)}")
     sys.stdout.flush()
