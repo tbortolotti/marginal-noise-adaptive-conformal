@@ -96,7 +96,7 @@ class MarginalLabelNoiseConformal:
         rho_tilde_hat = cal_sizes/n_cal
         
         # Sort the conformity scores
-        scores_sorted = np.concatenate([scores[(k,k)] for k in range(self.K)])
+        scores_sorted = np.concatenate([scores[(k,k)] for k in range(self.K) if cal_sizes[k] > 0])
         scores_sorted = np.sort(scores_sorted)
 
         F_hat_marg = ECDF(scores_sorted)
@@ -111,7 +111,7 @@ class MarginalLabelNoiseConformal:
             if not np.isscalar(delta):
                 raise ValueError(f"Expected a scalar, but got {type(delta)} with value {delta}")
         elif self.method=="asymptotic":
-            delta = self.compute_delta_const_marginal_asymptotic(n_cal, scores, F_hat)
+            delta = self.compute_delta_const_marginal_asymptotic(n_cal, scores, F_hat, cal_sizes)
         elif self.method=="old":
             delta = self.compute_delta_const_marginal(n_cal, n_min)
         else:
@@ -232,7 +232,7 @@ class MarginalLabelNoiseConformal:
             delta_n = eval_delta_marg_opt(W, n)
         return delta_n
     
-    def compute_delta_const_marginal_asymptotic(self, n, scores, F_hat):
+    def compute_delta_const_marginal_asymptotic(self, n, scores, F_hat, cal_sizes):
         W = self.W
 
         # Set parameters for Richardson extrapolation
@@ -242,7 +242,7 @@ class MarginalLabelNoiseConformal:
         r = 1
 
         func = lambda h: simulate_supremum(h=h, num_samples=num_samples, grid_type=grid_type,
-                                           n_cal=n, scores=scores, W=W, F_hat=F_hat)
+                                           n_cal=n, scores=scores, W=W, F_hat=F_hat, cal_sizes=cal_sizes)
         
         exp_sup_estimate = richardson_extrapolation(h_start, func, r)
 

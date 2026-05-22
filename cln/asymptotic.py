@@ -43,7 +43,7 @@ def compute_joint_F_hat(scores, t_values):
 
     return joint_F_hat_vals
 
-def cov_empirical_process(grid, W, scores, F_hat, n_cal):
+def cov_empirical_process(grid, W, scores, F_hat, n_cal, cal_sizes):
     K = max(key[0] for key in scores.keys()) + 1
     n_grid = len(grid)
 
@@ -51,28 +51,29 @@ def cov_empirical_process(grid, W, scores, F_hat, n_cal):
     exp1 = np.zeros((n_grid,))
 
     for l in range(K):
-        n_l = len(scores[(l,0)])
-        for k in range(K):
-            exp1 += W[k,l] * n_l/n_cal * F_hat[(l,k)](grid)
-            for k_prime in range(K):
-                # Joint ecdf
-                scores_x = scores[(l,k)]
-                scores_y = scores[(l,k_prime)]
-                ecdf_2d_grid = EmpiricalCDF2DGrid(scores_x, scores_y)
-                joint_F_hat = ecdf_2d_grid.evaluate_grid(grid, grid)
-                # Update sum
-                Sigma += W[k,l] * W[k_prime,l] * n_l/n_cal * joint_F_hat
+        n_l = cal_sizes[l]
+        if n_l > 0:
+            for k in range(K):
+                exp1 += W[k,l] * n_l/n_cal * F_hat[(l,k)](grid)
+                for k_prime in range(K):
+                    # Joint ecdf
+                    scores_x = scores[(l,k)]
+                    scores_y = scores[(l,k_prime)]
+                    ecdf_2d_grid = EmpiricalCDF2DGrid(scores_x, scores_y)
+                    joint_F_hat = ecdf_2d_grid.evaluate_grid(grid, grid)
+                    # Update sum
+                    Sigma += W[k,l] * W[k_prime,l] * n_l/n_cal * joint_F_hat
 
     Sigma = Sigma - np.dot(exp1.reshape(-1,1), exp1.reshape(-1,1).T)
 
     return Sigma
 
 
-def simulate_gaussian_process(grid, num_samples, n_cal, scores, W, F_hat):
+def simulate_gaussian_process(grid, num_samples, n_cal, scores, W, F_hat, cal_sizes):
     # Compute the covariance matrix
     n_grid = len(grid)
 
-    Sigma = cov_empirical_process(grid, W, scores, F_hat, n_cal)
+    Sigma = cov_empirical_process(grid, W, scores, F_hat, n_cal, cal_sizes)
 
     # Add a small value to the diagonal for numerical stability
     Sigma += 1e-6 * np.eye(n_grid)
@@ -85,11 +86,11 @@ def simulate_gaussian_process(grid, num_samples, n_cal, scores, W, F_hat):
 
     return samples
 
-def simulate_supremum(h, num_samples, grid_type, n_cal, scores, W, F_hat):
+def simulate_supremum(h, num_samples, grid_type, n_cal, scores, W, F_hat, cal_sizes):
     num_steps = int(np.ceil(1.0 / h))
     grid = construct_grid(num_steps, grid_type)
 
-    samples = simulate_gaussian_process(grid, num_samples, n_cal, scores, W, F_hat)
+    samples = simulate_gaussian_process(grid, num_samples, n_cal, scores, W, F_hat, cal_sizes)
     suprema = np.max(samples,1)
 
     expected_supremum = np.mean(suprema)
