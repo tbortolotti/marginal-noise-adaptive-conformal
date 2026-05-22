@@ -238,6 +238,7 @@ def run_experiment(random_state):
         T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical_parametricRR")
         T_hat_clean = T_method.get_estimate()
 
+
         #____________________________________________________________________
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features...", end=' ')
@@ -265,13 +266,27 @@ def run_experiment(random_state):
     elif contamination_model == "real":
         #____________________________________________________________________
         ## Estimate T using the clean/noisy correspondence
+        print("Estimating T using the clean/noise pairs...", end=' ')
+        sys.stdout.flush()
         T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical")
         T_hat_clean = T_method.get_estimate()
+        with np.printoptions(precision=3, suppress=True):
+            print(T_hat_clean)
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_clean) == T_hat_clean.shape[0]}")
+        print("Done.")
+        sys.stdout.flush()
 
         #____________________________________________________________________
         ## Estimate T using the clean/noisy correspondence
+        print("Estimating T using the clean/noise pairs assuming RRM...", end=' ')
+        sys.stdout.flush()
         T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical_parametricRR")
         T_hat_clean_uniform = T_method.get_estimate()
+        with np.printoptions(precision=3, suppress=True):
+            print(T_hat_clean_uniform)
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_clean_uniform) == T_hat_clean_uniform.shape[0]}")
+        print("Done.")
+        sys.stdout.flush()
 
         #____________________________________________________________________
         ## Estimate T using the NN with features and MLP
@@ -282,6 +297,9 @@ def run_experiment(random_state):
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN_uniform = model_NN.contamination.contamination_matrix()
         T_hat_NN_uniform = T_hat_NN_uniform.detach().numpy()
+        with np.printoptions(precision=3, suppress=True):
+            print(T_hat_NN_uniform)
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_uniform) == T_hat_NN_uniform.shape[0]}")
         print("Done.")
         sys.stdout.flush()
 
@@ -294,6 +312,9 @@ def run_experiment(random_state):
         train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN_sll_uniform = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll_uniform = T_hat_NN_sll_uniform.detach().numpy()
+        with np.printoptions(precision=3, suppress=True):
+            print(T_hat_NN_sll_uniform)
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll_uniform) == T_hat_NN_sll_uniform.shape[0]}")
         print("Done.")
         sys.stdout.flush()
 
@@ -306,6 +327,9 @@ def run_experiment(random_state):
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
+        with np.printoptions(precision=3, suppress=True):
+            print(T_hat_NN)
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN) == T_hat_NN.shape[0]}")
         print("Done.")
         sys.stdout.flush()
 
@@ -318,6 +342,9 @@ def run_experiment(random_state):
         train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
+        with np.printoptions(precision=3, suppress=True):
+            print(T_hat_NN_sll)
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll) == T_hat_NN_sll.shape[0]}")
         print("Done.")
         sys.stdout.flush()
 
