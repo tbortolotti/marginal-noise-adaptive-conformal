@@ -5,7 +5,6 @@ import torch.nn.functional as F
 import json
 import os
 import hydra
-#from torchvision import transforms
 from hydra.utils import instantiate
 from hydra.core.global_hydra import GlobalHydra
 
@@ -54,6 +53,7 @@ if True:
     sys.stdout.flush()
     exp_num = int(sys.argv[1])
     epsilon = float(sys.argv[2])
+    nu = float(sys.argv[3])
     contamination_model = sys.argv[4]
     n_train = int(sys.argv[5])
     n_clean = int(sys.argv[6])
@@ -85,6 +85,9 @@ elif contamination_model == "random":
     T = contamination.construct_T_matrix_random(K, epsilon, random_state=seed)
 
 ## BigEarthNet setup
+with open('../third_party/bigearthnet/data/label_mapping.json', 'r') as f:
+    label_mapping = json.load(f)    
+
 # Clear any previous Hydra instances
 if GlobalHydra.instance().is_initialized():
     GlobalHydra.instance().clear()
@@ -106,20 +109,12 @@ v1v2_corresp_train = pd.read_csv(file_path_train, header=0)
 # Load the pre-trained BigEarthNet model and use it as a feature extractor.
 # We call it in eval mode and extract the penultimate-layer embeddings
 black_box = BigEarthNetModule(cfg)
-mod_path = os.path.join(cfg.out_directory.dir, "trained_model.pth")
+mod_dir = cfg.out_directory.dir
+mod_name = "trained_model.pth"
+mod_path = os.path.join(mod_dir, mod_name)
 black_box.load_state_dict(torch.load(mod_path))
-black_box.eval()
 
 feature_extractor = TorchGeoFeatureExtractor(device=device)
-
-# Define dataloader
-datamodule = BigEarthNetDataModule(cfg.datamodule.dataset_dir,
-                                cfg.datamodule.dataset_name,
-                                batch_size,
-                                cfg.datamodule.num_workers,
-                                transforms,
-                                label_mapping)
-datamodule.setup()
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'K':[K],
@@ -142,24 +137,39 @@ def run_experiment(random_state):
     # Get reproducible random samples
     print("\nLoad data...", end=' ')
     sys.stdout.flush()
+    
+    # instantiate the datamodule
+    datamodule = BigEarthNetDataModule(
+    cfg.datamodule.dataset_dir,
+    cfg.datamodule.dataset_name,
+    batch_size,
+    cfg.datamodule.num_workers,
+    transforms,
+    label_mapping,
+    int(seed*random_state),
+    )
+    datamodule.setup()
+
     dataloader = datamodule.train_dataloader(seed=random_state)
+
     batch = next(iter(dataloader))
     X_batch = batch['data']
     Yt_batch = batch['labels']
-
-    shuffled_csv = v1v2_corresp_train.iloc[datamodule.last_train_indices].reset_index(drop=True)
-    batch_csv = shuffled_csv.iloc[:batch_size]
-    Y_batch = batch_csv['v2-labels-grouped'].to_numpy()
-    #Yt_batch = batch_csv['v1-labels-grouped'].to_numpy()
+    generator = torch.Generator().manual_seed(datamodule.random_seed)
+    indices_df = torch.randperm(len(datamodule.train_dataset), generator=generator).tolist()
+    shuffled_csv_df = v1v2_corresp_train.iloc[indices_df].reset_index(drop=True)
+    batch_df = shuffled_csv_df.iloc[0 : int(batch_size)]
+    Y_batch = batch_df['v2-labels-grouped'].to_numpy()
 
     # Drop rows where clean label is NaN
-    valid = ~np.isnan(Y_batch)
-    X_all = X_batch[valid]
-    Y_all = Y_batch[valid].astype(int)
-    Yt_all = Yt_batch.numpy()[valid].astype(int)
+    valid_indices = torch.tensor(~np.isnan(Y_batch), dtype=torch.bool)
+    X_all = X_batch[valid_indices,:,:,:]
+    Yt_all = Yt_batch[valid_indices]
+    Yt_all = Yt_all.detach().numpy()
+    Y_all = Y_batch[valid_indices].astype(int)
     print(f"Done. Batch size after NaN removal: {len(Y_all)}")
     sys.stdout.flush()
-    del X_batch
+    del X_batch, Y_batch, Yt_batch
 
     if contamination_model != "real":
         # Generate the contaminated labels
@@ -171,7 +181,7 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
     # Separate the test set
-    X, X_test, Y, Y_test, Yt, Yt_test = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
+    X, X_test, Y, Y_test, Yt, _ = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
     del X_all, Y_all, Yt_test, Yt_all
 
     if contamination_model == "real":
@@ -185,7 +195,7 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
     # Separate data into training and calibration
-    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+3)
+    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
     del X, Y, Yt
 
     print("Generating clean dataset...", end=' ')
@@ -220,7 +230,6 @@ def run_experiment(random_state):
         ## Estimate T using the clean/noisy correspondence
         T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical_parametricRR")
         T_hat_clean = T_method.get_estimate()
-
 
         #____________________________________________________________________
         ## Estimate T using the NN with features and MLP
@@ -382,6 +391,14 @@ def run_experiment(random_state):
 
     # Define a dictionary of methods with their names and corresponding initialization parameters
     if contamination_model == "real":
+
+        methods = {
+            "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                        pre_trained=True, random_state=random_state)
+
+        }
+
+        """
         methods = {
             "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                         pre_trained=True, random_state=random_state),
@@ -408,6 +425,7 @@ def run_experiment(random_state):
                                                                         pre_trained=True, random_state=random_state)
 
         }
+        """
     else:
         methods = {
             "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,

@@ -259,12 +259,12 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         assert self.valid_dataset is not None, "must call 'setup' first!"
 
         # Create the sampler to shuffle the data
-        sampler = self.create_sampler(len(self.train_dataset), shuffle=True)
+        sampler = self.create_sampler(len(self.valid_dataset), shuffle=True)
 
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.valid_dataset,
-            #batch_size=self.batch_size,
-            batch_size=int(0.15*self.batch_size),
+            batch_size=self.batch_size,
+            #batch_size=int(0.15*self.batch_size),
             #shuffle=False,
             sampler=sampler,
             num_workers=self.num_workers,
@@ -275,12 +275,12 @@ class BigEarthNetDataModule(pl.LightningDataModule):
         assert self.test_dataset is not None, "must call 'setup' first!"
 
         # Create the sampler to shuffle the data
-        sampler = self.create_sampler(len(self.train_dataset), shuffle=True)
+        sampler = self.create_sampler(len(self.test_dataset), shuffle=True)
 
         return torch.utils.data.dataloader.DataLoader(
             dataset=self.test_dataset,
-            #batch_size=self.batch_size,
-            batch_size=int(0.15*self.batch_size),
+            batch_size=self.batch_size,
+            #batch_size=int(0.15*self.batch_size),
             #shuffle=False,
             sampler=sampler,
             num_workers=self.num_workers,

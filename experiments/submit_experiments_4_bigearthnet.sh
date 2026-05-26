@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Parameters
-CONF=202
+CONF=201
 
-if [[ $CONF == 202 ]]; then
+if [[ $CONF == 201 ]]; then
   # Figure 6
   BATCH_SIZE_LIST=(1000 2000 3000 5000 10000 15000 20000)
   #BATCH_SIZE_LIST=(700)
