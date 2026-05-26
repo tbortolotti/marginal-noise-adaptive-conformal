@@ -150,7 +150,7 @@ def run_experiment(random_state):
     )
     datamodule.setup()
 
-    dataloader = datamodule.train_dataloader(seed=random_state)
+    dataloader = datamodule.train_dataloader()
 
     batch = next(iter(dataloader))
     X_batch = batch['data']
