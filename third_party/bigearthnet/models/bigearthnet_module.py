@@ -6,11 +6,6 @@ import typing
 import numpy as np
 import copy
 
-import timm
-import torch
-import torch.nn as nn
-from torchgeo.models import ResNet18_Weights, get_model
-
 import pytorch_lightning as pl
 import torch
 from hydra.utils import instantiate
@@ -22,7 +17,6 @@ from sklearn.metrics import (
 )
 from torch import optim
 import torch.nn.functional as F
-import kornia.augmentation as K
 
 
 log = logging.getLogger(__name__)
@@ -37,34 +31,6 @@ class BigEarthNetFeatureExtractor:
         with torch.no_grad():
             features = self.model.extract_features(X)
         return features.cpu()
-
-class TorchGeoFeatureExtractor:
-    def __init__(self, device="cpu"):
-        self.device = device
-
-        weights = ResNet18_Weights.SENTINEL2_RGB_MOCO
-        self.model = get_model("resnet18", weights=weights)
-        self.model.fc = nn.Identity()
-        self.model.eval().to(device)
-
-        # Your dataloader's normalization (BigEarthNet stats, raw pixel scale)
-        self.ben_mean = torch.tensor([439.32135, 623.25812, 599.88867]).view(1,3,1,1)
-        self.ben_std  = torch.tensor([606.13904, 612.57300, 702.53802]).view(1,3,1,1)
-
-        # What SENTINEL2_RGB_MOCO expects (ImageNet stats, [0,1] scale)
-        self.tg_mean = torch.tensor([0.485, 0.456, 0.406]).view(1,3,1,1)
-        self.tg_std  = torch.tensor([0.229, 0.224, 0.225]).view(1,3,1,1)
-
-    @torch.no_grad()
-    def transform(self, X: torch.Tensor) -> torch.Tensor:
-        X = X.float()
-        X = X * self.ben_std + self.ben_mean
-        X = X / 10000.0
-        X = (X - self.tg_mean) / self.tg_std
-        X = F.interpolate(X, size=(224, 224),
-                        mode='bilinear', align_corners=False)
-        X = X.to(self.device)
-        return self.model(X).cpu()
 
 
 class BigEarthNetModule(pl.LightningModule):
