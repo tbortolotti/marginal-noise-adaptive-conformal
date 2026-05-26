@@ -182,7 +182,7 @@ def run_experiment(random_state):
 
     # Separate the test set
     X, X_test, Y, Y_test, Yt, _ = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
-    del X_all, Y_all, Yt_test, Yt_all
+    del X_all, Y_all, Yt_all
 
     if contamination_model == "real":
         rho_tilde_hat = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
