@@ -99,11 +99,11 @@ with open('../third_party/bigearthnet/data/label_mapping.json', 'r') as f:
     label_mapping = json.load(f)
 
 dataset_name = cfg.datamodule.dataset_name
-file_path = os.path.join(
+file_path_train = os.path.join(
     '../third_party/bigearthnet/data',
     f'train_{dataset_name}.csv'
 )
-v1v2_corresp = pd.read_csv(file_path, header=0)
+v1v2_corresp_train = pd.read_csv(file_path_train, header=0)
 
 # Load the pre-trained BigEarthNet model and use it as a feature extractor.
 # We call it in eval mode and extract the penultimate-layer embeddings
@@ -113,6 +113,15 @@ black_box.load_state_dict(torch.load(mod_path))
 black_box.eval()
 
 feature_extractor = TorchGeoFeatureExtractor(device=device)
+
+# Define dataloader
+datamodule = BigEarthNetDataModule(cfg.datamodule.dataset_dir,
+                                cfg.datamodule.dataset_name,
+                                batch_size,
+                                cfg.datamodule.num_workers,
+                                transforms,
+                                label_mapping)
+datamodule.setup()
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'K':[K],
@@ -132,50 +141,27 @@ def run_experiment(random_state):
     print("\nRunning experiment in batch {:d}...".format(random_state))
     sys.stdout.flush()
 
-    # Define dataloader
-    datamodule = BigEarthNetDataModule(cfg.datamodule.dataset_dir,
-                                    cfg.datamodule.dataset_name,
-                                    batch_size,
-                                    cfg.datamodule.num_workers,
-                                    transforms,
-                                    label_mapping,
-                                    int(seed*random_state))
-    datamodule.setup()
-
     # Get reproducible random samples
     print("\nLoad data...", end=' ')
     sys.stdout.flush()
-    dataloader = datamodule.train_dataloader()
+    dataloader = datamodule.train_dataloader(seed=random_state)
     batch = next(iter(dataloader))
     X_batch = batch['data']
     Yt_batch = batch['labels']
-    generator = torch.Generator().manual_seed(datamodule.random_seed)
-    indices_df = torch.randperm(len(datamodule.train_dataset), generator=generator).tolist()
-    shuffled_csv_df = v1v2_corresp.iloc[indices_df].reset_index(drop=True)
-    batch_df = shuffled_csv_df.iloc[0 : int(batch_size)]
-    Y_batch = batch_df['v2-labels-grouped'].to_numpy()
-    valid_indices = torch.tensor(~np.isnan(Y_batch), dtype=torch.bool)
-    X_all = X_batch[valid_indices,:,:,:]
-    Yt_all = Yt_batch[valid_indices]
-    Yt_all = Yt_all.detach().numpy()
-    Y_all = Y_batch[valid_indices].astype(int)
-    print(f"Done. The dimension of the current batch is: {len(Yt_all)}")
+
+    shuffled_csv = v1v2_corresp_train.iloc[datamodule.last_train_indices].reset_index(drop=True)
+    batch_csv = shuffled_csv.iloc[:batch_size]
+    Y_batch = batch_csv['v2-labels-grouped'].to_numpy()
+    #Yt_batch = batch_csv['v1-labels-grouped'].to_numpy()
+
+    # Drop rows where clean label is NaN
+    valid = ~np.isnan(Y_batch)
+    X_all = X_batch[valid]
+    Y_all = Y_batch[valid].astype(int)
+    Yt_all = Yt_batch[valid].astype(int)
+    print(f"Done. Batch size after NaN removal: {len(Y_all)}")
     sys.stdout.flush()
     del X_batch
-
-    #dataloader = datamodule.test_dataloader(seed=random_state)
-    #batch = next(iter(dataloader))
-    #X_all = batch['data']
-    #shuffled_csv = v1v2_corresp.iloc[datamodule.last_train_indices].reset_index(drop=True)
-    #batch_csv = shuffled_csv.iloc[:batch_size]
-    #Y_all = batch_csv['v2-labels-grouped'].to_numpy()
-    # Drop rows where clean label is NaN
-    #valid = ~np.isnan(Y_all)
-    #X_all = X_all[valid]
-    #Y_all = Y_all[valid].astype(int)
-    #Yt_all = Yt_all[valid].astype(int)
-    #print(f"Done. Batch size after NaN removal: {len(Y_all)}")
-    #sys.stdout.flush()
 
     if contamination_model != "real":
         # Generate the contaminated labels
