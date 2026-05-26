@@ -26,7 +26,6 @@ from cln.T_estimation_NN import NoisyLabelNet, train_alternate
 from cln.T_estimation import TMatrixEstimation
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
-from third_party import arc
 
 from third_party import arc
 from third_party.bigearthnet.datamodules.bigearthnet_datamodule import BigEarthNetDataModule
@@ -69,7 +68,6 @@ num_exp = 5
 allow_empty = True
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
-nu = 0.2
 n_test = 500
 batch_size = n_train + n_clean + n_cal + n_test
 epsilon_init = 0
@@ -158,7 +156,7 @@ def run_experiment(random_state):
     valid = ~np.isnan(Y_batch)
     X_all = X_batch[valid]
     Y_all = Y_batch[valid].astype(int)
-    Yt_all = Yt_batch[valid].astype(int)
+    Yt_all = Yt_batch.numpy()[valid].astype(int)
     print(f"Done. Batch size after NaN removal: {len(Y_all)}")
     sys.stdout.flush()
     del X_batch
@@ -178,7 +176,6 @@ def run_experiment(random_state):
 
     if contamination_model == "real":
         rho_tilde_hat = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
-        epsilon = 0.016
     else:
         # Estimate the label proportions from the whole data set
         print("Estimating label proportions...", end=' ')

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=1100
+CONF=1103
 
 if [[ $CONF == 1100 ]]; then
   EPSILON_LIST=(0.016)
