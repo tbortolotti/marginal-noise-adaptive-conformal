@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # Parameters
-CONF=201
+CONF=202
 
-if [[ $CONF == 201 ]]; then
+if [[ $CONF == 202 ]]; then
   # Figure 6
   BATCH_SIZE_LIST=(1000 2000 3000 5000 10000 15000 20000)
   #BATCH_SIZE_LIST=(700)
   ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 50)
+  SEED_LIST=$(seq 1 20)
   #SEED_LIST=$(seq 1 1)
 
 fi

@@ -5201,9 +5201,9 @@ make_figure_913 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.gu
           plot.margin = margin(5, 1, 1, -10))
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_nt1_%d_eps%s_nu%s_%s_optimistic%s.pdf",
-                         exp.num, plot.data, plot.n_train1, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=4.5, width=9, units="in")
+    plot.file <- sprintf("figures/exp%d_%s_nt%d_ncl%d_eps%s_%s_optimistic%s.pdf",
+                         exp.num, plot.data, plot.n_train, plot.n_clean, plot.epsilon, plot.contamination, plot.optimistic)
+    ggsave(file=plot.file, height=2.5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -5221,7 +5221,7 @@ make_figure_913(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
