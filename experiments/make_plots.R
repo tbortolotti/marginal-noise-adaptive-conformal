@@ -5919,6 +5919,7 @@ make_figure_1103 <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.
 }
 
 exp.num <- 1103
+exp.num <- 1104
 plot.data <- "bigearthnet"
 plot.alpha <- 0.1
 plot.epsilon <- 0.016

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=1104
+CONF=1103
 
 if [[ $CONF == 1100 ]]; then
   EPSILON_LIST=(0.016)
@@ -43,16 +43,6 @@ elif [[ $CONF == 1103 ]]; then
   CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=$(seq 1 20)
 
-elif [[ $CONF == 1104 ]]; then
-  EPSILON_LIST=(0.016)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("real")
-  N_TRAIN_LIST=(5000)
-  N_CLEAN_LIST=(500)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000)
-  CONTAMINATION_EXP_FLAG="true"
-  SEED_LIST=$(seq 1 20)
-
 fi
 
 
@@ -66,7 +56,7 @@ fi
 #ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=main"
 
 MEMO=64G 
-TIME=00-06:00:00
+TIME=00-10:00:00
 CORE=1
 #ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=gpu --gres=gpu:p100:1"
 ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME

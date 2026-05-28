@@ -324,6 +324,7 @@ def run_experiment(random_state):
         print("Done.")
         sys.stdout.flush()
 
+        """
         #____________________________________________________________________
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features...", end=' ')
@@ -353,6 +354,7 @@ def run_experiment(random_state):
             print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll) == T_hat_NN_sll.shape[0]}")
         print("Done.")
         sys.stdout.flush()
+        """
 
     else:
         #____________________________________________________________________
@@ -421,20 +423,7 @@ def run_experiment(random_state):
                                                                         epsilon=epsilon, T=T_hat_NN_sll_uniform, rho_tilde=rho_tilde_hat,
                                                                         allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
-            "Adaptive+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
-            "Adaptive+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
+                                                                        pre_trained=True, random_state=random_state)
 
         }
     else:
