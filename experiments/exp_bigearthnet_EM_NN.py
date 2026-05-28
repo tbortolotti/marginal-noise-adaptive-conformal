@@ -100,9 +100,16 @@ with open('../third_party/bigearthnet/data/label_mapping.json', 'r') as f:
     label_mapping = json.load(f)
 
 dataset_name = cfg.datamodule.dataset_name
+"""
 file_path_train = os.path.join(
     '../third_party/bigearthnet/data',
     f'train_{dataset_name}.csv'
+)
+v1v2_corresp_train = pd.read_csv(file_path_train, header=0)
+"""
+file_path_train = os.path.join(
+    '../third_party/bigearthnet/data',
+    f'test_{dataset_name}.csv'
 )
 v1v2_corresp_train = pd.read_csv(file_path_train, header=0)
 
@@ -150,13 +157,15 @@ def run_experiment(random_state):
     )
     datamodule.setup()
 
-    dataloader = datamodule.train_dataloader()
+    #dataloader = datamodule.train_dataloader()
+    dataloader = datamodule.test_dataloader()
 
     batch = next(iter(dataloader))
     X_batch = batch['data']
     Yt_batch = batch['labels']
     generator = torch.Generator().manual_seed(datamodule.random_seed)
-    indices_df = torch.randperm(len(datamodule.train_dataset), generator=generator).tolist()
+    #indices_df = torch.randperm(len(datamodule.train_dataset), generator=generator).tolist()
+    indices_df = torch.randperm(len(datamodule.test_dataset), generator=generator).tolist()
     shuffled_csv_df = v1v2_corresp_train.iloc[indices_df].reset_index(drop=True)
     batch_df = shuffled_csv_df.iloc[0 : int(batch_size)]
     Y_batch = batch_df['v2-labels-grouped'].to_numpy()

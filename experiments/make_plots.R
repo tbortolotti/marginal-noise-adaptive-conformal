@@ -1754,7 +1754,7 @@ make_figure_201 <- function(exp.num, plot.alpha=0.1, plot.K, plot.estimate="rho-
 }
 
 
-exp.num <- 201
+exp.num <- 202
 plot.alpha <- 0.1
 plot.K <- 6
 plot.estimate <- "none"
@@ -5847,7 +5847,7 @@ make_figure_1103 <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.
            Method %in% method.values,
            contamination==plot.contamination,
            epsilon==plot.epsilon, n_clean %in% plot.n_clean,
-           n_cal<10000)
+           n_cal<30000)
   
   df.clean.values <- df %>%
     filter(Method=="Standard using clean") %>%
