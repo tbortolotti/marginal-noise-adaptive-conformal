@@ -9,18 +9,16 @@ import sys
 sys.path.append("/home1/tb_214/code/PyTorch_CIFAR10")
 from cifar10_models.resnet import resnet18 as cifar_resnet18
 
+def compute_ll_cont(model, X_feat_torch, Yt_torch):
+    """Marginal log-likelihood on contaminated observations."""
+    model.eval()
+    with torch.no_grad():
+        logits = model.backbone(X_feat_torch)
+        p = F.softmax(logits, dim=-1)
+        T = model.contamination.contamination_matrix()
+        marginal = (T[Yt_torch, :] * p).sum(dim=1).clamp(min=1e-12)
+        return marginal.log().mean().item()
 
-def contamination_regularization(model, lambda_reg=0.1):
-    T = model.contamination.contamination_matrix()  # [K, K]
-    K = T.shape[0]
-
-    # Maximize log|det(T)| — directly encourages invertibility
-    # Use SVD for numerical stability
-    sign, logabsdet = torch.linalg.slogdet(T)
-    # We want det > 0 and large, so penalize -log|det|
-    reg = -logabsdet  # minimizing this maximizes |det(T)|
-        
-    return lambda_reg * reg
 
 class RandomizedResponseLayer(nn.Module):
     """
@@ -317,6 +315,16 @@ def noisy_label_loss(logits_Y: torch.Tensor,
 
     return loss_
 
+def contamination_regularization(model, lambda_reg=0.1):
+    T_current = model.contamination.contamination_matrix()
+
+    # Maximize log|det(T)| — directly encourages invertibility
+    # Use SVD for numerical stability
+    sign, logabsdet = torch.linalg.slogdet(T_current)
+    # We want det > 0 and large, so penalize -log|det|
+    reg = -logabsdet  # minimizing this maximizes |det(T)|
+        
+    return lambda_reg * reg
 
 # ---------------------------------------------------------------------------
 # Training loop
@@ -382,7 +390,7 @@ def train_alternate(model: NoisyLabelNet,
                     n_grad_steps: int = 50,
                     batch_size: int = 256,
                     lr: float = 1e-3,
-                    lambda_reg: float = 0.0,
+                    lambda_reg: float = 0,
                     device: str = "cpu",
                     loss_type: str = "equal",
                     verbose: bool = False) -> list[dict]:
@@ -446,8 +454,7 @@ def train_alternate(model: NoisyLabelNet,
                 logits_Y, logits_Ytilde = model(X_batch)
                 loss = noisy_label_loss(logits_Y, logits_Ytilde,
                                         labels_batch, I_batch, loss_type)
-                if lambda_reg != 0:
-                    loss = loss + contamination_regularization(model, lambda_reg=lambda_reg)
+                loss = loss + contamination_regularization(model, lambda_reg=lambda_reg)
                 optimizer_contamination.zero_grad()
                 loss.backward()
                 optimizer_contamination.step()

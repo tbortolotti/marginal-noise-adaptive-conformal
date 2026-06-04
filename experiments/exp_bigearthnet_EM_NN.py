@@ -21,7 +21,7 @@ sys.path.append("..")
 sys.path.append("../third_party")
 
 from cln import contamination
-from cln.T_estimation_NN import NoisyLabelNet, train_alternate
+from cln.T_estimation_NN import NoisyLabelNet, train_alternate, compute_ll_cont
 from cln.T_estimation import TMatrixEstimation
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
@@ -291,58 +291,79 @@ def run_experiment(random_state):
             print("Done.")
             sys.stdout.flush()
 
+
+        #____________________________________________________________________
+        ## Estimate T using the MLP without regularization - lambda selection
+        print("Estimating T using the MLP with lambda selection...", end=' ')
+        sys.stdout.flush()
+
+        lambda_candidates = [0, 0.01, 0.1, 1.0]
+        kappa_max = 100  # maximum acceptable condition number
+
+        # Extract calibration features once (needed for ll_cont evaluation)
+        X_feat_cal = feature_extractor.transform(X_cal).numpy()
+        X_feat_cal_torch = torch.tensor(X_feat_cal, dtype=torch.float32).to(device)
+        Yt_cal_torch = torch.tensor(Yt_cal, dtype=torch.long).to(device)
+
+        best_lambda = None
+        best_ll = -np.inf
+        best_T = None
+        ll_cont_scores = {}
+
+        for lam in lambda_candidates:
+            model_candidate = NoisyLabelNet(
+                input_dim=num_var, K=K, hidden_dims=[16, 8],
+                contamination_model_="general", epsilon_init=epsilon_init
+            )
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-2, lambda_reg=lam, verbose=False)
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-3, lambda_reg=lam, verbose=False)
+
+            T_candidate = model_candidate.contamination.contamination_matrix().detach().numpy()
+            cond_num = np.linalg.cond(T_candidate)
+            rank = np.linalg.matrix_rank(T_candidate)
+            invertible = (rank == K) and (cond_num < kappa_max)
+
+            with np.printoptions(precision=3, suppress=True):
+                print(f"\n  lambda={lam}: cond={cond_num:.1f}, invertible={invertible}")
+                print(f"  T=\n{T_candidate}")
+
+            if not invertible:
+                print(f"  -> Skipping lambda={lam} (not invertible or ill-conditioned)")
+                ll_cont_scores[lam] = -np.inf
+                continue
+
+            # Evaluate marginal log-likelihood on contaminated calibration set
+            ll = compute_ll_cont(model_candidate, X_feat_cal_torch, Yt_cal_torch)
+            ll_cont_scores[lam] = ll
+            print(f"  -> ll_cont={ll:.4f}")
+
+            if ll > best_ll:
+                best_ll = ll
+                best_lambda = lam
+                best_T = T_candidate.copy()
+
+        print(f"\nSelected lambda={best_lambda} with ll_cont={best_ll:.4f}")
+
+        # Fallback: if no lambda gave an invertible T, use identity
+        if best_T is None:
+            print("Warning: no invertible T found, falling back to identity matrix.")
+            best_T = np.eye(K)
+
+        T_hat_NN = best_T
+        with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_NN:\n{T_hat_NN}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN) == K}")
+        print("Done.")
+        sys.stdout.flush()
+
+        # Clean up calibration features
+        del X_feat_cal_torch
+
         """
-        #____________________________________________________________________
-        ## Estimate T using the SLL and uniform contamination
-        print("Estimating T using the SLL and uniform contamination..", end=' ')
-        sys.stdout.flush()
-        model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
-        T_hat_NN_sll_uniform = model_NN_sll.contamination.contamination_matrix()
-        T_hat_NN_sll_uniform = T_hat_NN_sll_uniform.detach().numpy()
-        print("\n")
-        with np.printoptions(precision=3, suppress=True):
-            print(T_hat_NN_sll_uniform)
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll_uniform) == T_hat_NN_sll_uniform.shape[0]}")
-        print("Done.")
-        sys.stdout.flush()
-        """
-
-        #____________________________________________________________________
-        ## Estimate T using the MLP without regularization
-        print("Estimating T using the MLP without regularization...", end=' ')
-        sys.stdout.flush()
-        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0, verbose=False)
-        T_hat_NN = model_NN.contamination.contamination_matrix()
-        T_hat_NN = T_hat_NN.detach().numpy()
-        with np.printoptions(precision=3, suppress=True):
-            print(T_hat_NN)
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN) == T_hat_NN.shape[0]}")
-            invertible_flag = np.linalg.matrix_rank(T_hat_NN) == T_hat_NN.shape[0]
-        print("Done.")
-        sys.stdout.flush()
-
-        if not invertible_flag:
-            T_hat_NN = np.eye(K)
-
-        #____________________________________________________________________
-        ## Estimate T using the MLP with lambda_reg=0.01
-        print("Estimating T using the MLP with lambda_reg=0.01...", end=' ')
-        sys.stdout.flush()
-        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0.01, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.01, verbose=False)
-        T_hat_NN_reg001 = model_NN.contamination.contamination_matrix()
-        T_hat_NN_reg001 = T_hat_NN_reg001.detach().numpy()
-        with np.printoptions(precision=3, suppress=True):
-            print(T_hat_NN_reg001)
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_reg001) == T_hat_NN_reg001.shape[0]}")
-        print("Done.")
-        sys.stdout.flush()
-
         #____________________________________________________________________
         ## Estimate T using the MLP with lambda_reg=0.1
         print("Estimating T using the MLP with lambda_reg=0.1...", end=' ')
@@ -357,46 +378,17 @@ def run_experiment(random_state):
             print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_reg01) == T_hat_NN_reg01.shape[0]}")
         print("Done.")
         sys.stdout.flush()
-
-        #____________________________________________________________________
-        ## Estimate T using the MLP with lambda_reg=1
-        print("Estimating T using the MLP with lambda_reg=1...", end=' ')
-        sys.stdout.flush()
-        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=1, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=1, verbose=False)
-        T_hat_NN_reg1 = model_NN.contamination.contamination_matrix()
-        T_hat_NN_reg1 = T_hat_NN_reg1.detach().numpy()
-        with np.printoptions(precision=3, suppress=True):
-            print(T_hat_NN_reg1)
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_reg1) == T_hat_NN_reg1.shape[0]}")
-        print("Done.")
-        sys.stdout.flush()
-
-        #____________________________________________________________________
-        ## Estimate T using the MLP and uniform contamination
-        print("Estimating T using the MLP and uniform contamination...", end=' ')
-        sys.stdout.flush()
-        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
-        T_hat_NN_uniform = model_NN.contamination.contamination_matrix()
-        T_hat_NN_uniform = T_hat_NN_uniform.detach().numpy()
-        print("\n")
-        with np.printoptions(precision=3, suppress=True):
-            print(T_hat_NN_uniform)
-            print(f"\nInvertible: {np.linalg.matrix_rank(T_hat_NN_uniform) == T_hat_NN_uniform.shape[0]}")
-        print("Done.")
-        sys.stdout.flush()
-
         """
+
+        
         #____________________________________________________________________
         ## Estimate T using the SLL
         print("Estimating T using the SLL...", end=' ')
         sys.stdout.flush()
+        sll_lambda = best_lambda if best_lambda is not None else 0.0
         model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=sll_lambda, verbose=False)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=sll_lambda, verbose=False)
         T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
         with np.printoptions(precision=3, suppress=True):
@@ -404,7 +396,6 @@ def run_experiment(random_state):
             print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll) == T_hat_NN_sll.shape[0]}")
         print("Done.")
         sys.stdout.flush()
-        """
         
 
     else:
@@ -473,33 +464,8 @@ def run_experiment(random_state):
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
-            
-            "Adaptive+ NN 1": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon,
-                                                                        T=T_hat_NN_reg1,
-                                                                        rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
-            "Adaptive+ NN 01": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon,
-                                                                        T=T_hat_NN_reg01,
-                                                                        rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
-            "Adaptive+ NN 001": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon,
-                                                                        T=T_hat_NN_reg001,
-                                                                        rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
-            "Adaptive+ NN uniform": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon, T=T_hat_NN_uniform,
+            "Adaptive+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN_sll,
                                                                         rho_tilde=rho_tilde_hat,
                                                                         allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
