@@ -3657,37 +3657,68 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   return(summary)
 }
 
-init_settings <- function(exp_easy=FALSE) {
+
+# init_settings <- function(exp_easy=FALSE) {
+#   df.dummy <<- tibble(key="Coverage", value=0.95)
+#   df.dummy2 <<- tibble(key="Coverage", value=0.5)
+#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#648767")
+#   if(exp_easy){
+#     method.values <<- c("Standard using clean")
+#     method.labels <<- c("Standard")
+#     color.scale <<- cbPalette[c(1)]
+#     shape.scale <<- c(1)
+#     linetype.scale <<- c(1)
+#     xlab_ <<- "Number of easy clean calibration samples"
+#   } else {
+#     method.values <<- c("Standard",
+#                         "Standard using clean",
+#                         "Adaptive optimized+",
+#                         "Adaptive optimized+ clean",
+#                         "Adaptive optimized+ NN SLL",
+#                         "Adaptive optimized+ NN")
+#     #"Adaptive optimized+ AP param")
+#     method.labels <<- c("Standard (noisy)",
+#                         "Standard (clean, simple)",
+#                         "Adaptive+",
+#                         "Adaptive+ (c/n)",
+#                         "Adaptive+ (NNs)",
+#                         "Adaptive+ (NN)")
+#     #"Adaptive+ (AP RRM)")
+#     color.scale <<- cbPalette[c(1,10,2,3,6,7)]
+#     shape.scale <<- c(1,6,2,3,4,5)
+#     linetype.scale <<- c(1,1,1,1,1,1)
+#     xlab_ <<- "Number of calibration samples"
+#   }
+# }
+
+
+init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#648767")
-  if(exp_easy){
-    method.values <<- c("Standard using clean")
-    method.labels <<- c("Standard")
-    color.scale <<- cbPalette[c(1)]
-    shape.scale <<- c(1)
-    linetype.scale <<- c(1)
-    xlab_ <<- "Number of easy clean calibration samples"
-  } else {
-    method.values <<- c("Standard",
-                        "Standard using clean",
-                        "Adaptive optimized+",
-                        "Adaptive optimized+ clean",
-                        "Adaptive optimized+ NN SLL",
-                        "Adaptive optimized+ NN")
-    #"Adaptive optimized+ AP param")
-    method.labels <<- c("Standard (noisy)",
-                        "Standard (clean, simple)",
-                        "Adaptive+",
-                        "Adaptive+ (c/n)",
-                        "Adaptive+ (NNs)",
-                        "Adaptive+ (NN)")
-    #"Adaptive+ (AP RRM)")
-    color.scale <<- cbPalette[c(1,10,2,3,6,7)]
-    shape.scale <<- c(1,6,2,3,4,5)
-    linetype.scale <<- c(1,1,1,1,1,1)
-    xlab_ <<- "Number of calibration samples"
-  }
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
+  
+  method.values <<- c("Standard",
+                      "Standard using clean",
+                      "Adaptive optimized+",
+                      "Adaptive optimized+ clean",
+                      "Adaptive optimized+ NN SLL",
+                      "Adaptive optimized+ NN",
+                      "__spacer__",
+                      "Standard (clean) line")
+  #"Adaptive optimized+ AP param")
+  method.labels <<- c("Standard",
+                      "Standard (clean)",
+                      "Adaptive+",
+                      "Adaptive+ (c/n)",
+                      "Adaptive+ (NNs)",
+                      "Adaptive+ (NN)",
+                      "",
+                      "Standard (clean, simple)")
+  #"Adaptive+ (AP RRM)")
+  color.scale <<- cbPalette[c(1,2,3,4,5,NA,10)]
+  shape.scale <<- c(1,5,2,3,4,NA,NA)
+  linetype.scale <<- c(1,1,1,1,1,0,4)
+  xlab_ <<- "Number of noisy calibration samples"
 }
 
 
@@ -3717,9 +3748,48 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            contamination==plot.contamination,
            epsilon==plot.epsilon)
   
+  df.clean.values <- df %>%
+    filter(Method == "Standard using clean") %>%
+    group_by(Key, n_clean) %>%                        # <-- stratify by n_clean
+    summarise(Mean = mean(Mean), .groups = "drop")
+  
+  df.clean.legend <- df %>%
+    group_by(Key, n_clean) %>%                        # <-- group by both
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "n_clean")) %>%   # <-- join on both
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "Standard (clean) line", SE = 0)
+  
+  df.spacer.legend <- df %>%
+    group_by(Key, n_clean) %>%                        # <-- group by both
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "n_clean")) %>%   # <-- join on both
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "__spacer__", SE = 0)
+  
+  # df.clean.legend <- df %>%
+  #   group_by(Key) %>%
+  #   summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal)) %>%
+  #   left_join(df.clean, by = "Key") %>%
+  #   tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+  #   mutate(Method = "Standard (clean) line", SE = 0)
+  # 
+  # df.spacer.legend <- df %>%
+  #   group_by(Key) %>%
+  #   summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal)) %>%
+  #   left_join(df.clean, by = "Key") %>%
+  #   tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+  #   mutate(Method = "__spacer__", SE = 0)
+  
+  # Aggiunge la riga fittizia al df principale (senza Standard using clean)
+  df.plot <- df %>%
+    filter(Method != "Standard using clean") %>%
+    bind_rows(df.clean.legend) %>%
+    bind_rows(df.spacer.legend)
+  
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Adaptive+")
-  pp <- df %>%
+  pp <- df.plot %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(N_CLEAN = factor(sprintf("N clean: %d", n_clean), 
                              levels = sprintf("N clean: %d", plot.n_clean), 
@@ -3739,6 +3809,11 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     scale_x_continuous(trans='log10') +
     xlab(xlab_) +
     ylab("") +
+    guides(                                                                # <--
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
+    ) +
     theme_bw() +
     theme(text = element_text(size = 12),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
@@ -3894,10 +3969,35 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
              epsilon==plot.epsilon)
     df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Adaptive+")
   }
+  
+  df.clean.values <- df %>%
+    filter(Method == "Standard using clean") %>%
+    group_by(Key, n_train) %>%
+    summarise(Mean = mean(Mean), .groups = "drop")
+  
+  df.clean.legend <- df %>%
+    group_by(Key, n_train) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "n_train")) %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "Standard (clean) line", SE = 0)
+  
+  df.spacer.legend <- df %>%
+    group_by(Key, n_train) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "n_train")) %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "__spacer__", SE = 0)
+  
+  # Aggiunge la riga fittizia al df principale (senza Standard using clean)
+  df.plot <- df %>%
+    filter(Method != "Standard using clean") %>%
+    bind_rows(df.clean.legend) %>%
+    bind_rows(df.spacer.legend)
 
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  pp <- df %>%
+  pp <- df.plot %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(N_TRAIN = factor(sprintf("N train: %d", n_train), 
                             levels = sprintf("N train: %d", plot.n_train), 
@@ -3924,6 +4024,11 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     scale_x_continuous(trans='log10') +
     xlab(xlab_) +
     ylab("") +
+    guides(                                                                # <--
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
+    ) +
     theme_bw() +
     theme(text = element_text(size = 12),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
@@ -4082,9 +4187,34 @@ make_figure_715 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            contamination==plot.contamination,
            epsilon==plot.epsilon)
   
+  df.clean.values <- df %>%
+    filter(Method == "Standard using clean") %>%
+    group_by(Key, data) %>%
+    summarise(Mean = mean(Mean), .groups = "drop")
+  
+  df.clean.legend <- df %>%
+    group_by(Key, data) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "data")) %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "Standard (clean) line", SE = 0)
+  
+  df.spacer.legend <- df %>%
+    group_by(Key, data) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "data")) %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "__spacer__", SE = 0)
+  
+  # Aggiunge la riga fittizia al df principale (senza Standard using clean)
+  df.plot <- df %>%
+    filter(Method != "Standard using clean") %>%
+    bind_rows(df.clean.legend) %>%
+    bind_rows(df.spacer.legend)
+  
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Adaptive+")
-  pp <- df %>%
+  pp <- df.plot %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(DATA = sprintf("Data: %s", data)) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
@@ -4101,6 +4231,11 @@ make_figure_715 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     scale_x_continuous(trans='log10') +
     xlab(xlab_) +
     ylab("") +
+    guides(                                                                # <--
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
+    ) +
     theme_bw() +
     theme(text = element_text(size = 12),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
@@ -4147,38 +4282,38 @@ make_figure_715(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 #' 
 
 
-init_settings <- function(exp_easy=FALSE) {
-  df.dummy <<- tibble(key="Coverage", value=0.95)
-  df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
-  if(exp_easy){
-    method.values <<- c("Standard using clean")
-    method.labels <<- c("Standard")
-    color.scale <<- cbPalette[c(1)]
-    shape.scale <<- c(1)
-    linetype.scale <<- c(1)
-    xlab_ <<- "Number of easy clean calibration samples"
-  } else {
-    method.values <<- c("Standard",
-                        "Standard using clean",
-                        "Adaptive optimized+",
-                        "Adaptive optimized+ clean",
-                        "Adaptive optimized+ NN SLL",
-                        "Adaptive optimized+ NN")
-    #"Adaptive optimized+ AP param")
-    method.labels <<- c("Standard (noisy)",
-                        "Standard (clean, simple)",
-                        "Adaptive+",
-                        "Adaptive+ (c/n)",
-                        "Adaptive+ (NNs)",
-                        "Adaptive+ (NN)")
-    #"Adaptive+ (AP RRM)")
-    color.scale <<- cbPalette[c(1,10,2,3,6,7)]
-    shape.scale <<- c(1,6,2,3,4,5)
-    linetype.scale <<- c(1,1,1,1,1,1)
-    xlab_ <<- "Number of calibration samples"
-  }
-}
+# init_settings <- function(exp_easy=FALSE) {
+#   df.dummy <<- tibble(key="Coverage", value=0.95)
+#   df.dummy2 <<- tibble(key="Coverage", value=0.5)
+#   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
+#   if(exp_easy){
+#     method.values <<- c("Standard using clean")
+#     method.labels <<- c("Standard")
+#     color.scale <<- cbPalette[c(1)]
+#     shape.scale <<- c(1)
+#     linetype.scale <<- c(1)
+#     xlab_ <<- "Number of easy clean calibration samples"
+#   } else {
+#     method.values <<- c("Standard",
+#                         "Standard using clean",
+#                         "Adaptive optimized+",
+#                         "Adaptive optimized+ clean",
+#                         "Adaptive optimized+ NN SLL",
+#                         "Adaptive optimized+ NN")
+#     #"Adaptive optimized+ AP param")
+#     method.labels <<- c("Standard (noisy)",
+#                         "Standard (clean, simple)",
+#                         "Adaptive+",
+#                         "Adaptive+ (c/n)",
+#                         "Adaptive+ (NNs)",
+#                         "Adaptive+ (NN)")
+#     #"Adaptive+ (AP RRM)")
+#     color.scale <<- cbPalette[c(1,10,2,3,6,7)]
+#     shape.scale <<- c(1,6,2,3,4,5)
+#     linetype.scale <<- c(1,1,1,1,1,1)
+#     xlab_ <<- "Number of calibration samples"
+#   }
+# }
 
 make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                             plot.contamination,
@@ -4206,9 +4341,34 @@ make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
            contamination %in% plot.contamination,
            epsilon==plot.epsilon)
   
+  df.clean.values <- df %>%
+    filter(Method == "Standard using clean") %>%
+    group_by(Key, contamination) %>%
+    summarise(Mean = mean(Mean), .groups = "drop")
+  
+  df.clean.legend <- df %>%
+    group_by(Key, contamination) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "contamination")) %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "Standard (clean) line", SE = 0)
+  
+  df.spacer.legend <- df %>%
+    group_by(Key, contamination) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "contamination")) %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "__spacer__", SE = 0)
+  
+  # Aggiunge la riga fittizia al df principale (senza Standard using clean)
+  df.plot <- df %>%
+    filter(Method != "Standard using clean") %>%
+    bind_rows(df.clean.legend) %>%
+    bind_rows(df.spacer.legend)
+  
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.875,1), n_cal=1000, Method="Adaptive+")
-  pp <- df %>%
+  pp <- df.plot %>%
     mutate(Method = factor(Method, method.values, method.labels),
            Mean = ifelse((Key == "Coverage") & (Mean<0.8), NA, Mean)) %>%
     mutate(CONT = factor(sprintf("Cont: %s", contamination),
@@ -4228,6 +4388,11 @@ make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     scale_x_continuous(trans='log10') +
     xlab(xlab_) +
     ylab("") +
+    guides(                                                                # <--
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
+    ) +
     theme_bw() +
     theme(text = element_text(size = 12),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
@@ -5022,6 +5187,37 @@ make_figure_911(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 
 
 #### Experiments 912: Different contamination model ------------------------
+
+init_settings <- function(plot.optimistic = FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
+  
+  method.values <<- c("Standard",
+                      "Standard using clean",
+                      "Adaptive optimized+",
+                      "Adaptive optimized+ clean",
+                      "Adaptive optimized+ NN SLL",
+                      "Adaptive optimized+ NN",
+                      "__spacer__",
+                      "Standard (clean) line")
+  #"Adaptive optimized+ AP param")
+  method.labels <<- c("Standard",
+                      "Standard (clean)",
+                      "Adaptive+",
+                      "Adaptive+ (c/n)",
+                      "Adaptive+ (NNs)",
+                      "Adaptive+ (NN)",
+                      "",
+                      "Standard (clean, simple)")
+  #"Adaptive+ (AP RRM)")
+  color.scale <<- cbPalette[c(1,2,3,4,5,NA,10)]
+  shape.scale <<- c(1,5,2,3,4,NA,NA)
+  linetype.scale <<- c(1,1,1,1,1,0,4)
+  xlab_ <<- "Number of noisy calibration samples"
+}
+
+
 make_figure_912 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.guarantee="marginal",
                             plot.contamination="uniform",
                             plot.epsilon=0.1,
@@ -5043,13 +5239,38 @@ make_figure_912 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.gu
            contamination%in%plot.contamination,
            epsilon==plot.epsilon, n_clean==plot.n_clean)
   
+  df.clean.values <- df %>%
+    filter(Method == "Standard using clean") %>%
+    group_by(Key, contamination) %>%
+    summarise(Mean = mean(Mean), .groups = "drop")
+  
+  df.clean.legend <- df %>%
+    group_by(Key, contamination) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "contamination")) %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "Standard (clean) line", SE = 0)
+  
+  df.spacer.legend <- df %>%
+    group_by(Key, contamination) %>%
+    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal), .groups = "drop") %>%
+    left_join(df.clean.values, by = c("Key", "contamination")) %>%
+    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
+    mutate(Method = "__spacer__", SE = 0)
+  
+  # Aggiunge la riga fittizia al df principale (senza Standard using clean)
+  df.plot <- df %>%
+    filter(Method != "Standard using clean") %>%
+    bind_rows(df.clean.legend) %>%
+    bind_rows(df.spacer.legend)
+  
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.89,1), n_cal=1000, Method="Standard")
-  pp <- df %>%
+  pp <- df.plot %>%
     mutate(Method = factor(Method, method.values, method.labels)) %>%
     mutate(CONT = factor(sprintf("Cont: %s", contamination),
                          levels = sprintf("Cont: %s", plot.contamination),
-                         labels = c("Cont: RRM", "Cont: block", "Cont: two-level", "Cont: real"))) %>%
+                         labels = c("Cont: RRM", "Cont: block", "Cont: two-level"))) %>%
     ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
     geom_point() +
     geom_line() +
@@ -5061,8 +5282,13 @@ make_figure_912 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.gu
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of calibration samples") +
+    xlab("Number of noisy calibration samples") +
     ylab("") +
+    guides(
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
+    ) +
     theme_bw() +
     theme(text = element_text(size = 12),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
@@ -5091,7 +5317,7 @@ make_figure_912(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 #### Experiments 913: Different contamination model ------------------------
 init_settings <- function(plot.optimistic = FALSE) {
@@ -5694,6 +5920,37 @@ init_settings <- function(plot.optimistic = FALSE) {
 }
 
 #### Experiments 1101: Impact of the size of clean data ------------------------
+
+init_settings <- function(plot.optimistic = FALSE) {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
+  
+  method.values <<- c("Standard",
+                      "Standard using clean",
+                      "Adaptive optimized+",
+                      "Adaptive optimized+ clean",
+                      "Adaptive optimized+ NN SLL",
+                      "Adaptive optimized+ NN",
+                      "__spacer__",
+                      "Standard (clean) line")
+  #"Adaptive optimized+ AP param")
+  method.labels <<- c("Standard",
+                      "Standard (clean)",
+                      "Adaptive+",
+                      "Adaptive+ (c/n)",
+                      "Adaptive+ (NNs)",
+                      "Adaptive+ (NN)",
+                      "",
+                      "Standard (clean, simple)")
+  #"Adaptive+ (AP RRM)")
+  color.scale <<- cbPalette[c(1,2,3,4,5,NA,10)]
+  shape.scale <<- c(1,5,2,3,4,NA,NA)
+  linetype.scale <<- c(1,1,1,1,1,0,4)
+  xlab_ <<- "Number of noisy calibration samples"
+}
+
+
 make_figure_1101 <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.guarantee="marginal",
                             plot.contamination="uniform",
                             plot.epsilon=0.1,
@@ -5761,12 +6018,12 @@ make_figure_1101 <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of calibration samples") +
+    xlab("Number of noisy calibration samples") +
     ylab("") +
     guides(                                                                # <--
-      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
-      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
-      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1)))
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
     ) +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -5894,7 +6151,7 @@ make_figure_1103 <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.
     scale_shape_manual(values=shape.scale) +
     scale_linetype_manual(values=linetype.scale) +
     scale_x_continuous(trans='log10') +
-    xlab("Number of calibration samples") +
+    xlab("Number of noisy calibration samples") +
     ylab("") +
     guides(                                                                # <--
       color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
@@ -5919,7 +6176,6 @@ make_figure_1103 <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.
 }
 
 exp.num <- 1103
-exp.num <- 1104
 plot.data <- "bigearthnet"
 plot.alpha <- 0.1
 plot.epsilon <- 0.016
@@ -5927,13 +6183,10 @@ plot.contamination <- "real"
 plot.n_train <- 5000
 plot.n_clean <- c(500)
 plot.guarantee="marginal"
-save_plots=FALSE
-plot.optimistic=TRUE
-reload=TRUE
 make_figure_1103(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon,
                  plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                 save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 

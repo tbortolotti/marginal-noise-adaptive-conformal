@@ -9,6 +9,19 @@ import sys
 sys.path.append("/home1/tb_214/code/PyTorch_CIFAR10")
 from cifar10_models.resnet import resnet18 as cifar_resnet18
 
+
+def contamination_regularization(model, lambda_reg=0.1):
+    T = model.contamination.contamination_matrix()  # [K, K]
+    K = T.shape[0]
+
+    # Maximize log|det(T)| — directly encourages invertibility
+    # Use SVD for numerical stability
+    sign, logabsdet = torch.linalg.slogdet(T)
+    # We want det > 0 and large, so penalize -log|det|
+    reg = -logabsdet  # minimizing this maximizes |det(T)|
+        
+    return lambda_reg * reg
+
 class RandomizedResponseLayer(nn.Module):
     """
     Differentiable layer implementing the Randomized Response contamination.
@@ -165,28 +178,6 @@ class ClassifierBackbone(nn.Module):
         """Returns logits of shape [batch, K]."""
         return self.net(X)
 
-"""
-class ResNetBackbone(nn.Module):
-    def __init__(self, K: int, freeze_features: bool = False):
-        super().__init__()
-        resnet = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
-        
-        # Replace the final FC layer to output K logits
-        in_features = resnet.fc.in_features  # 512 for ResNet-18
-        resnet.fc = nn.Linear(in_features, K)
-        
-        self.net = resnet
-        
-        if freeze_features:
-            # Freeze everything except the final FC layer
-            for name, param in self.net.named_parameters():
-                if name not in ("fc.weight", "fc.bias"):
-                    param.requires_grad_(False)
-
-    def forward(self, X: torch.Tensor) -> torch.Tensor:
-        return self.net(X)
-"""
-
 class ResNetBackbone(nn.Module):
     def __init__(self, K: int, freeze_features: bool = False):
         super().__init__()
@@ -199,8 +190,6 @@ class ResNetBackbone(nn.Module):
 
     def forward(self, X: torch.Tensor) -> torch.Tensor:
         return self.net(X)
-    
-
 
 # ---------------------------------------------------------------------------
 # Full model
@@ -393,6 +382,7 @@ def train_alternate(model: NoisyLabelNet,
                     n_grad_steps: int = 50,
                     batch_size: int = 256,
                     lr: float = 1e-3,
+                    lambda_reg: float = 0.0,
                     device: str = "cpu",
                     loss_type: str = "equal",
                     verbose: bool = False) -> list[dict]:
@@ -456,6 +446,7 @@ def train_alternate(model: NoisyLabelNet,
                 logits_Y, logits_Ytilde = model(X_batch)
                 loss = noisy_label_loss(logits_Y, logits_Ytilde,
                                         labels_batch, I_batch, loss_type)
+                loss = loss + contamination_regularization(model, lambda_reg=lambda_reg)
                 optimizer_contamination.zero_grad()
                 loss.backward()
                 optimizer_contamination.step()
@@ -728,124 +719,3 @@ def train_em_style(
                   f"ll_clean={ll_clean:.4f} | ll_cont={ll_cont:.4f}")
 
     return history
-
-
-# ---------------------------------------------------------------------------
-# NOTES (code that'll probably be discarded)
-# ---------------------------------------------------------------------------
-
-
-"""
-def train(model: NoisyLabelNet,
-          X: torch.Tensor,
-          obs_labels: torch.Tensor,
-          I: torch.Tensor,
-          n_epochs: int = 100,
-          batch_size: int = 256,
-          lr: float = 1e-3,
-          device: str = "cpu",
-          loss_type: str = "equal",
-          verbose: bool = False) -> list[dict]:
-
-    model = model.to(device)
-    X, obs_labels, I = X.to(device), obs_labels.to(device), I.to(device)
-
-    # Split indices into clean (I==1) and noisy (I==0)
-    clean_idx = (I == 1).nonzero(as_tuple=True)[0]
-    noisy_idx = (I == 0).nonzero(as_tuple=True)[0]
-
-    # Separate optimizers for backbone and contamination layer
-    optimizer_backbone     = torch.optim.AdamW(model.backbone.parameters(), lr=lr)
-    optimizer_contamination = torch.optim.AdamW(model.contamination.parameters(), lr=lr)
-
-    # How many steps per epoch: driven by the larger of the two splits
-    steps_per_epoch = max(len(clean_idx), len(noisy_idx)) // batch_size + 1
-
-    history = []
-    for epoch in range(n_epochs):
-        model.train()
-        total_loss_clean = 0.0
-        total_loss_noisy = 0.0
-
-        # Shuffle split indices at the start of each epoch
-        clean_perm = clean_idx[torch.randperm(len(clean_idx), device=device)]
-        noisy_perm = noisy_idx[torch.randperm(len(noisy_idx), device=device)]
-
-        for step in range(steps_per_epoch):
-            # ----------------------------------------------------------------
-            # Phase 1: clean batch → update backbone only
-            # ----------------------------------------------------------------
-            # Cycle over clean indices if exhausted
-            start = (step * batch_size) % len(clean_perm)
-            end   = start + batch_size
-            if end > len(clean_perm):               # wrap around
-                batch_idx = torch.cat([clean_perm[start:], clean_perm[:end - len(clean_perm)]])
-            else:
-                batch_idx = clean_perm[start:end]
-
-            X_clean     = X[batch_idx]
-            labels_clean = obs_labels[batch_idx]
-            I_clean     = I[batch_idx]              # all ones, but kept for generality
-
-            # Freeze contamination, unfreeze backbone
-            for p in model.contamination.parameters():
-                p.requires_grad_(False)
-            for p in model.backbone.parameters():
-                p.requires_grad_(True)
-
-            logits_Y, logits_Ytilde = model(X_clean)
-            loss_clean = noisy_label_loss(logits_Y, logits_Ytilde, labels_clean, I_clean, loss_type)
-
-            optimizer_backbone.zero_grad()
-            loss_clean.backward()
-            optimizer_backbone.step()
-
-            # ----------------------------------------------------------------
-            # Phase 2: noisy batch → update contamination layer only
-            # ----------------------------------------------------------------
-            start = (step * batch_size) % len(noisy_perm)
-            end   = start + batch_size
-            if end > len(noisy_perm):
-                batch_idx = torch.cat([noisy_perm[start:], noisy_perm[:end - len(noisy_perm)]])
-            else:
-                batch_idx = noisy_perm[start:end]
-
-            X_noisy      = X[batch_idx]
-            labels_noisy = obs_labels[batch_idx]
-            I_noisy      = I[batch_idx]             # all zeros, but kept for generality
-
-            # Freeze backbone, unfreeze contamination
-            for p in model.backbone.parameters():
-                p.requires_grad_(False)
-            for p in model.contamination.parameters():
-                p.requires_grad_(True)
-
-            logits_Y, logits_Ytilde = model(X_noisy)
-            loss_noisy = noisy_label_loss(logits_Y, logits_Ytilde, labels_noisy, I_noisy, loss_type)
-
-            optimizer_contamination.zero_grad()
-            loss_noisy.backward()
-            optimizer_contamination.step()
-
-            total_loss_clean += loss_clean.item()
-            total_loss_noisy += loss_noisy.item()
-
-        avg_loss_clean = total_loss_clean / steps_per_epoch
-        avg_loss_noisy = total_loss_noisy / steps_per_epoch
-
-        if verbose and (epoch + 1) % 10 == 0:
-            print(f"Epoch {epoch+1:4d}/{n_epochs} | "
-                  f"loss_clean={avg_loss_clean:.4f} | "
-                  f"loss_noisy={avg_loss_noisy:.4f}")
-
-        history.append({"epoch": epoch + 1,
-                        "loss_clean": avg_loss_clean,
-                        "loss_noisy": avg_loss_noisy,
-        })
-
-    # Restore all gradients at the end
-    for p in model.parameters():
-        p.requires_grad_(True)
-
-    return history
-"""
