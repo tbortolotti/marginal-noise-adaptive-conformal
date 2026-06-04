@@ -351,8 +351,19 @@ def run_experiment(random_state):
 
         # Fallback: if no lambda gave an invertible T, use identity
         if best_T is None:
-            print("Warning: no invertible T found, falling back to identity matrix.")
-            best_T = np.eye(K)
+            print("Warning: no invertible T found, falling back to RRM matrix.")
+            model_candidate = NoisyLabelNet(
+                input_dim=num_var, K=K, hidden_dims=[16, 8],
+                contamination_model_="uniform", epsilon_init=epsilon_init
+            )
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-2, verbose=False)
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-3, verbose=False)
+            best_T = model_candidate.contamination.contamination_matrix()
+            best_T = best_T.detach().numpy()
 
         T_hat_NN = best_T
         with np.printoptions(precision=3, suppress=True):
@@ -411,8 +422,19 @@ def run_experiment(random_state):
 
         # Fallback: if no lambda gave an invertible T, use identity
         if best_T is None:
-            print("Warning: no invertible T found, falling back to identity matrix.")
-            best_T = np.eye(K)
+            print("Warning: no invertible T found, falling back to RRM matrix.")
+            model_candidate = NoisyLabelNet(
+                input_dim=num_var, K=K, hidden_dims=[],
+                contamination_model_="uniform", epsilon_init=epsilon_init
+            )
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-2, verbose=False)
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-3, verbose=False)
+            best_T = model_candidate.contamination.contamination_matrix()
+            best_T = best_T.detach().numpy()
 
         T_hat_NN_sll = best_T
         with np.printoptions(precision=3, suppress=True):
