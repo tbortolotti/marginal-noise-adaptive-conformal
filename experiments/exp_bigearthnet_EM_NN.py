@@ -291,12 +291,8 @@ def run_experiment(random_state):
             print("Done.")
             sys.stdout.flush()
 
-
         #____________________________________________________________________
-        ## Estimate T using the MLP without regularization - lambda selection
-        print("Estimating T using the MLP with lambda selection...", end=' ')
-        sys.stdout.flush()
-
+        ## Estimate T
         lambda_candidates = [0, 0.01, 0.1, 1.0]
         kappa_max = 100  # maximum acceptable condition number
 
@@ -304,6 +300,11 @@ def run_experiment(random_state):
         X_feat_cal = feature_extractor.transform(X_cal).numpy()
         X_feat_cal_torch = torch.tensor(X_feat_cal, dtype=torch.float32).to(device)
         Yt_cal_torch = torch.tensor(Yt_cal, dtype=torch.long).to(device)
+
+        #____________________________________________________________________
+        ## Estimate T using the MLP without regularization - lambda selection
+        print("Estimating T using the MLP with lambda selection...", end=' ')
+        sys.stdout.flush()
 
         best_lambda = None
         best_ll = -np.inf
@@ -360,6 +361,66 @@ def run_experiment(random_state):
         print("Done.")
         sys.stdout.flush()
 
+        #____________________________________________________________________
+        ## Estimate T using the SLL without regularization - lambda selection
+        print("Estimating T using the SLL with lambda selection...", end=' ')
+        sys.stdout.flush()
+
+        best_lambda = None
+        best_ll = -np.inf
+        best_T = None
+        ll_cont_scores = {}
+
+        for lam in lambda_candidates:
+            model_candidate = NoisyLabelNet(
+                input_dim=num_var, K=K, hidden_dims=[],
+                contamination_model_="general", epsilon_init=epsilon_init
+            )
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-2, lambda_reg=lam, verbose=False)
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-3, lambda_reg=lam, verbose=False)
+
+            T_candidate = model_candidate.contamination.contamination_matrix().detach().numpy()
+            cond_num = np.linalg.cond(T_candidate)
+            rank = np.linalg.matrix_rank(T_candidate)
+            invertible = (rank == K) and (cond_num < kappa_max)
+
+            with np.printoptions(precision=3, suppress=True):
+                print(f"\n  lambda={lam}: cond={cond_num:.1f}, invertible={invertible}")
+                print(f"  T=\n{T_candidate}")
+
+            if not invertible:
+                print(f"  -> Skipping lambda={lam} (not invertible or ill-conditioned)")
+                ll_cont_scores[lam] = -np.inf
+                continue
+
+            # Evaluate marginal log-likelihood on contaminated calibration set
+            ll = compute_ll_cont(model_candidate, X_feat_cal_torch, Yt_cal_torch)
+            ll_cont_scores[lam] = ll
+            print(f"  -> ll_cont={ll:.4f}")
+
+            if ll > best_ll:
+                best_ll = ll
+                best_lambda = lam
+                best_T = T_candidate.copy()
+
+        print(f"\nSelected lambda={best_lambda} with ll_cont={best_ll:.4f}")
+
+        # Fallback: if no lambda gave an invertible T, use identity
+        if best_T is None:
+            print("Warning: no invertible T found, falling back to identity matrix.")
+            best_T = np.eye(K)
+
+        T_hat_NN_sll = best_T
+        with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_NN:\n{T_hat_NN_sll}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll) == K}")
+        print("Done.")
+        sys.stdout.flush()
+
         # Clean up calibration features
         del X_feat_cal_torch
 
@@ -378,9 +439,8 @@ def run_experiment(random_state):
             print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_reg01) == T_hat_NN_reg01.shape[0]}")
         print("Done.")
         sys.stdout.flush()
-        """
 
-        
+                
         #____________________________________________________________________
         ## Estimate T using the SLL
         print("Estimating T using the SLL...", end=' ')
@@ -396,7 +456,7 @@ def run_experiment(random_state):
             print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll) == T_hat_NN_sll.shape[0]}")
         print("Done.")
         sys.stdout.flush()
-        
+        """
 
     else:
         #____________________________________________________________________
