@@ -446,7 +446,8 @@ def train_alternate(model: NoisyLabelNet,
                 logits_Y, logits_Ytilde = model(X_batch)
                 loss = noisy_label_loss(logits_Y, logits_Ytilde,
                                         labels_batch, I_batch, loss_type)
-                loss = loss + contamination_regularization(model, lambda_reg=lambda_reg)
+                if lambda_reg != 0:
+                    loss = loss + contamination_regularization(model, lambda_reg=lambda_reg)
                 optimizer_contamination.zero_grad()
                 loss.backward()
                 optimizer_contamination.step()
