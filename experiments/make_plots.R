@@ -6198,6 +6198,7 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Standard using clean",
                       "Adaptive+ clean",
                       "Adaptive+ NN",
+                      "Adaptive+ NN SLL",
                       "__spacer__",
                       "Standard (clean) line")
   
@@ -6205,11 +6206,12 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Standard (clean)",
                       "Adaptive+ (clean)",
                       "Adaptive+ (NN)",
+                      "Adaptive+ (NNs)",
                       "",
                       "Standard (clean, simple)")
-  color.scale <<- cbPalette[c(1,3,5,NA,10)]
-  shape.scale <<- c(1,2,3,NA,NA)
-  linetype.scale <<- c(1,1,1,0,4)
+  color.scale <<- cbPalette[c(1,3,4,5,NA,10)]
+  shape.scale <<- c(1,2,3,4,NA,NA)
+  linetype.scale <<- c(1,1,1,1,0,4)
 }
 
 
@@ -6284,9 +6286,9 @@ make_figure_1104 <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.
     xlab("Number of noisy calibration samples") +
     ylab("") +
     guides(
-      color    = guide_legend(override.aes = list(alpha = c(1,1,1,0,1))),
-      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,0,1))),
-      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,0,1)))
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1)))
     ) +
     theme_bw() +
     theme(text = element_text(size = 12),

@@ -69,7 +69,8 @@ allow_empty = True
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 n_test = 500
-batch_size = n_train + n_clean + n_cal + n_test
+n_val = 2000
+batch_size = n_train + n_val + n_clean + n_cal + n_test
 epsilon_init = 0
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -203,9 +204,16 @@ def run_experiment(random_state):
         print("Done.")
         sys.stdout.flush()
 
-    # Separate data into training and calibration
-    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
+    # Separate data into training + validation and calibration
+    X_tv, X_cal, Y_tv, Y_cal, Yt_tv, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
     del X, Y, Yt
+
+    # Separate data into training and validation
+    X_train, X_val, Y_train, _, Yt_train, Yt_val = train_test_split(X_tv, Y_tv, Yt_tv, test_size=n_val, random_state=random_state+3)
+    del X_tv, Y_tv, Yt_tv
+
+    if contamination_model != "real":
+        del X_val, Yt_val
 
     print("Generating clean dataset...", end=' ')
     sys.stdout.flush()
@@ -294,12 +302,13 @@ def run_experiment(random_state):
         #____________________________________________________________________
         ## Estimate T
         lambda_candidates = [0, 0.01, 0.1, 1.0]
-        kappa_max = 100  # maximum acceptable condition number
+        kappa_max = 100
 
-        # Extract calibration features once (needed for ll_cont evaluation)
-        X_feat_cal = feature_extractor.transform(X_cal).numpy()
-        X_feat_cal_torch = torch.tensor(X_feat_cal, dtype=torch.float32).to(device)
-        Yt_cal_torch = torch.tensor(Yt_cal, dtype=torch.long).to(device)
+        # Extract validation features for lambda selection
+        X_feat_val = feature_extractor.transform(X_val).numpy()
+        X_feat_val_torch = torch.tensor(X_feat_val, dtype=torch.float32).to(device)
+        Yt_val_torch = torch.tensor(Yt_val, dtype=torch.long).to(device)
+        del X_feat_val, X_val, Yt_val
 
         #____________________________________________________________________
         ## Estimate T using the MLP without regularization - lambda selection
@@ -338,7 +347,7 @@ def run_experiment(random_state):
                 continue
 
             # Evaluate marginal log-likelihood on contaminated calibration set
-            ll = compute_ll_cont(model_candidate, X_feat_cal_torch, Yt_cal_torch)
+            ll = compute_ll_cont(model_candidate, X_feat_val_torch, Yt_val_torch)
             ll_cont_scores[lam] = ll
             print(f"  -> ll_cont={ll:.4f}")
 
@@ -358,10 +367,10 @@ def run_experiment(random_state):
             )
             train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
                             n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-2, verbose=False)
+                            lr=1e-2, lambda_reg=0, verbose=False)
             train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
                             n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-3, verbose=False)
+                            lr=1e-3, lambda_reg=0, verbose=False)
             best_T = model_candidate.contamination.contamination_matrix()
             best_T = best_T.detach().numpy()
 
@@ -409,7 +418,7 @@ def run_experiment(random_state):
                 continue
 
             # Evaluate marginal log-likelihood on contaminated calibration set
-            ll = compute_ll_cont(model_candidate, X_feat_cal_torch, Yt_cal_torch)
+            ll = compute_ll_cont(model_candidate, X_feat_val_torch, Yt_val_torch)
             ll_cont_scores[lam] = ll
             print(f"  -> ll_cont={ll:.4f}")
 
@@ -429,10 +438,10 @@ def run_experiment(random_state):
             )
             train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
                             n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-2, verbose=False)
+                            lr=1e-2, lambda_reg=0, verbose=False)
             train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
                             n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-3, verbose=False)
+                            lr=1e-3, lambda_reg=0, verbose=False)
             best_T = model_candidate.contamination.contamination_matrix()
             best_T = best_T.detach().numpy()
 
@@ -444,7 +453,7 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
         # Clean up calibration features
-        del X_feat_cal_torch
+        del X_feat_val_torch, Yt_val_torch
 
         """
         #____________________________________________________________________
