@@ -70,8 +70,9 @@ allow_empty = True
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
 n_test = 500
-n_val = 2000
-batch_size = n_train + n_val + n_clean + n_cal + n_test
+batch_size = n_train + n_clean + n_cal + n_test
+#n_val = 2000
+#batch_size = n_train + n_val + n_clean + n_cal + n_test
 epsilon_init = 0
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -205,16 +206,20 @@ def run_experiment(random_state):
         print("Done.")
         sys.stdout.flush()
 
-    # Separate data into training + validation and calibration
-    X_tv, X_cal, Y_tv, Y_cal, Yt_tv, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
+    
+    # Separate data into training and calibration
+    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
     del X, Y, Yt
 
+    # Separate data into training + validation and calibration
+    #X_tv, X_cal, Y_tv, Y_cal, Yt_tv, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
+    #del X, Y, Yt
     # Separate data into training and validation
-    X_train, X_val, Y_train, _, Yt_train, Yt_val = train_test_split(X_tv, Y_tv, Yt_tv, test_size=n_val, random_state=random_state+3)
-    del X_tv, Y_tv, Yt_tv
+    #X_train, X_val, Y_train, _, Yt_train, Yt_val = train_test_split(X_tv, Y_tv, Yt_tv, test_size=n_val, random_state=random_state+3)
+    #del X_tv, Y_tv, Yt_tv
 
-    if contamination_model != "real":
-        del X_val, Yt_val
+    #if contamination_model != "real":
+    #    del X_val, Yt_val
 
     print("Generating clean dataset...", end=' ')
     sys.stdout.flush()
