@@ -288,6 +288,14 @@ def run_experiment(random_state):
         T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical")
         T_hat_clean = T_method.get_estimate()
         with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_clean:\n{T_hat_clean}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_clean) == K}")
+            print(f"Determinant: {np.linalg.det(T_hat_clean)}")
+        print("Done.")
+        sys.stdout.flush()
+
+
+        with np.printoptions(precision=3, suppress=True):
             print(T_hat_clean)
             invertible_flag = np.linalg.matrix_rank(T_hat_clean) == T_hat_clean.shape[0]
             print(f"Invertible: {invertible_flag}")
@@ -474,6 +482,13 @@ def run_experiment(random_state):
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+        with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_NN:\n{T_hat_NN}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN) == K}")
+            print(f"Determinant: {np.linalg.det(T_hat_NN)}")
         print("Done.")
         sys.stdout.flush()
 
