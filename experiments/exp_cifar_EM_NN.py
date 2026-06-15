@@ -21,6 +21,8 @@ from cln.T_estimation_NN import NoisyLabelNet, train_alternate
 from cln.T_estimation import TMatrixEstimation
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
+from cln.classification_label_conditional import LabelNoiseConformal
+
 from third_party import arc
 
 from data_torch import Cifar10DataSet, CifarResNet18Features, ResNet18
@@ -225,6 +227,7 @@ def run_experiment(random_state):
         T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical")
         T_hat_clean = T_method.get_estimate()
 
+        """
         #____________________________________________________________________
         ## Estimate T using the NN with features and MLP
         print("Estimating T using the NN with features and uniform contamination...", end=' ')
@@ -248,26 +251,30 @@ def run_experiment(random_state):
         T_hat_NN_sll_uniform = T_hat_NN_sll_uniform.detach().numpy()
         print("Done.")
         sys.stdout.flush()
+        """
 
         #____________________________________________________________________
-        ## Estimate T using the NN with features and MLP
-        print("Estimating T using the NN with features...", end=' ')
+        ## Estimate T using the MLP with regularization
+        print("Estimating T using the MLP with regularization...", end=' ')
         sys.stdout.flush()
-        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[64], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0.1, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
         print("Done.")
         sys.stdout.flush()
 
+        M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
+
+
         #____________________________________________________________________
-        ## Estimate T using the NN with features and MLP
-        print("Estimating T using the NN with features and SLL...", end=' ')
+        ## Estimate T using the SLL with regularization
+        print("Estimating T using the SLL with regularization...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0.1, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
         T_hat_NN_sll = model_NN.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
         print("Done.")
@@ -349,11 +356,6 @@ def run_experiment(random_state):
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
-            "Adaptive optimized+ NN uniform": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon, T=T_hat_NN_uniform, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
 
             "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
@@ -361,12 +363,12 @@ def run_experiment(random_state):
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
-            
-            "Adaptive optimized+ NN SLL uniform": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon, T=T_hat_NN_sll_uniform, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),                                                           
+            "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                                                  rho_tilde=rho_tilde_hat, M=M_hat,
+                                                                  calibration_conditional=False, gamma=None,
+                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
+
+
 
         }
     else:
