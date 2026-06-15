@@ -228,6 +228,13 @@ def run_experiment(random_state):
         T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical")
         T_hat_clean = T_method.get_estimate()
 
+        with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_clean:\n{T_hat_clean}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_clean) == K}")
+            print(f"Determinant: {np.linalg.det(T_hat_clean)}")
+        print("Done.")
+        sys.stdout.flush()
+
         """
         #____________________________________________________________________
         ## Estimate T using the NN with features and MLP
