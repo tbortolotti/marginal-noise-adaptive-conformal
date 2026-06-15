@@ -6052,7 +6052,7 @@ make_figure_1101(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 #### Experiments 1103: Application to real contamination on BigEarthNet dataset ------------------------
@@ -6319,7 +6319,9 @@ make_figure_1104(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon,
                  plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                 save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+
+
 
 
 
