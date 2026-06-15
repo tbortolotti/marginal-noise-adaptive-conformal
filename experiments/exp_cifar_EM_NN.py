@@ -266,6 +266,13 @@ def run_experiment(random_state):
         print("Done.")
         sys.stdout.flush()
 
+        with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_NN:\n{T_hat_NN}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN) == K}")
+            print(f"Determinant: {np.linalg.det(T_hat_NN)}")
+        print("Done.")
+        sys.stdout.flush()
+
         M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
 
         #____________________________________________________________________
@@ -277,6 +284,13 @@ def run_experiment(random_state):
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
         T_hat_NN_sll = model_NN.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+        with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_NN_sll:\n{T_hat_NN_sll}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll) == K}")
+            print(f"Determinant: {np.linalg.det(T_hat_NN_sll)}")
         print("Done.")
         sys.stdout.flush()
 
