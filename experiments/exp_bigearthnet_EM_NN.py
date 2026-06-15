@@ -593,7 +593,7 @@ def run_experiment(random_state):
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
-            "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+            "Label conditional+": lambda: LabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                   rho_tilde=rho_tilde_hat, M=M_hat,
                                                                   calibration_conditional=False, gamma=None,
                                                                   optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
