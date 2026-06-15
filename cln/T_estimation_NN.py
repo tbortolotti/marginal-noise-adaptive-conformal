@@ -315,7 +315,7 @@ def noisy_label_loss(logits_Y: torch.Tensor,
 
     return loss_
 
-def contamination_regularization(model, lambda_reg=0.1, K):
+def contamination_regularization(model, lambda_reg=0.1):
     T_current = model.contamination.contamination_matrix()
 
     # Maximize log|det(T)| — directly encourages invertibility
