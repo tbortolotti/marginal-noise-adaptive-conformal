@@ -322,7 +322,10 @@ def contamination_regularization(model, lambda_reg=0.1):
     # Use SVD for numerical stability
     sign, logabsdet = torch.linalg.slogdet(T_current)
     # We want det > 0 and large, so penalize -log|det|
-    reg = -logabsdet  # minimizing this maximizes |det(T)|
+    #reg = -logabsdet  # minimizing this maximizes |det(T)|
+
+    # Hinge: only penalize when log|det(T)| < 0 (i.e. det < 1)
+    reg = torch.clamp(-logabsdet, min=0.0)
         
     return lambda_reg * reg
 

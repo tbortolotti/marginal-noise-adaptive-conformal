@@ -268,7 +268,6 @@ def run_experiment(random_state):
 
         M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
 
-
         #____________________________________________________________________
         ## Estimate T using the SLL with regularization
         print("Estimating T using the SLL with regularization...", end=' ')
