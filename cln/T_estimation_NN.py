@@ -315,7 +315,7 @@ def noisy_label_loss(logits_Y: torch.Tensor,
 
     return loss_
 
-"""
+
 def contamination_regularization(model, lambda_reg=0.1):
     T_current = model.contamination.contamination_matrix()
 
@@ -323,14 +323,11 @@ def contamination_regularization(model, lambda_reg=0.1):
     # Use SVD for numerical stability
     sign, logabsdet = torch.linalg.slogdet(T_current)
     # We want det > 0 and large, so penalize -log|det|
-    #reg = -logabsdet  # minimizing this maximizes |det(T)|
-
-    # Hinge: only penalize when log|det(T)| < 0 (i.e. det < 1)
-    reg = torch.clamp(-logabsdet, min=0.0)
+    reg = -logabsdet  # minimizing this maximizes |det(T)|
         
     return lambda_reg * reg
-"""
 
+"""
 def contamination_regularization(model, lambda_reg=0.1, p_star=0.5):
     T_current = model.contamination.contamination_matrix()
     K = T_current.shape[0]
@@ -351,6 +348,7 @@ def contamination_regularization(model, lambda_reg=0.1, p_star=0.5):
         reg = 0.0
 
     return lambda_reg * reg
+"""
 
 # ---------------------------------------------------------------------------
 # Training loop
