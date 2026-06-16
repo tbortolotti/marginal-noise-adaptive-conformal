@@ -289,18 +289,13 @@ def run_experiment(random_state):
         T_hat_clean = T_method.get_estimate()
         with np.printoptions(precision=3, suppress=True):
             print(f"Selected T_hat_clean:\n{T_hat_clean}")
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_clean) == K}")
-            print(f"Determinant: {np.linalg.det(T_hat_clean)}")
-        print("Done.")
-        sys.stdout.flush()
-
-
-        with np.printoptions(precision=3, suppress=True):
-            print(T_hat_clean)
-            invertible_flag = np.linalg.matrix_rank(T_hat_clean) == T_hat_clean.shape[0]
+            invertible_flag = np.linalg.matrix_rank(T_hat_clean) == K
             print(f"Invertible: {invertible_flag}")
+            print(f"Determinant: {np.linalg.det(T_hat_clean)}")
+            
         print("Done.")
         sys.stdout.flush()
+
         if not invertible_flag:
             #____________________________________________________________________
             ## Estimate T using the clean/noisy correspondence

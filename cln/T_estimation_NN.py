@@ -315,6 +315,7 @@ def noisy_label_loss(logits_Y: torch.Tensor,
 
     return loss_
 
+"""
 def contamination_regularization(model, lambda_reg=0.1):
     T_current = model.contamination.contamination_matrix()
 
@@ -328,6 +329,7 @@ def contamination_regularization(model, lambda_reg=0.1):
     reg = torch.clamp(-logabsdet, min=0.0)
         
     return lambda_reg * reg
+"""
 
 def contamination_regularization(model, lambda_reg=0.1, p_star=0.5):
     T_current = model.contamination.contamination_matrix()
@@ -342,7 +344,11 @@ def contamination_regularization(model, lambda_reg=0.1, p_star=0.5):
 
     # Hinge: only penalize when log|det(T)| < epsilon
     # i.e., only when T is more degenerate than a matrix with diagonal entries p_star
-    reg = torch.clamp(epsilon - logabsdet, min=0.0)
+    #reg = torch.clamp(epsilon - logabsdet, min=0.0)
+    if logabsdet <= epsilon:
+        reg = -logabsdet
+    else:
+        reg = 0.0
 
     return lambda_reg * reg
 
