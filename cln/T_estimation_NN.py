@@ -315,7 +315,7 @@ def noisy_label_loss(logits_Y: torch.Tensor,
 
     return loss_
 
-
+"""
 def contamination_regularization(model, lambda_reg=0.1):
     T_current = model.contamination.contamination_matrix()
 
@@ -326,9 +326,9 @@ def contamination_regularization(model, lambda_reg=0.1):
     reg = -logabsdet  # minimizing this maximizes |det(T)|
         
     return lambda_reg * reg
-
 """
-def contamination_regularization(model, lambda_reg=0.1, p_star=0.5):
+
+def contamination_regularization(model, lambda_reg=0.1, p_star=0.8):
     T_current = model.contamination.contamination_matrix()
     K = T_current.shape[0]
 
@@ -348,7 +348,6 @@ def contamination_regularization(model, lambda_reg=0.1, p_star=0.5):
         reg = 0.0
 
     return lambda_reg * reg
-"""
 
 # ---------------------------------------------------------------------------
 # Training loop
