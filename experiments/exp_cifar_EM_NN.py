@@ -261,6 +261,7 @@ def run_experiment(random_state):
         sys.stdout.flush()
         """
 
+        """
         #____________________________________________________________________
         ## Estimate T using the MLP with regularization
         print("Estimating T using the MLP with regularization...", end=' ')
@@ -281,7 +282,69 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
         M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
+        """
 
+        #____________________________________________________________________
+        ## Estimate T
+        #____________________________________________________________________
+        lambda_candidates = [0, 0.01, 0.1, 1.0]
+        p_star = 0.8
+        log_det_min = K * np.log(p_star)
+
+        #____________________________________________________________________
+        ## Estimate T using the NN with features and MLP with regularization
+        print("Estimating T using the MLP with regularization...", end=' ')
+        sys.stdout.flush()
+
+        best_lambda, best_T = None, None
+        for lam in lambda_candidates:
+            model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
+            train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=lam, verbose=False)
+            train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=lam, verbose=False)
+            T_candidate = model_NN.contamination.contamination_matrix()
+            T_candidate = T_candidate.detach().numpy()
+
+            sign, logdet = np.linalg.slogdet(T_candidate)
+            rank_ok = np.linalg.matrix_rank(T_candidate) == K
+            print(f"  lambda={lam}: rank_ok={rank_ok}, sign={sign:.0f}, logdet={logdet:.4f} (min={log_det_min:.4f})")
+
+            if rank_ok and sign > 0 and logdet >= log_det_min:
+                best_lambda, best_T = lam, T_candidate
+                break  # smallest lambda that works
+
+        print(f"Selected lambda={best_lambda}")
+        sys.stdout.flush()
+
+        # Fallback: if no lambda gave an acceptable T, use RR model
+        if best_T is None:
+            print("Warning: no lambda satisfied determinant criterion, falling back to RRM matrix.")
+            model_candidate = NoisyLabelNet(
+                input_dim=num_var, K=K, hidden_dims=[16, 8],
+                contamination_model_="uniform", epsilon_init=epsilon_init
+            )
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-2, lambda_reg=0, verbose=False)
+            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
+                            n_epochs=50, n_grad_steps=50, batch_size=128,
+                            lr=1e-3, lambda_reg=0, verbose=False)
+            best_T = model_candidate.contamination.contamination_matrix()
+            best_T = best_T.detach().numpy()
+
+        T_hat_NN = best_T
+
+        with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_NN:\n{T_hat_NN}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN) == K}")
+            print(f"Determinant: {np.linalg.det(T_hat_NN)}")
+        print("Done.")
+        sys.stdout.flush()
+
+        M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
+
+
+
+        """
         #____________________________________________________________________
         ## Estimate T using the SLL with regularization
         print("Estimating T using the SLL with regularization...", end=' ')
@@ -300,6 +363,7 @@ def run_experiment(random_state):
             print(f"Determinant: {np.linalg.det(T_hat_NN_sll)}")
         print("Done.")
         sys.stdout.flush()
+        """
 
     else:
         #____________________________________________________________________
@@ -377,13 +441,6 @@ def run_experiment(random_state):
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
-
-            "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                                                        epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
-                                                                        allow_empty=allow_empty, method="asymptotic",
-                                                                        optimized=True, optimistic=True, verbose=False,
-                                                                        pre_trained=True, random_state=random_state),
-
             "Label conditional+": lambda: LabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                   rho_tilde=rho_tilde_hat, M=M_hat,
                                                                   calibration_conditional=False, gamma=None,
@@ -392,6 +449,15 @@ def run_experiment(random_state):
 
 
         }
+
+        """
+            "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="asymptotic",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+        """
+
     else:
         methods = {
             "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,

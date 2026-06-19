@@ -315,7 +315,6 @@ def noisy_label_loss(logits_Y: torch.Tensor,
 
     return loss_
 
-"""
 def contamination_regularization(model, lambda_reg=0.1):
     T_current = model.contamination.contamination_matrix()
 
@@ -325,28 +324,6 @@ def contamination_regularization(model, lambda_reg=0.1):
     # We want det > 0 and large, so penalize -log|det|
     reg = -logabsdet  # minimizing this maximizes |det(T)|
         
-    return lambda_reg * reg
-"""
-
-def contamination_regularization(model, lambda_reg=0.1, p_star=0.8):
-    T_current = model.contamination.contamination_matrix()
-    K = T_current.shape[0]
-
-    # Compute log|det(T)| via slogdet for numerical stability
-    sign, logabsdet = torch.linalg.slogdet(T_current)
-
-    # Threshold: log-det of a stochastic matrix with all diagonal entries equal to p_star
-    # For a K x K stochastic matrix, a "minimally acceptable" det is p_star^K
-    epsilon = K * np.log(p_star)
-
-    # Hinge: only penalize when log|det(T)| < epsilon
-    # i.e., only when T is more degenerate than a matrix with diagonal entries p_star
-    #reg = torch.clamp(epsilon - logabsdet, min=0.0)
-    if logabsdet <= epsilon:
-        reg = -logabsdet
-    else:
-        reg = 0.0
-
     return lambda_reg * reg
 
 # ---------------------------------------------------------------------------
