@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=8
+CONF=1
 
 if [[ $CONF == 1 ]]; then
   # Figure 1, Figure A9 and Figure A10
@@ -93,21 +93,20 @@ elif [[ $CONF == 6 ]]; then
   ESTIMATE_LIST=("none")
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 8 ]]; then
-  # check what happens when epsilon grows big
+elif [[ $CONF == 7 ]]; then
+  # Figure 4
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
-  K_LIST=(4)
-  SIGNAL_LIST=(1.0)
+  K_LIST=(10 20 50)
+  SIGNAL_LIST=(5.0)
   MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.5 0.65 0.8)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform")
+  EPSILON_LIST=(0.05)
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("RRB")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
   ESTIMATE_LIST=("none")
   SEED_LIST=$(seq 1 5)
-
 fi
 
 

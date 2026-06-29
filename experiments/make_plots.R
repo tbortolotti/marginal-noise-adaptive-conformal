@@ -186,7 +186,7 @@ plot.contamination <- "RRB"
 make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
               plot.guarantee="marginal",
               plot.contamination=plot.contamination, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-              save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
+              save_plots=FALSE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
 
 # Optimistic counterpart (not shown in paper)
 make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
@@ -351,7 +351,7 @@ plot.K <- 4
 
 ## Figure 2
 make_figure_2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
 ## Optimistic counterpart (not shown in paper)
 # make_figure_2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
 #               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
@@ -760,7 +760,7 @@ make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 
 # Figure 3 (extended visualization)
 make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
 
 #### Horizontal visualization
