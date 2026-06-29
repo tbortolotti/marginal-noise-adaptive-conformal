@@ -5327,7 +5327,7 @@ init_settings <- function(plot.optimistic = FALSE) {
   method.values <<- c("Standard",
                       "Standard using clean",
                       "Adaptive optimized+ clean",
-                      "Adaptive optimized+ NN SLL",
+                      #"Adaptive optimized+ NN SLL",
                       "Adaptive optimized+ NN",
                       "Label conditional+",
                       "__spacer__",
@@ -5336,16 +5336,16 @@ init_settings <- function(plot.optimistic = FALSE) {
   method.labels <<- c("Standard",
                       "Standard (clean)",
                       "Adaptive+ (clean)",
-                      "Adaptive+ (NNs)",
+                      #"Adaptive+ (NNs)",
                       "Adaptive+ (NN)",
                       "Adaptive+ (label-cond)",
                       "",
                       "Standard (clean, simple)")
   #"Adaptive+ (AP RRM)")
   #color.scale <<- cbPalette[c(1,3,4,5,NA,10)]
-  color.scale <<- cbPalette[c(1,3,4,5,7,NA,10)]
-  shape.scale <<- c(1,2,3,4,5,NA,NA)
-  linetype.scale <<- c(1,1,1,1,1,0,4)
+  color.scale <<- cbPalette[c(1,3,5,7,NA,10)]
+  shape.scale <<- c(1,2,4,5,NA,NA)
+  linetype.scale <<- c(1,1,1,1,0,4)
 }
 
 make_figure_913 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.guarantee="marginal",
@@ -5417,9 +5417,9 @@ make_figure_913 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.gu
     xlab("Number of noisy calibration samples") +
     ylab("") +
     guides(
-      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
-      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
-      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1)))
     ) +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -5449,7 +5449,7 @@ make_figure_913(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 #' ---------------------------------------------------------------------------------------------------------------------
@@ -6213,5 +6213,7 @@ make_figure_1103(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                  plot.epsilon=plot.epsilon,
                  plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                  save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+
+
 
 

@@ -4,6 +4,7 @@ from sklearn.model_selection import KFold
 import pdb
 import cvxpy as cp
 
+"""
 def estimate_c_const(n, n_mc=1000):
     R = np.zeros((n_mc,))
     for b in range(n_mc):
@@ -11,6 +12,16 @@ def estimate_c_const(n, n_mc=1000):
         R[b] = np.max(np.arange(1,n+1)/n - U)
     c = np.mean(R)
     return c
+"""
+
+def estimate_c_const(n, n_mc=1000):
+    R = np.zeros((n_mc,))
+    for b in range(n_mc):
+        U = np.sort(np.random.uniform(0,1,size=(n,)))
+        R[b] = np.max(np.abs(np.arange(1,n+1)/n - U))
+    c = np.mean(R)
+    return c
+
 
 def eval_delta_marg_a(beta_0, betas, W, n):
     K = W.shape[0]
