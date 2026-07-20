@@ -186,7 +186,7 @@ plot.contamination <- "RRB"
 make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
               plot.guarantee="marginal",
               plot.contamination=plot.contamination, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-              save_plots=FALSE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
+              save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
 
 # Optimistic counterpart (not shown in paper)
 make_figure_1(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K, plot.guarantee="marginal",
@@ -351,7 +351,7 @@ plot.K <- 4
 
 ## Figure 2
 make_figure_2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE, slides=FALSE)
 ## Optimistic counterpart (not shown in paper)
 # make_figure_2(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
 #               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE, slides=FALSE)
@@ -709,7 +709,7 @@ make_figure_4 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", 
     plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimistic%s.pdf",
                          exp.num,
                          10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=3, width=9, units="in")
+    ggsave(file=plot.file, height=5, width=9, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -723,7 +723,7 @@ plot.nu <- 0.8
 plot.contamination <- "uniform"
 plot.epsilon <- 0.1
 make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=FALSE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
 
 plot.epsilon <- 0.2
 make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
@@ -754,13 +754,16 @@ make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 # make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
 #               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
-plot.epsilon <- 0.2
+plot.epsilon <- 0.1
 make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=FALSE, reload=TRUE)
 
 # Figure 3 (extended visualization)
+plot.epsilon <- 0.2
+plot.contamination <- "RRB"
+plot.nu <- 0.8
 make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 
 #### Horizontal visualization
