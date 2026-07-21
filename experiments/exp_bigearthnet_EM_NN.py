@@ -314,7 +314,7 @@ def run_experiment(random_state):
         ## Estimate T
         #____________________________________________________________________
         lambda_candidates = [0, 0.1]
-        p_star = 0.5
+        p_star = 0.8
         log_det_min = K * np.log(p_star)
 
         #____________________________________________________________________
@@ -333,6 +333,10 @@ def run_experiment(random_state):
             sign, logdet = np.linalg.slogdet(T_candidate)
             rank_ok = np.linalg.matrix_rank(T_candidate) == K
             print(f"  lambda={lam}: rank_ok={rank_ok}, sign={sign:.0f}, logdet={logdet:.4f} (min={log_det_min:.4f})")
+
+            if lam==0.1:
+                best_lambda, best_T = lam, T_candidate
+                break
 
             if rank_ok and sign > 0 and logdet >= log_det_min:
                 best_lambda, best_T = lam, T_candidate
