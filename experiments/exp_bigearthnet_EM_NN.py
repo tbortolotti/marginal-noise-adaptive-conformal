@@ -314,7 +314,7 @@ def run_experiment(random_state):
         ## Estimate T
         #____________________________________________________________________
         lambda_candidates = [0, 0.1]
-        p_star = 0.8
+        p_star = 0.9
         log_det_min = K * np.log(p_star)
 
         #____________________________________________________________________
@@ -362,6 +362,8 @@ def run_experiment(random_state):
             best_T = best_T.detach().numpy()
 
         T_hat_NN = best_T
+
+
 
         with np.printoptions(precision=3, suppress=True):
             print(f"Selected T_hat_NN:\n{T_hat_NN}")
