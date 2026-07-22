@@ -6225,16 +6225,6 @@ library(ggforce)   # for facet_zoom() - draws the highlighted rectangle, the
 # connector lines from its corners, and the grey zoom
 # area automatically and precisely (no manual tuning)
 
-# ---------------------------------------------------------------------------
-# Robust legend extractor.
-# cowplot::get_legend() greps the gtable for grobs named "guide-box*".
-# In ggplot2 >= 3.5 there can be several such slots (guide-box-right,
-# guide-box-top, guide-box-bottom, ...), most of which are empty zeroGrobs
-# used as layout placeholders. get_legend() just returns the *first* match,
-# which is not guaranteed to be the real legend -> "Multiple components
-# found" warning, and sometimes a blank legend.
-# This version keeps only the non-empty guide-box grob.
-# ---------------------------------------------------------------------------
 get_legend2 <- function(pl) {
   g <- ggplotGrob(pl)
   idx <- grep("guide-box", g$layout$name)
@@ -6391,4 +6381,4 @@ make_figure_1103b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, p
                   plot.epsilon=plot.epsilon,
                   plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                   zoom.ylim=c(1.30,1.38),
-                  save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+                  save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
