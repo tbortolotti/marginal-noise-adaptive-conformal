@@ -3704,7 +3704,6 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Standard using clean",
                       "Adaptive optimized+",
                       "Adaptive optimized+ clean",
-                      "Adaptive optimized+ NN SLL",
                       "Adaptive optimized+ NN",
                       "__spacer__",
                       "Standard (clean) line")
@@ -3713,14 +3712,13 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Standard (clean)",
                       "Adaptive+",
                       "Adaptive+ (c/n)",
-                      "Adaptive+ (NNs)",
                       "Adaptive+ (NN)",
                       "",
                       "Standard (clean, simple)")
   #"Adaptive+ (AP RRM)")
-  color.scale <<- cbPalette[c(1,2,3,4,5,NA,10)]
-  shape.scale <<- c(1,5,2,3,4,NA,NA)
-  linetype.scale <<- c(1,1,1,1,1,0,4)
+  color.scale <<- cbPalette[c(1,2,3,5,NA,10)]
+  shape.scale <<- c(1,5,2,4,NA,NA)
+  linetype.scale <<- c(1,1,1,1,0,4)
   xlab_ <<- "Number of noisy calibration samples"
 }
 
@@ -3813,9 +3811,9 @@ make_figure_711 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     xlab(xlab_) +
     ylab("") +
     guides(                                                                # <--
-      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
-      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
-      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1)))
     ) +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -4028,9 +4026,9 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     xlab(xlab_) +
     ylab("") +
     guides(                                                                # <--
-      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
-      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
-      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1)))
     ) +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -4061,7 +4059,7 @@ make_figure_713 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 plot.alpha <- 0.1
 plot.epsilon <- 0.2
 plot.n_train <- c(1000, 5000, 10000)
-plot.n_clean <- 100
+plot.n_clean <- 500
 plot.pi_clean <- 0
 plot.K <- 4
 plot.contamination <- "uniform"
@@ -4073,15 +4071,6 @@ make_figure_713(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                 plot.pi_clean=plot.pi_clean,
                 plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
-
-make_figure_713(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.guarantee="marginal",
-                plot.contamination=plot.contamination,
-                plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE, plot.exp_easy=TRUE)
-
-
 
 #### Experiment 714: Impact of the number of training samples ------------------------
 #' Plot marginal coverage as function of the number of calibration samples,
@@ -4392,9 +4381,9 @@ make_figure_716 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
     xlab(xlab_) +
     ylab("") +
     guides(                                                                # <--
-      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
-      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1))),
-      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,1,0,1)))
+      color    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      shape    = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1))),
+      linetype = guide_legend(override.aes = list(alpha = c(1,1,1,1,0,1)))
     ) +
     theme_bw() +
     theme(text = element_text(size = 12),
@@ -4990,7 +4979,7 @@ init_settings <- function(plot.optimistic = FALSE) {
   method.labels <<- c("Standard",
                       "Standard (AP)",
                       "Adaptive+",
-                      "Adaptive+ (clean)",
+                      "Adaptive+ (c/n)",
                       "Adaptive+ (AP)")
   #"Adaptive+ (AP RRM)")
   color.scale <<- cbPalette[c(1,3,4,5,6)]
@@ -5338,7 +5327,7 @@ init_settings <- function(plot.optimistic = FALSE) {
   #"Adaptive optimized+ AP param")
   method.labels <<- c("Standard",
                       "Standard (clean)",
-                      "Adaptive+ (clean)",
+                      "Adaptive+ (c/n)",
                       #"Adaptive+ (NNs)",
                       "Adaptive+ (NN)",
                       "Adaptive+ (label-cond)",
@@ -6435,8 +6424,8 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Adaptive+ (label-cond)",
                       "",
                       "Standard (clean, simple)")
-  color.scale <<- cbPalette[c(1,3,7,NA,10)]
-  shape.scale <<- c(1,2,5,NA,NA)
+  color.scale <<- cbPalette[c(1,5,7,NA,10)]
+  shape.scale <<- c(1,3,5,NA,NA)
   linetype.scale <<- c(1,1,1,0,4)
 }
 
@@ -6471,8 +6460,7 @@ make_figure_1103b <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot
            Label=="marginal", Alpha==plot.alpha,
            Method %in% method.values,
            contamination==plot.contamination,
-           epsilon==plot.epsilon, n_clean %in% plot.n_clean,
-           n_cal<20000)
+           epsilon==plot.epsilon, n_clean %in% plot.n_clean)
   
   df.clean.values <- df %>%
     filter(Method=="Standard using clean") %>%

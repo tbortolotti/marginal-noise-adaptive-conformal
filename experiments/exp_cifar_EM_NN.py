@@ -261,14 +261,14 @@ def run_experiment(random_state):
         sys.stdout.flush()
         """
 
-        """
+
         #____________________________________________________________________
         ## Estimate T using the MLP with regularization
         print("Estimating T using the MLP with regularization...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0.1, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0, verbose=False)
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
         print("Done.")
@@ -283,7 +283,6 @@ def run_experiment(random_state):
 
         M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
         """
-
         #____________________________________________________________________
         ## Estimate T
         #____________________________________________________________________
@@ -341,6 +340,7 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
         M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
+        """
 
 
 
@@ -431,11 +431,23 @@ def run_experiment(random_state):
 
             "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Asymptotic+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
                                                                         allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
                                                                         pre_trained=True, random_state=random_state),
 
             "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Asymptotic+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                         epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
                                                                         allow_empty=allow_empty, method="asymptotic",
                                                                         optimized=True, optimistic=True, verbose=False,
