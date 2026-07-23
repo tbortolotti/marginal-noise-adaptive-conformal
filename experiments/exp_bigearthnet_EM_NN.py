@@ -313,37 +313,46 @@ def run_experiment(random_state):
         #____________________________________________________________________
         ## Estimate T
         #____________________________________________________________________
-        lambda_candidates = [0, 0.1]
-        p_star = 0.95
-        log_det_min = K * np.log(p_star)
+        #lambda_candidates = [0, 0.1]
+        #p_star = 0.95
+        #log_det_min = K * np.log(p_star)
 
         #____________________________________________________________________
         ## Estimate T using the NN with features and MLP with regularization
+        #print("Estimating T using the MLP with regularization...", end=' ')
+        #sys.stdout.flush()
+
+        #best_lambda, best_T = None, None
+        #for lam in lambda_candidates:
+        #    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
+        #    train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=lam, verbose=False)
+        #    train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=lam, verbose=False)
+        #    T_candidate = model_NN.contamination.contamination_matrix()
+        #    T_candidate = T_candidate.detach().numpy()
+
+        #    sign, logdet = np.linalg.slogdet(T_candidate)
+        #    rank_ok = np.linalg.matrix_rank(T_candidate) == K
+        #    print(f"  lambda={lam}: rank_ok={rank_ok}, sign={sign:.0f}, logdet={logdet:.4f} (min={log_det_min:.4f})")
+
+        #    if lam==0.1:
+        #        best_lambda, best_T = lam, T_candidate
+        #        break
+
+        #    if rank_ok and sign > 0 and logdet >= log_det_min:
+        #        best_lambda, best_T = lam, T_candidate
+        #        break  # smallest lambda that works
+
+        #print(f"Selected lambda={best_lambda}")
+        #sys.stdout.flush()
+
+        ## Estimate T using the NN with features and MLP with regularization
         print("Estimating T using the MLP with regularization...", end=' ')
         sys.stdout.flush()
-
-        best_lambda, best_T = None, None
-        for lam in lambda_candidates:
-            model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-            train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=lam, verbose=False)
-            train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=lam, verbose=False)
-            T_candidate = model_NN.contamination.contamination_matrix()
-            T_candidate = T_candidate.detach().numpy()
-
-            sign, logdet = np.linalg.slogdet(T_candidate)
-            rank_ok = np.linalg.matrix_rank(T_candidate) == K
-            print(f"  lambda={lam}: rank_ok={rank_ok}, sign={sign:.0f}, logdet={logdet:.4f} (min={log_det_min:.4f})")
-
-            if lam==0.1:
-                best_lambda, best_T = lam, T_candidate
-                break
-
-            if rank_ok and sign > 0 and logdet >= log_det_min:
-                best_lambda, best_T = lam, T_candidate
-                break  # smallest lambda that works
-
-        print(f"Selected lambda={best_lambda}")
-        sys.stdout.flush()
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0.1, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
+        best_T = model_NN.contamination.contamination_matrix()
+        best_T = best_T.detach().numpy()
 
         # Fallback: if no lambda gave an acceptable T, use RR model
         if best_T is None:
@@ -362,8 +371,6 @@ def run_experiment(random_state):
             best_T = best_T.detach().numpy()
 
         T_hat_NN = best_T
-
-
 
         with np.printoptions(precision=3, suppress=True):
             print(f"Selected T_hat_NN:\n{T_hat_NN}")
