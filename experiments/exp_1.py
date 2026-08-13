@@ -22,6 +22,7 @@ from cln.classification import MarginalLabelNoiseConformal
 from cln.classification_label_conditional import LabelNoiseConformal
 
 from third_party import arc
+from third_party.clarkson import ClarksonConformal
 
 
 # Define default parameters
@@ -247,10 +248,6 @@ def run_experiment(random_state):
                                                                    method="asymptotic", optimistic=True, verbose=False,
                                                                    pre_trained=True, random_state=random_state),
 
-                "Standard label conditional": lambda: arc.methods.SplitConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                               label_conditional=True, allow_empty=allow_empty,
-                                                               pre_trained=True, random_state=random_state),
-
                 "Label conditional": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
                                                                  rho_tilde=rho_tilde_hat, M=M_hat,
                                                                  calibration_conditional=False, gamma=None,
@@ -259,7 +256,12 @@ def run_experiment(random_state):
                 "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
                                                                   rho_tilde=rho_tilde_hat, M=M_hat,
                                                                   calibration_conditional=False, gamma=None,
-                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
+                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
+
+                "Clarkson": lambda: ClarksonConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                       M=M, rho_tilde=rho_tilde_hat,
+                                       allow_empty=allow_empty, pre_trained=True,
+                                       random_state=random_state)
 
             }
 
