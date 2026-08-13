@@ -22,7 +22,7 @@ from cln.classification import MarginalLabelNoiseConformal
 from cln.classification_label_conditional import LabelNoiseConformal
 
 from third_party import arc
-from third_party.clarkson import ClarksonConformal
+from third_party.clarkson.clarkson import ClarksonConformal
 
 
 # Define default parameters
