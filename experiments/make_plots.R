@@ -1274,30 +1274,27 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 }
 
 
-init_settings <- function(plot.optimistic = FALSE) {
+init_settings <- function() {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2")
-  if(plot.optimistic) {
-    method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+")
-    method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)")
-    color.scale <<- cbPalette[c(1,3,4,8)]
-    shape.scale <<- c(1,2,4,7)
-    linetype.scale <<- c(1,1,1,1)
-  }
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#B22222")
+  method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+", "Clarkson")
+  method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)", "Clarkson")
+  color.scale <<- cbPalette[c(1,3,4,8,10)]
+  shape.scale <<- c(1,2,4,7,8)
+  linetype.scale <<- c(1,1,1,1,1)
 }
 
 make_figure_301 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                           plot.contamination="uniform",
                           plot.epsilon, plot.nu=0,
                           imb.values,
-                          plot.data="synthetic4",
-                          plot.optimistic=FALSE) {
+                          plot.data="synthetic4") {
   if(reload) {
     summary <- load_data(exp.num)
   }
   
-  init_settings(plot.optimistic = plot.optimistic)
+  init_settings()
   
   df <- summary %>%
     filter(data==plot.data, num_var==20, n_train==10000, K==plot.K, signal==1, Guarantee==plot.guarantee,
@@ -1359,11 +1356,11 @@ plot.contamination <- "RRB"
 plot.nu <- 0.2
 plot.K <- 4
 plot.data <- "synthetic4"
-imb.values <- c(0,0.5,1)
+imb.values <- c(0,1,2)
 
 ## Figure A16
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=FALSE, reload=TRUE)
 
 ## Plot of the label-wise performances (not shown in paper)
 #'
