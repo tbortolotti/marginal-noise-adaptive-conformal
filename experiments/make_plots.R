@@ -1280,7 +1280,7 @@ init_settings <- function() {
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#B22222")
   method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+", "Clarkson")
   method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)", "Clarkson")
-  color.scale <<- cbPalette[c(1,3,4,8,10)]
+  color.scale <<- cbPalette[c(1,3,4,8,11)]
   shape.scale <<- c(1,2,4,7,8)
   linetype.scale <<- c(1,1,1,1,1)
 }
@@ -1353,10 +1353,10 @@ exp.num <- 301
 plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.contamination <- "RRB"
-plot.nu <- 0.2
-plot.K <- 4
+plot.nu <- 0.8
+plot.K <- 10
 plot.data <- "synthetic4"
-imb.values <- c(0,1,2)
+imb.values <- c(1,2)
 
 ## Figure A16
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
