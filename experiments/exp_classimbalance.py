@@ -198,66 +198,86 @@ def run_experiment(random_state):
             label_conditional = False
 
             # Define a dictionary of methods with their names and corresponding initialization parameters
-            methods = {
-                "Standard": lambda: arc.methods.SplitConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                               label_conditional=label_conditional, allow_empty=allow_empty,
-                                                               pre_trained=True, random_state=random_state),
+            if estimate=="none":
+                methods = {
+                    "Standard": lambda: arc.methods.SplitConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                label_conditional=label_conditional, allow_empty=allow_empty,
+                                                                pre_trained=True, random_state=random_state),
 
-                "Adaptive optimized": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                          epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
-                                                                          allow_empty=allow_empty, method="improved",
-                                                                          optimized=True, optimistic=False, verbose=False,
-                                                                          pre_trained=True, random_state=random_state),
+                    "Adaptive optimized": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                            epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
+                                                                            allow_empty=allow_empty, method="improved",
+                                                                            optimized=True, optimistic=False, verbose=False,
+                                                                            pre_trained=True, random_state=random_state),
 
-                "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                          epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
-                                                                          allow_empty=allow_empty, method="improved",
-                                                                          optimized=True, optimistic=True, verbose=False,
-                                                                          pre_trained=True, random_state=random_state),
+                    "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                            epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
+                                                                            allow_empty=allow_empty, method="improved",
+                                                                            optimized=True, optimistic=True, verbose=False,
+                                                                            pre_trained=True, random_state=random_state),
 
-                "Adaptive simplified": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                           epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
-                                                                           allow_empty=allow_empty, method="improved",
-                                                                           optimized=False, optimistic=False, verbose=False,
-                                                                           pre_trained=True, random_state=random_state),
+                    "Adaptive simplified": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                            epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
+                                                                            allow_empty=allow_empty, method="improved",
+                                                                            optimized=False, optimistic=False, verbose=False,
+                                                                            pre_trained=True, random_state=random_state),
 
-                "Adaptive simplified+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                           epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
-                                                                           allow_empty=allow_empty, method="improved",
-                                                                           optimized=False, optimistic=True, verbose=False,
-                                                                           pre_trained=True, random_state=random_state),
+                    "Adaptive simplified+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                            epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
+                                                                            allow_empty=allow_empty, method="improved",
+                                                                            optimized=False, optimistic=True, verbose=False,
+                                                                            pre_trained=True, random_state=random_state),
 
-                "Asymptotic": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                  epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
-                                                                  asymptotic_MC_samples=asymptotic_MC_samples, T=T,
-                                                                  rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
-                                                                  method="asymptotic", optimistic=False, verbose=False,
-                                                                  pre_trained=True, random_state=random_state),
+                    "Asymptotic": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                    epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
+                                                                    asymptotic_MC_samples=asymptotic_MC_samples, T=T,
+                                                                    rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
+                                                                    method="asymptotic", optimistic=False, verbose=False,
+                                                                    pre_trained=True, random_state=random_state),
 
-                "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                   epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
-                                                                   asymptotic_MC_samples=asymptotic_MC_samples, T=T,
-                                                                   rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
-                                                                   method="asymptotic", optimistic=True, verbose=False,
-                                                                   pre_trained=True, random_state=random_state),
+                    "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                    epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
+                                                                    asymptotic_MC_samples=asymptotic_MC_samples, T=T,
+                                                                    rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
+                                                                    method="asymptotic", optimistic=True, verbose=False,
+                                                                    pre_trained=True, random_state=random_state),
 
-                "Label conditional": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                 rho_tilde=rho_tilde_hat, M=M_hat,
-                                                                 calibration_conditional=False, gamma=None,
-                                                                 optimistic=False, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
-                
-                "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                                                  rho_tilde=rho_tilde_hat, M=M_hat,
-                                                                  calibration_conditional=False, gamma=None,
-                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
+                    "Label conditional": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                    rho_tilde=rho_tilde_hat, M=M_hat,
+                                                                    calibration_conditional=False, gamma=None,
+                                                                    optimistic=False, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
+                    
+                    "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                    rho_tilde=rho_tilde_hat, M=M_hat,
+                                                                    calibration_conditional=False, gamma=None,
+                                                                    optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
+                }
+            else:
+                methods = {
+                    "Standard": lambda: arc.methods.SplitConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                label_conditional=label_conditional, allow_empty=allow_empty,
+                                                                pre_trained=True, random_state=random_state),
 
-                "Clarkson": lambda: ClarksonConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                       M=M, rho_tilde=rho_tilde_hat,
-                                       allow_empty=allow_empty, pre_trained=True,
-                                       random_state=random_state)
-                
+                    "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                            epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
+                                                                            allow_empty=allow_empty, method="improved",
+                                                                            optimized=True, optimistic=True, verbose=False,
+                                                                            pre_trained=True, random_state=random_state),
 
-            }
+                    "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                                                    epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
+                                                                    asymptotic_MC_samples=asymptotic_MC_samples, T=T,
+                                                                    rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
+                                                                    method="asymptotic", optimistic=True, verbose=False,
+                                                                    pre_trained=True, random_state=random_state),
+
+                    "Clarkson": lambda: ClarksonConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                                        M=M, rho_tilde=rho_tilde_hat,
+                                        allow_empty=allow_empty, pre_trained=True,
+                                        random_state=random_state)
+                }
+
+            
 
             # Initialize an empty list to store the evaluation results
             res_list = []
