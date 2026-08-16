@@ -197,16 +197,17 @@ def run_experiment(random_state):
     X, X_test, Y, Y_test, Yt, _ = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
     del X_all, Y_all, Yt_all
 
-    if contamination_model == "real":
-        #rho_tilde_hat = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
-        rho_tilde_hat = np.array([0.113, 0.031, 0.025, 0.137, 0.016, 0.678])
-    else:
-        # Estimate the label proportions from the whole data set
-        print("Estimating label proportions...", end=' ')
-        sys.stdout.flush()
-        rho_tilde_hat = estimate_rho(Yt, K)
-        print("Done.")
-        sys.stdout.flush()
+    #if contamination_model == "real":
+    #    #rho_tilde_hat = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
+    #    rho_tilde_hat = np.array([0.113, 0.031, 0.025, 0.137, 0.016, 0.678])
+    #else:
+
+    # Estimate the label proportions from the whole data set
+    print("Estimating label proportions...", end=' ')
+    sys.stdout.flush()
+    rho_tilde_hat = estimate_rho(Yt, K)
+    print("Done.")
+    sys.stdout.flush()
 
     
     # Separate data into training and calibration
