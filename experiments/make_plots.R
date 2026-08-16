@@ -6740,13 +6740,14 @@ library(ggforce)
 init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767","#B22222")
   
   method.values <<- c("Standard",
                       "Standard using clean",
                       "Adaptive+ NN",
                       "Asymptotic+ NN",
                       "Label conditional+",
+                      "Clarkson",
                       "__spacer__",
                       "Standard (clean) line")
   
@@ -6755,11 +6756,12 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Adaptive+",
                       "Adaptive+ (asymptotic)",
                       "Adaptive+ (label-cond)",
+                      "Clarkson",
                       "",
                       "Standard (clean, simple)")
-  color.scale <<- cbPalette[c(1,3,4,7,NA,10)]
-  shape.scale <<- c(1,2,3,5,NA,NA)
-  linetype.scale <<- c(1,1,1,1,0,4)
+  color.scale <<- cbPalette[c(1,3,4,7,11,NA,10)]
+  shape.scale <<- c(1,2,3,5,6,NA,NA)
+  linetype.scale <<- c(1,1,1,1,1,0,4)
 }
 
 
@@ -6903,7 +6905,7 @@ make_figure_1103b <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot
   }
 }
 
-exp.num <- 1104
+exp.num <- 1103
 plot.data <- "bigearthnet"
 plot.alpha <- 0.1
 plot.epsilon <- 0.016
@@ -6917,5 +6919,5 @@ make_figure_1103b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, p
                   plot.epsilon=plot.epsilon,
                   plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                   zoom.ylim=c(1.30,1.4),
-                  save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+                  save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 dev.off()

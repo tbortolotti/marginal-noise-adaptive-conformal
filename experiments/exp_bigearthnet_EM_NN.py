@@ -415,7 +415,7 @@ def run_experiment(random_state):
                                                                   calibration_conditional=False, gamma=None,
                                                                   optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
 
-            "Clarkson": lambda: ClarksonConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+            "Clarkson": lambda: ClarksonConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                         M=M_hat, rho_tilde=rho_tilde_hat,
                                         allow_empty=allow_empty, pre_trained=True,
                                         random_state=random_state)
