@@ -198,7 +198,8 @@ def run_experiment(random_state):
     del X_all, Y_all, Yt_all
 
     if contamination_model == "real":
-        rho_tilde_hat = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
+        #rho_tilde_hat = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
+        rho_tilde_hat = np.array([0.113, 0.031, 0.025, 0.137, 0.016, 0.678])
     else:
         # Estimate the label proportions from the whole data set
         print("Estimating label proportions...", end=' ')
