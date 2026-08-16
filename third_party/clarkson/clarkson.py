@@ -165,13 +165,20 @@ class ClarksonConformal:
 
         if M is None or rho_tilde is None:
             raise ValueError("Both the mixing matrix M and rho_tilde must be provided.")
-        self.M = M
-        self.rho_tilde = rho_tilde
+        
+
+        self.M = np.asarray(M, dtype=float)
+        self.rho_tilde = np.asarray(rho_tilde, dtype=float)
+        self.P_inv = np.linalg.inv(self.M.T)
+        self.rho = self.M.T @ self.rho_tilde
+
+        #self.M = M
+        #self.rho_tilde = rho_tilde
         # P[j, i] = P(Y=j | Ytilde=i) in the paper's notation equals M.T here.
-        self.P_inv = np.linalg.inv(M.T)
+        #self.P_inv = np.linalg.inv(M.T)
         # Marginal label proportions implied by M and rho_tilde, as in
         # cln.classification.MarginalLabelNoiseConformal.compute_delta_const_marginal.
-        self.rho = np.dot(M.T, rho_tilde)
+        #self.rho = np.dot(M.T, rho_tilde)
 
         # Split data into training/calibration sets
         if n_cal >= 0:
