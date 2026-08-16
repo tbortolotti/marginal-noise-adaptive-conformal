@@ -28,6 +28,7 @@ from cln.classification import MarginalLabelNoiseConformal
 from cln.classification_label_conditional import LabelNoiseConformal
 
 from third_party import arc
+from third_party.clarkson.clarkson import ClarksonConformal
 from third_party.bigearthnet.datamodules.bigearthnet_datamodule import BigEarthNetDataModule
 from third_party.bigearthnet.models.bigearthnet_module import BigEarthNetModule, TorchGeoFeatureExtractor
 import gc
@@ -310,155 +311,6 @@ def run_experiment(random_state):
             print("Done.")
             sys.stdout.flush()
 
-        #____________________________________________________________________
-        ## Estimate T
-        #____________________________________________________________________
-        #lambda_candidates = [0, 0.1]
-        #p_star = 0.95
-        #log_det_min = K * np.log(p_star)
-
-        #____________________________________________________________________
-        ## Estimate T using the NN with features and MLP with regularization
-        #print("Estimating T using the MLP with regularization...", end=' ')
-        #sys.stdout.flush()
-
-        #best_lambda, best_T = None, None
-        #for lam in lambda_candidates:
-        #    model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        #    train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=lam, verbose=False)
-        #    train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=lam, verbose=False)
-        #    T_candidate = model_NN.contamination.contamination_matrix()
-        #    T_candidate = T_candidate.detach().numpy()
-
-        #    sign, logdet = np.linalg.slogdet(T_candidate)
-        #    rank_ok = np.linalg.matrix_rank(T_candidate) == K
-        #    print(f"  lambda={lam}: rank_ok={rank_ok}, sign={sign:.0f}, logdet={logdet:.4f} (min={log_det_min:.4f})")
-
-        #    if lam==0.1:
-        #        best_lambda, best_T = lam, T_candidate
-        #        break
-
-        #    if rank_ok and sign > 0 and logdet >= log_det_min:
-        #        best_lambda, best_T = lam, T_candidate
-        #        break  # smallest lambda that works
-
-        #print(f"Selected lambda={best_lambda}")
-        #sys.stdout.flush()
-
-        ## Estimate T using the NN with features and MLP with regularization
-        print("Estimating T using the MLP with regularization...", end=' ')
-        sys.stdout.flush()
-        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0.1, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
-        best_T = model_NN.contamination.contamination_matrix()
-        best_T = best_T.detach().numpy()
-
-        # Fallback: if no lambda gave an acceptable T, use RR model
-        if best_T is None:
-            print("Warning: no lambda satisfied determinant criterion, falling back to RRM matrix.")
-            model_candidate = NoisyLabelNet(
-                input_dim=num_var, K=K, hidden_dims=[16, 8],
-                contamination_model_="uniform", epsilon_init=epsilon_init
-            )
-            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
-                            n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-2, lambda_reg=0, verbose=False)
-            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
-                            n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-3, lambda_reg=0, verbose=False)
-            best_T = model_candidate.contamination.contamination_matrix()
-            best_T = best_T.detach().numpy()
-
-        T_hat_NN = best_T
-
-        with np.printoptions(precision=3, suppress=True):
-            print(f"Selected T_hat_NN:\n{T_hat_NN}")
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN) == K}")
-            print(f"Determinant: {np.linalg.det(T_hat_NN)}")
-        print("Done.")
-        sys.stdout.flush()
-
-        M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
-
-        """
-        #____________________________________________________________________
-        ## Estimate T using the MLP with regularization - lambda selection
-        print("Estimating T using the MLP with lambda selection...", end=' ')
-        sys.stdout.flush()
-
-        best_lambda = None
-        best_ll = -np.inf
-        best_T = None
-        ll_cont_scores = {}
-
-        for lam in lambda_candidates:
-            model_candidate = NoisyLabelNet(
-                input_dim=num_var, K=K, hidden_dims=[16, 8],
-                contamination_model_="general", epsilon_init=epsilon_init
-            )
-            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
-                            n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-2, lambda_reg=lam, verbose=False)
-            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
-                            n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-3, lambda_reg=lam, verbose=False)
-
-            T_candidate = model_candidate.contamination.contamination_matrix().detach().numpy()
-            cond_num = np.linalg.cond(T_candidate)
-            rank = np.linalg.matrix_rank(T_candidate)
-            invertible = (rank == K) and (cond_num < kappa_max)
-
-            with np.printoptions(precision=3, suppress=True):
-                print(f"\n  lambda={lam}: cond={cond_num:.1f}, invertible={invertible}")
-                print(f"  T=\n{T_candidate}")
-
-            if not invertible:
-                print(f"  -> Skipping lambda={lam} (not invertible or ill-conditioned)")
-                ll_cont_scores[lam] = -np.inf
-                continue
-
-            # Evaluate marginal log-likelihood on contaminated calibration set
-            ll = compute_ll_cont(model_candidate, X_feat_val_torch, Yt_val_torch)
-            ll_cont_scores[lam] = ll
-            print(f"  -> ll_cont={ll:.4f}")
-
-            if ll > best_ll:
-                best_ll = ll
-                best_lambda = lam
-                best_T = T_candidate.copy()
-
-        print(f"\nSelected lambda={best_lambda} with ll_cont={best_ll:.4f}")
-
-        # Fallback: if no lambda gave an invertible T, use identity
-        if best_T is None:
-            print("Warning: no invertible T found, falling back to RRM matrix.")
-            model_candidate = NoisyLabelNet(
-                input_dim=num_var, K=K, hidden_dims=[16, 8],
-                contamination_model_="uniform", epsilon_init=epsilon_init
-            )
-            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
-                            n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-2, lambda_reg=0, verbose=False)
-            train_alternate(model_candidate, X_feat_torch, Y_obs_torch, I_torch,
-                            n_epochs=50, n_grad_steps=50, batch_size=128,
-                            lr=1e-3, lambda_reg=0, verbose=False)
-            best_T = model_candidate.contamination.contamination_matrix()
-            best_T = best_T.detach().numpy()
-
-        T_hat_NN = best_T
-        with np.printoptions(precision=3, suppress=True):
-            print(f"Selected T_hat_NN:\n{T_hat_NN}")
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN) == K}")
-        print("Done.")
-        sys.stdout.flush()
-
-        # Clean up calibration features
-        del X_feat_val_torch, Yt_val_torch
-        """
-
-        """
-        #____________________________________________________________________
         ## Estimate T using the NN with features and MLP with regularization
         print("Estimating T using the MLP with regularization...", end=' ')
         sys.stdout.flush()
@@ -467,8 +319,6 @@ def run_experiment(random_state):
         train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
-        print("Done.")
-        sys.stdout.flush()
 
         with np.printoptions(precision=3, suppress=True):
             print(f"Selected T_hat_NN:\n{T_hat_NN}")
@@ -478,55 +328,6 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
         M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
-        """
-
-        """
-        #____________________________________________________________________
-        ## Estimate T using the NN with features and SLL with regularization
-        print("Estimating T using the SLL with regularization...", end=' ')
-        sys.stdout.flush()
-        model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0.1, verbose=False)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
-        T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
-        T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
-        print("Done.")
-        sys.stdout.flush()
-        """
-
-        """
-        #____________________________________________________________________
-        ## Estimate T using the MLP with lambda_reg=0.1
-        print("Estimating T using the MLP with lambda_reg=0.1...", end=' ')
-        sys.stdout.flush()
-        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0.1, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
-        T_hat_NN_reg01 = model_NN.contamination.contamination_matrix()
-        T_hat_NN_reg01 = T_hat_NN_reg01.detach().numpy()
-        with np.printoptions(precision=3, suppress=True):
-            print(T_hat_NN_reg01)
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_reg01) == T_hat_NN_reg01.shape[0]}")
-        print("Done.")
-        sys.stdout.flush()
-
-                
-        #____________________________________________________________________
-        ## Estimate T using the SLL
-        print("Estimating T using the SLL...", end=' ')
-        sys.stdout.flush()
-        sll_lambda = best_lambda if best_lambda is not None else 0.0
-        model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=sll_lambda, verbose=False)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=sll_lambda, verbose=False)
-        T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
-        T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
-        with np.printoptions(precision=3, suppress=True):
-            print(T_hat_NN_sll)
-            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN_sll) == T_hat_NN_sll.shape[0]}")
-        print("Done.")
-        sys.stdout.flush()
-        """
 
     else:
         #____________________________________________________________________
@@ -612,7 +413,12 @@ def run_experiment(random_state):
             "Label conditional+": lambda: LabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                   rho_tilde=rho_tilde_hat, M=M_hat,
                                                                   calibration_conditional=False, gamma=None,
-                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
+                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
+
+            "Clarkson": lambda: ClarksonConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+                                        M=M_hat, rho_tilde=rho_tilde_hat,
+                                        allow_empty=allow_empty, pre_trained=True,
+                                        random_state=random_state)
 
         }
 

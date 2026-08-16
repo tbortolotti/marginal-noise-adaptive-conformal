@@ -1278,11 +1278,11 @@ init_settings <- function() {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#B22222")
-  method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+", "Clarkson")
-  method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)", "Clarkson")
-  color.scale <<- cbPalette[c(1,3,4,8,11)]
-  shape.scale <<- c(1,2,4,7,8)
-  linetype.scale <<- c(1,1,1,1,1)
+  method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Label conditional+")
+  method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Adaptive+ (label-cond)")
+  color.scale <<- cbPalette[c(1,3,4,8)]
+  shape.scale <<- c(1,2,4,7)
+  linetype.scale <<- c(1,1,1,1)
 }
 
 make_figure_301 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
@@ -1301,8 +1301,7 @@ make_figure_301 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margi
            Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
            Method %in% method.values,
            contamination==plot.contamination,
-           epsilon==plot.epsilon, nu %in% plot.nu, imb %in% imb.values) %>%
-    filter(n_cal >= 500)
+           epsilon==plot.epsilon, nu %in% plot.nu, imb %in% imb.values)
   
   df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
   df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.85,1), n_cal=1000, Method="Standard")
@@ -1356,11 +1355,12 @@ plot.contamination <- "RRB"
 plot.nu <- 0.2
 plot.K <- 4
 plot.data <- "synthetic4"
-imb.values <- c(0, 0.5, 1, 2)
+imb.values <- c(0, 0.5, 1)
 
 ## Figure A16
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=FALSE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=TRUE, reload=TRUE)
+
 
 ## Plot of the label-wise performances (not shown in paper)
 #'
@@ -1440,6 +1440,34 @@ make_figure_302(exp.num=exp.num, plot.data=plot.data, plot.alpha=plot.alpha,
                 plot.guarantee="marginal", plot.contamination=plot.contamination,
                 plot.estimate="none", plot.imb=plot.imb,
                 plot.optimistic=TRUE, save_plots=FALSE, reload=TRUE)
+
+
+### Experiment 302: Comparison with Clarkson -------------------
+
+
+init_settings <- function() {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#B22222")
+  method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Clarkson")
+  method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Clarkson")
+  color.scale <<- cbPalette[c(1,3,4,11)]
+  shape.scale <<- c(1,2,4,8)
+  linetype.scale <<- c(1,1,1,1)
+}
+
+exp.num <- 302
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.contamination <- "RRB"
+plot.nu <- 0.8
+plot.K <- 10
+plot.data <- "synthetic4"
+imb.values <- c(0, 1, 2)
+
+## Figure showing comparison with Clarkson
+make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=FALSE, reload=TRUE)
 
 
 ### Experiment 101: CIFAR-10H data ------------------------
