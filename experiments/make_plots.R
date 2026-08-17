@@ -1460,10 +1460,10 @@ exp.num <- 302
 plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.contamination <- "RRB"
-plot.nu <- 0.8
+plot.nu <- 0.2
 plot.K <- 10
 plot.data <- "synthetic4"
-imb.values <- c(0, 1, 2)
+imb.values <- c(0, 0.5, 1)
 
 ## Figure showing comparison with Clarkson
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
