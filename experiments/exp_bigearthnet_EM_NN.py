@@ -70,7 +70,8 @@ num_exp = 5
 allow_empty = True
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
-n_test = 500
+#n_test = 500
+n_test = 2000
 batch_size = n_train + n_clean + n_cal + n_test
 #n_val = 10000
 #batch_size = n_train + n_val + n_clean + n_cal + n_test
@@ -198,21 +199,19 @@ def run_experiment(random_state):
     del X_all, Y_all, Yt_all
 
     #if contamination_model == "real":
-    #    #rho_tilde_hat = [0.113, 0.031, 0.025, 0.137, 0.016, 0.678]
     #    rho_tilde_hat = np.array([0.113, 0.031, 0.025, 0.137, 0.016, 0.678])
     #else:
 
-    # Estimate the label proportions from the whole data set
-    print("Estimating label proportions...", end=' ')
-    sys.stdout.flush()
-    rho_tilde_hat = estimate_rho(Yt, K)
-    print("Done.")
-    sys.stdout.flush()
-
-    
     # Separate data into training and calibration
     X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
     del X, Y, Yt
+
+    # Estimate the label proportions from the calibration data set
+    print("Estimating label proportions...", end=' ')
+    sys.stdout.flush()
+    rho_tilde_hat = estimate_rho(Yt_cal, K)
+    print("Done.")
+    sys.stdout.flush()
 
     # Separate data into training + validation and calibration
     #X_tv, X_cal, Y_tv, Y_cal, Yt_tv, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)

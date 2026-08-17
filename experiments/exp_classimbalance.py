@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from tqdm import tqdm
 import pdb
 
+import copy
 import sys
 sys.path.append("..")
 sys.path.append("../third_party")
@@ -161,13 +162,17 @@ def run_experiment(random_state):
     print("Done.")
     sys.stdout.flush()
 
+    # Separate data into training and calibration
+    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state)
+    del X, Y, Yt
+
     # Estimate (if applicable) the label contamination model
     if estimate=="none":
         rho_hat = rho
         rho_tilde_hat = rho_tilde
         M_hat = M
     elif estimate=="rho":
-        rho_tilde_hat = estimate_rho(Yt, K)
+        rho_tilde_hat = estimate_rho(Yt_cal, K)
         rho_hat = np.dot(M.T, rho_tilde_hat)
         M_hat = M
     else:
@@ -175,16 +180,8 @@ def run_experiment(random_state):
         sys.stdout.flush()
         exit(-1)
 
-
-    # Apply standard method to corrupted labels (for training)
-    print("Training the predictive model...", end=' ')
-    sys.stdout.flush()
-    method_train = arc.methods.SplitConformal(X, Yt, black_box, K, 0.1, n_cal=n_cal, random_state=random_state)
-    print("Done.")
-    sys.stdout.flush()
-
-    # Extract the pre-trained model
-    black_box_pt = method_train.black_box
+    black_box_pt = copy.deepcopy(black_box)
+    black_box_pt.fit(X_train, Yt_train)
 
     res = pd.DataFrame({})
     for alpha in [0.1]:
@@ -200,79 +197,79 @@ def run_experiment(random_state):
             # Define a dictionary of methods with their names and corresponding initialization parameters
             if estimate=="none":
                 methods = {
-                    "Standard": lambda: arc.methods.SplitConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                 label_conditional=label_conditional, allow_empty=allow_empty,
                                                                 pre_trained=True, random_state=random_state),
 
-                    "Adaptive optimized": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Adaptive optimized": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                             epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                             allow_empty=allow_empty, method="improved",
                                                                             optimized=True, optimistic=False, verbose=False,
                                                                             pre_trained=True, random_state=random_state),
 
-                    "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                             epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                             allow_empty=allow_empty, method="improved",
                                                                             optimized=True, optimistic=True, verbose=False,
                                                                             pre_trained=True, random_state=random_state),
 
-                    "Adaptive simplified": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Adaptive simplified": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                             epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                             allow_empty=allow_empty, method="improved",
                                                                             optimized=False, optimistic=False, verbose=False,
                                                                             pre_trained=True, random_state=random_state),
 
-                    "Adaptive simplified+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Adaptive simplified+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                             epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                             allow_empty=allow_empty, method="improved",
                                                                             optimized=False, optimistic=True, verbose=False,
                                                                             pre_trained=True, random_state=random_state),
 
-                    "Asymptotic": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Asymptotic": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
                                                                     asymptotic_MC_samples=asymptotic_MC_samples, T=T,
                                                                     rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
                                                                     method="asymptotic", optimistic=False, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-                    "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Asymptotic+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
                                                                     asymptotic_MC_samples=asymptotic_MC_samples, T=T,
                                                                     rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
                                                                     method="asymptotic", optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-                    "Label conditional": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Label conditional": lambda: LabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     rho_tilde=rho_tilde_hat, M=M_hat,
                                                                     calibration_conditional=False, gamma=None,
                                                                     optimistic=False, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
                     
-                    "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Label conditional+": lambda: LabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     rho_tilde=rho_tilde_hat, M=M_hat,
                                                                     calibration_conditional=False, gamma=None,
                                                                     optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
                 }
             else:
                 methods = {
-                    "Standard": lambda: arc.methods.SplitConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                 label_conditional=label_conditional, allow_empty=allow_empty,
                                                                 pre_trained=True, random_state=random_state),
 
-                    "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                             epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
                                                                             allow_empty=allow_empty, method="improved",
                                                                             optimized=True, optimistic=True, verbose=False,
                                                                             pre_trained=True, random_state=random_state),
 
-                    "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
+                    "Asymptotic+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
                                                                     asymptotic_MC_samples=asymptotic_MC_samples, T=T,
                                                                     rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
                                                                     method="asymptotic", optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-                    "Clarkson": lambda: ClarksonConformal(X, Yt, black_box_pt, K, alpha, n_cal=n_cal,
-                                        M=M, rho_tilde=rho_tilde_hat,
+                    "Clarkson": lambda: ClarksonConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+                                        M=M_hat, rho_tilde=rho_tilde_hat,
                                         allow_empty=allow_empty, pre_trained=True,
                                         random_state=random_state)
                 }
