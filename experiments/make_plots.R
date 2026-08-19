@@ -1441,10 +1441,7 @@ make_figure_302(exp.num=exp.num, plot.data=plot.data, plot.alpha=plot.alpha,
                 plot.estimate="none", plot.imb=plot.imb,
                 plot.optimistic=TRUE, save_plots=FALSE, reload=TRUE)
 
-
-### Experiment 302: Comparison with Clarkson -------------------
-
-
+## COMPARISON WITH CLARKSON ---------------------------------------------------
 init_settings <- function() {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
@@ -1454,6 +1451,26 @@ init_settings <- function() {
   color.scale <<- cbPalette[c(1,3,4,11)]
   shape.scale <<- c(1,2,4,8)
   linetype.scale <<- c(1,1,1,1)
+}
+
+### Experiment 302: Class imbalance -------------------
+load_data <- function(exp.num, from_cluster=TRUE) {
+  if(from_cluster) {
+    idir <- sprintf("results_hpc/exp%d", exp.num)
+  } else {
+    idir <- sprintf("results/exp%d", exp.num)
+  }
+  ifile.list <- list.files(idir, recursive = FALSE)
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))
+  summary <- results %>%
+    pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
+    group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, imb, estimate, n_train, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
+    summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))
+  #summarise(Mean=mean(Value, na.rm=TRUE), N=sum(!is.na(Value)), SE=2*sd(Value, na.rm=TRUE)/sqrt(N))
+  return(summary)
 }
 
 exp.num <- 302
@@ -1471,10 +1488,7 @@ make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guar
 
 
 
-
-
-### Experiment 304: Comparison changing epsilon -----------------------
-#' 
+### Experiment 303: Increasing number of classes ------------------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -1493,19 +1507,73 @@ load_data <- function(exp.num, from_cluster=TRUE) {
   return(summary)
 }
 
-init_settings <- function() {
-  df.dummy <<- tibble(key="Coverage", value=0.95)
-  df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#B22222")
-  method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Clarkson")
-  method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Clarkson")
-  color.scale <<- cbPalette[c(1,3,4,11)]
-  shape.scale <<- c(1,2,4,8)
-  linetype.scale <<- c(1,1,1,1)
+make_figure_303 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
+                          plot.contamination="uniform",
+                          plot.epsilon=0.1, plot.nu=0.2) {
+  if(reload) {
+    summary <- load_data(exp.num)
+  }
+  
+  init_settings()
+  
+  df <- summary %>%
+    filter(data=="synthetic1", num_var==20, n_train==10000, signal==1, Guarantee==plot.guarantee,
+           Label=="marginal", model_name=="RFC", Alpha==plot.alpha,
+           Method %in% method.values,
+           contamination==plot.contamination,
+           epsilon==plot.epsilon, nu==plot.nu)
+  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
+  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.85,1), n_cal=1000, Method="Standard")
+  pp <- df %>%
+    mutate(Method = factor(Method, method.values, method.labels)) %>%
+    mutate(K_lab = sprintf("%d classes", K)) %>%
+    mutate(K_lab = factor(K_lab, label.values, label.labels)) %>%
+    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
+    geom_point() +
+    geom_line() +
+    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
+    facet_grid(Key~K_lab, scales="free") +
+    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
+    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
+    scale_color_manual(values=color.scale) +
+    scale_shape_manual(values=shape.scale) +
+    scale_linetype_manual(values=linetype.scale) +
+    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
+    scale_x_continuous(trans='log10') +
+    xlab("Number of calibration samples") +
+    ylab("") +
+    theme_bw() +
+    theme(text = element_text(size = 12),
+          axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
+          legend.position = "bottom",
+          legend.direction = "horizontal",
+          legend.text = element_text(size = 12),
+          legend.title = element_text(size = 12),
+          plot.margin = margin(5, 5, 1, -10))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimisticTRUE.pdf",
+                         exp.num,
+                         10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
+    ggsave(file=plot.file, height=4, width=7, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
 }
 
+label.values <<- c("4 classes", "8 classes", "16 classes")
+label.labels <<- c("4 classes", "8 classes", "16 classes")
+exp.num <- 303
+plot.alpha <- 0.1
+plot.epsilon <- 0.1
+plot.contamination <- "uniform"
+plot.nu <- 0
+make_figure_303(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, reload=TRUE)
 
 
+### Experiment 304: Comparison changing epsilon -----------------------
 make_figure_304 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                           plot.contamination="uniform",
                           plot.epsilon, plot.nu=0,
@@ -1567,7 +1635,7 @@ make_figure_304 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 exp.num <- 304
 plot.alpha <- 0.1
 plot.nu <- 0
-plot.epsilon <- c(0,0.05,0.1,0.2)
+plot.epsilon <- c(0.05,0.1,0.2,0.4)
 plot.K <- 4
 plot.data <- "synthetic1"
 plot.contamination <- "uniform"
@@ -6457,388 +6525,6 @@ make_figure_1103(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                  plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                  save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 
-
-#### Figure with zoom for the paper -----------------------------------------
-library(cowplot)
-library(patchwork)
-library(ggforce)   # for facet_zoom() - draws the highlighted rectangle, the
-# connector lines from its corners, and the grey zoom
-# area automatically and precisely (no manual tuning)
-
-init_settings <- function(plot.optimistic = FALSE) {
-  df.dummy <<- tibble(key="Coverage", value=0.95)
-  df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
-  
-  method.values <<- c("Standard",
-                      "Standard using clean",
-                      "Adaptive+ clean",
-                      "Adaptive+ NN",
-                      "Label conditional+",
-                      "__spacer__",
-                      "Standard (clean) line")
-  
-  method.labels <<- c("Standard",
-                      "Standard (clean)",
-                      "Adaptive+ (clean)",
-                      "Adaptive+ (NN)",
-                      "Adaptive+ (label-cond)",
-                      "",
-                      "Standard (clean, simple)")
-  color.scale <<- cbPalette[c(1,3,4,7,NA,10)]
-  shape.scale <<- c(1,2,3,5,NA,NA)
-  linetype.scale <<- c(1,1,1,1,0,4)
-}
-
-
-get_legend2 <- function(pl) {
-  g <- ggplotGrob(pl)
-  idx <- grep("guide-box", g$layout$name)
-  legends <- g$grobs[idx]
-  legends <- legends[!vapply(legends, function(x) inherits(x, "zeroGrob"), logical(1))]
-  if (length(legends) == 0) stop("No legend found - check that legend.position != 'none' on the plot you extract from.")
-  legends[[1]]
-}
-
-make_figure_1103b <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.guarantee="marginal",
-                              plot.contamination="uniform",
-                              plot.epsilon=0.1,
-                              plot.nu=0,
-                              plot.n_train=1000,
-                              plot.n_clean,
-                              plot.optimistic=TRUE,
-                              zoom.ylim=c(1.30,1.38),
-                              save_plots=FALSE, reload=FALSE) {
-  
-  if(reload) {
-    summary <- load_data(exp.num)
-  }
-  
-  init_settings(plot.optimistic = plot.optimistic)
-  
-  df <- summary %>%
-    filter(data==plot.data, n_train==plot.n_train, Guarantee==plot.guarantee,
-           Label=="marginal", Alpha==plot.alpha,
-           Method %in% method.values,
-           contamination==plot.contamination,
-           epsilon==plot.epsilon, n_clean %in% plot.n_clean,
-           n_cal<20000)
-  
-  df.clean.values <- df %>%
-    filter(Method=="Standard using clean") %>%
-    group_by(Key) %>%
-    summarise(mean_values=mean(Mean))
-  df.clean.coverage <- as.numeric(df.clean.values[1,2])
-  df.clean.size     <- as.numeric(df.clean.values[2,2])
-  df.clean <- tibble(Key=c("Coverage","Size"), Mean=c(df.clean.coverage,df.clean.size))
-  
-  df.clean.legend <- df %>%
-    group_by(Key) %>%
-    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal)) %>%
-    left_join(df.clean, by = "Key") %>%
-    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
-    mutate(Method = "Standard (clean) line", SE = 0)
-  
-  df.spacer.legend <- df %>%
-    group_by(Key) %>%
-    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal)) %>%
-    left_join(df.clean, by = "Key") %>%
-    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
-    mutate(Method = "__spacer__", SE = 0)
-  
-  df.plot <- df %>%
-    filter(Method != "Standard using clean") %>%
-    bind_rows(df.clean.legend) %>%
-    bind_rows(df.spacer.legend) %>%
-    # IMPORTANT: without this, ggplot falls back to alphabetical/locale
-    # ordering for Method, which does NOT match the order that
-    # color.scale/shape.scale/linetype.scale were written for - that's what
-    # was causing "Standard" and "__spacer__" to swap styling.
-    mutate(Method = factor(Method, levels = method.values, labels = method.labels))
-  
-  df.coverage <- df.plot %>% filter(Key == "Coverage")
-  df.size     <- df.plot %>% filter(Key == "Size")
-  
-  base_theme <-
-    theme_bw() +
-    theme(
-      text = element_text(size = 12),
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      legend.position = "none"
-    )
-  
-  p.coverage <-
-    ggplot(df.coverage, aes(n_cal, Mean, colour=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=.1) +
-    geom_hline(yintercept=1-plot.alpha, linetype="dashed") +
-    scale_x_log10() +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    labs(x="Number of noisy calibration samples", y="Coverage") +
-    base_theme
-  
-  p.size <-
-    ggplot(df.size, aes(n_cal, Mean, colour=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=.1) +
-    scale_x_log10() +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    labs(x="Number of noisy calibration samples", y="Size") +
-    base_theme
-  
-  # facet_zoom() turns p.size into a single object containing BOTH the
-  # zoomed panel and the full-range panel, and automatically draws:
-  #   1. a rectangle on the full-range panel highlighting ylim = zoom.ylim
-  #   2. connector lines from that rectangle's corners to the zoomed
-  #      panel's corners (precisely computed, not manually placed)
-  #   3. a grey polygon filling the area between the two
-  # For a y-only zoom (no x given/xlim), the zoom panel is placed to the
-  # LEFT and the full-range panel to the RIGHT, i.e. exactly the
-  # Coverage | Zoom | Size order we want. zoom.size controls the width of
-  # the zoom panel relative to the full panel (default 2 = zoom is *wider*
-  # than the full panel; we want the opposite here, so use a fraction < 1).
-  p.size.zoom <- p.size +
-    facet_zoom(ylim = zoom.ylim, zoom.size = 2, horizontal = TRUE, show.area = TRUE)
-  
-  # Build the legend from a throwaway copy of p.size with the legend turned on
-  legend_src <- p.size + theme(legend.position = "right", legend.title = element_text(size=12))
-  legend <- get_legend2(legend_src)
-  
-  # Order: Coverage | (Zoom | Size, via facet_zoom) | Legend
-  # wrap_elements(full = ...) is required for the facet_zoom plot: passing
-  # it to patchwork directly can render blank panels (patchwork issue #149)
-  # because patchwork tries to align facet_zoom's nonstandard internal
-  # gtable. wrap_elements(full=...) freezes it as a single opaque grob so
-  # patchwork just places it, without trying to align its sub-panels.
-  figure <-
-    (p.coverage | wrap_elements(full = p.size.zoom) | wrap_elements(legend)) +
-    plot_layout(widths = c(0.8, 1.05, 0.5))
-  
-  g <- figure
-  
-  if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_nt%d_ncl%d_eps%s_nu%s_%s_optimistic%s_zoom.pdf",
-                         exp.num, plot.data, plot.n_train, plot.n_clean, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
-    ggsave(plot.file, plot=g, height=2.5, width=9, units="in")
-    return(NULL)
-  } else {
-    return(g)
-  }
-}
-
-exp.num <- 1103
-plot.data <- "bigearthnet"
-plot.alpha <- 0.1
-plot.epsilon <- 0.016
-plot.contamination <- "real"
-plot.n_train <- 5000
-plot.n_clean <- c(500)
-plot.guarantee <- "marginal"
-
-make_figure_1103b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee=plot.guarantee,
-                  plot.contamination=plot.contamination,
-                  plot.epsilon=plot.epsilon,
-                  plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                  zoom.ylim=c(1.30,1.4),
-                  save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
-
-
-
-#### Figure with zoom for the paper - no clean method -----------------------------------------
-library(cowplot)
-library(patchwork)
-library(ggforce)   # for facet_zoom() - draws the highlighted rectangle, the
-# connector lines from its corners, and the grey zoom
-# area automatically and precisely (no manual tuning)
-
-init_settings <- function(plot.optimistic = FALSE) {
-  df.dummy <<- tibble(key="Coverage", value=0.95)
-  df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
-  
-  method.values <<- c("Standard",
-                      "Standard using clean",
-                      "Adaptive+ NN",
-                      "Label conditional+",
-                      "__spacer__",
-                      "Standard (clean) line")
-  
-  method.labels <<- c("Standard",
-                      "Standard (clean)",
-                      "Adaptive+ (NN)",
-                      "Adaptive+ (label-cond)",
-                      "",
-                      "Standard (clean, simple)")
-  color.scale <<- cbPalette[c(1,5,7,NA,10)]
-  shape.scale <<- c(1,3,5,NA,NA)
-  linetype.scale <<- c(1,1,1,0,4)
-}
-
-
-get_legend2 <- function(pl) {
-  g <- ggplotGrob(pl)
-  idx <- grep("guide-box", g$layout$name)
-  legends <- g$grobs[idx]
-  legends <- legends[!vapply(legends, function(x) inherits(x, "zeroGrob"), logical(1))]
-  if (length(legends) == 0) stop("No legend found - check that legend.position != 'none' on the plot you extract from.")
-  legends[[1]]
-}
-
-make_figure_1103b <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot.guarantee="marginal",
-                              plot.contamination="uniform",
-                              plot.epsilon=0.1,
-                              plot.nu=0,
-                              plot.n_train=1000,
-                              plot.n_clean,
-                              plot.optimistic=TRUE,
-                              zoom.ylim=c(1.30,1.38),
-                              save_plots=FALSE, reload=FALSE) {
-  
-  if(reload) {
-    summary <- load_data(exp.num)
-  }
-  
-  init_settings(plot.optimistic = plot.optimistic)
-  
-  df <- summary %>%
-    filter(data==plot.data, n_train==plot.n_train, Guarantee==plot.guarantee,
-           Label=="marginal", Alpha==plot.alpha,
-           Method %in% method.values,
-           contamination==plot.contamination,
-           epsilon==plot.epsilon, n_clean %in% plot.n_clean)
-  
-  df.clean.values <- df %>%
-    filter(Method=="Standard using clean") %>%
-    group_by(Key) %>%
-    summarise(mean_values=mean(Mean))
-  df.clean.coverage <- as.numeric(df.clean.values[1,2])
-  df.clean.size     <- as.numeric(df.clean.values[2,2])
-  df.clean <- tibble(Key=c("Coverage","Size"), Mean=c(df.clean.coverage,df.clean.size))
-  
-  df.clean.legend <- df %>%
-    group_by(Key) %>%
-    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal)) %>%
-    left_join(df.clean, by = "Key") %>%
-    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
-    mutate(Method = "Standard (clean) line", SE = 0)
-  
-  df.spacer.legend <- df %>%
-    group_by(Key) %>%
-    summarise(n_cal_min = min(n_cal), n_cal_max = max(n_cal)) %>%
-    left_join(df.clean, by = "Key") %>%
-    tidyr::pivot_longer(c(n_cal_min, n_cal_max), values_to = "n_cal") %>%
-    mutate(Method = "__spacer__", SE = 0)
-  
-  df.plot <- df %>%
-    filter(Method != "Standard using clean") %>%
-    bind_rows(df.clean.legend) %>%
-    bind_rows(df.spacer.legend) %>%
-    # IMPORTANT: without this, ggplot falls back to alphabetical/locale
-    # ordering for Method, which does NOT match the order that
-    # color.scale/shape.scale/linetype.scale were written for - that's what
-    # was causing "Standard" and "__spacer__" to swap styling.
-    mutate(Method = factor(Method, levels = method.values, labels = method.labels))
-  
-  df.coverage <- df.plot %>% filter(Key == "Coverage")
-  df.size     <- df.plot %>% filter(Key == "Size")
-  
-  base_theme <-
-    theme_bw() +
-    theme(
-      text = element_text(size = 12),
-      axis.text.x = element_text(angle = 45, hjust = 1),
-      legend.position = "none"
-    )
-  
-  p.coverage <-
-    ggplot(df.coverage, aes(n_cal, Mean, colour=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=.1) +
-    geom_hline(yintercept=1-plot.alpha, linetype="dashed") +
-    scale_x_log10() +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    labs(x="Number of noisy calibration samples", y="Coverage") +
-    base_theme
-  
-  p.size <-
-    ggplot(df.size, aes(n_cal, Mean, colour=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE), width=.1) +
-    scale_x_log10() +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    labs(x="Number of noisy calibration samples", y="Size") +
-    base_theme
-  
-  # facet_zoom() turns p.size into a single object containing BOTH the
-  # zoomed panel and the full-range panel, and automatically draws:
-  #   1. a rectangle on the full-range panel highlighting ylim = zoom.ylim
-  #   2. connector lines from that rectangle's corners to the zoomed
-  #      panel's corners (precisely computed, not manually placed)
-  #   3. a grey polygon filling the area between the two
-  # For a y-only zoom (no x given/xlim), the zoom panel is placed to the
-  # LEFT and the full-range panel to the RIGHT, i.e. exactly the
-  # Coverage | Zoom | Size order we want. zoom.size controls the width of
-  # the zoom panel relative to the full panel (default 2 = zoom is *wider*
-  # than the full panel; we want the opposite here, so use a fraction < 1).
-  p.size.zoom <- p.size +
-    facet_zoom(ylim = zoom.ylim, zoom.size = 2, horizontal = TRUE, show.area = TRUE)
-  
-  # Build the legend from a throwaway copy of p.size with the legend turned on
-  legend_src <- p.size + theme(legend.position = "right", legend.title = element_text(size=12))
-  legend <- get_legend2(legend_src)
-  
-  # Order: Coverage | (Zoom | Size, via facet_zoom) | Legend
-  # wrap_elements(full = ...) is required for the facet_zoom plot: passing
-  # it to patchwork directly can render blank panels (patchwork issue #149)
-  # because patchwork tries to align facet_zoom's nonstandard internal
-  # gtable. wrap_elements(full=...) freezes it as a single opaque grob so
-  # patchwork just places it, without trying to align its sub-panels.
-  figure <-
-    (p.coverage | wrap_elements(full = p.size.zoom) | wrap_elements(legend)) +
-    plot_layout(widths = c(0.8, 1.05, 0.5))
-  
-  g <- figure
-  
-  if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_nt%d_ncl%d_eps%s_nu%s_%s_optimistic%s_zoom.pdf",
-                         exp.num, plot.data, plot.n_train, plot.n_clean, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
-    ggsave(plot.file, plot=g, height=2.5, width=9, units="in")
-    return(NULL)
-  } else {
-    return(g)
-  }
-}
-
-exp.num <- 1103
-plot.data <- "bigearthnet"
-plot.alpha <- 0.1
-plot.epsilon <- 0.016
-plot.contamination <- "real"
-plot.n_train <- 5000
-plot.n_clean <- c(500)
-plot.guarantee <- "marginal"
-
-make_figure_1103b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee=plot.guarantee,
-                  plot.contamination=plot.contamination,
-                  plot.epsilon=plot.epsilon,
-                  plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                  zoom.ylim=c(1.30,1.4),
-                  save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
-
-
-
 #### Figure with zoom for the paper - with three Adaptive methods -----------------------------------------
 library(cowplot)
 library(patchwork)
@@ -6854,7 +6540,6 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Adaptive+ NN",
                       "Asymptotic+ NN",
                       "Label conditional+",
-                      "Clarkson",
                       "__spacer__",
                       "Standard (clean) line")
   
@@ -6863,12 +6548,11 @@ init_settings <- function(plot.optimistic = FALSE) {
                       "Adaptive+",
                       "Adaptive+ (asymptotic)",
                       "Adaptive+ (label-cond)",
-                      "Clarkson",
                       "",
                       "Standard (clean, simple)")
-  color.scale <<- cbPalette[c(1,3,4,7,11,NA,10)]
-  shape.scale <<- c(1,2,3,5,6,NA,NA)
-  linetype.scale <<- c(1,1,1,1,1,0,4)
+  color.scale <<- cbPalette[c(1,3,4,7,NA,10)]
+  shape.scale <<- c(1,2,3,5,NA,NA)
+  linetype.scale <<- c(1,1,1,1,0,4)
 }
 
 
