@@ -247,7 +247,12 @@ def run_experiment(random_state):
                     "Label conditional+": lambda: LabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     rho_tilde=rho_tilde_hat, M=M_hat,
                                                                     calibration_conditional=False, gamma=None,
-                                                                    optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
+                                                                    optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
+
+                    "Clarkson": lambda: ClarksonConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+                                        M=M_hat, rho_tilde=rho_tilde_hat,
+                                        allow_empty=allow_empty, pre_trained=True,
+                                        random_state=random_state)
                 }
             else:
                 methods = {
