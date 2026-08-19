@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Parameters
-CONF=302
+CONF=303
 
+# COMPARISON WITH NOISE-ADAPTIVE LABEL CONDITIONAL
 if [[ $CONF == 301 ]]; then
   DATA_LIST=("synthetic4")
   NUM_VAR_LIST=(20)
@@ -18,6 +19,7 @@ if [[ $CONF == 301 ]]; then
   IMB_LIST=(0 0.5 1 2)
   SEED_LIST=$(seq 1 5)
 
+# COMPARISON WITH CLARKSON
 elif [[ $CONF == 302 ]]; then
   DATA_LIST=("synthetic4")
   NUM_VAR_LIST=(20)
@@ -36,12 +38,12 @@ elif [[ $CONF == 302 ]]; then
 elif [[ $CONF == 303 ]]; then
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
-  K_LIST=(4 8 12)
+  K_LIST=(4 8 16)
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
   EPSILON_LIST=(0.1)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform")
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform" "block" "RRB")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
   ESTIMATE_LIST=("none")
@@ -55,8 +57,8 @@ elif [[ $CONF == 304 ]]; then
   SIGNAL_LIST=(1.0)
   MODEL_LIST=('RFC')
   EPSILON_LIST=(0.05 0.1 0.2 0.4)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform")
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform" "block" "RRB")
   N_TRAIN_LIST=(10000)
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
   ESTIMATE_LIST=("none")
@@ -109,7 +111,7 @@ for SEED in $SEED_LIST; do
 
 			                    if [[ $COMPLETE -eq 0 ]]; then
                               # Script to be run
-                              SCRIPT="exp_classimbalance.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CAL $ESTIMATE $IMB $SEED"
+                              SCRIPT="exp_2_comparisons.sh $CONF $DATA $NUM_VAR $K $SIGNAL $MODEL $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CAL $ESTIMATE $IMB $SEED"
                               # Define job name
                               OUTF=$LOGS"/"$JOBN".out"
                               ERRF=$LOGS"/"$JOBN".err"
