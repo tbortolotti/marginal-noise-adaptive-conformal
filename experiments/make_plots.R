@@ -1337,8 +1337,8 @@ make_figure_301 <- function(exp.num, plot.alpha, plot.K=4, plot.guarantee="margi
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_eps%s_nu%s_%s_%s_optimistic%s.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.epsilon, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_eps%s_nu%s_%s_%s_optimisticTRUE.pdf",
+                         exp.num, plot.data, 10000, plot.K, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
     ggsave(file=plot.file, height=4, width=7.5, units="in")
     return(NULL)
   } else{
@@ -1467,7 +1467,7 @@ imb.values <- c(0, 0.5, 1)
 
 ## Figure showing comparison with Clarkson
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-                plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=FALSE, reload=TRUE)
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=TRUE, reload=TRUE)
 
 
 ### Experiment 101: CIFAR-10H data ------------------------
@@ -6895,7 +6895,7 @@ make_figure_1103b <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot
   g <- figure
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_nt%d_ncl%d_eps%s_nu%s_%s_optimistic%s_zoom.pdf",
+    plot.file <- sprintf("figures/exp%d_%s_nt%d_ncl%d_eps%s_nu%s_%s_optimistic%s_zoom_clarkson.pdf",
                          exp.num, plot.data, plot.n_train, plot.n_clean, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
     ggsave(plot.file, plot=g, height=2.5, width=9, units="in")
     return(NULL)
@@ -6918,5 +6918,5 @@ make_figure_1103b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, p
                   plot.epsilon=plot.epsilon,
                   plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                   zoom.ylim=c(1.30,1.4),
-                  save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                  save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 dev.off()
