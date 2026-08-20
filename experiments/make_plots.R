@@ -1252,7 +1252,9 @@ make_figure_7_horizontal(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee=
                          plot.epsilon=plot.epsilon, plot.nu=plot.nu, plot.signal=plot.signal,
                          save_plots=TRUE, plot.optimistic=TRUE, reload=FALSE)
 
-### Experiment 301: RBB, Increase in the class-imbalance -------------------
+## COMPARISON WITH EXISTING METHODS -------------------------------------------------
+### Experiment 301:Comparison with noise-adaptive label-conditional ------------------
+#' RBB, Increase in the class-imbalance
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
@@ -1269,7 +1271,6 @@ load_data <- function(exp.num, from_cluster=TRUE) {
     pivot_longer(c("Coverage", "Size"), names_to = "Key", values_to = "Value") %>%
     group_by(data, num_var, K, signal, model_name, contamination, epsilon, nu, imb, estimate, n_train, n_cal, Guarantee, Alpha, Label, Method, Key) %>%
     summarise(Mean=mean(Value), N=n(), SE=2*sd(Value)/sqrt(N))
-    #summarise(Mean=mean(Value, na.rm=TRUE), N=sum(!is.na(Value)), SE=2*sd(Value, na.rm=TRUE)/sqrt(N))
   return(summary)
 }
 
@@ -1361,87 +1362,8 @@ imb.values <- c(0, 0.5, 1)
 make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=TRUE, reload=TRUE)
 
-
-## Plot of the label-wise performances (not shown in paper)
-#'
-#'
-
-make_figure_302 <- function(exp.num=exp.num, plot.data="synthetic5", plot.alpha=0.1,
-                            plot.K=4, plot.epsilon=0.1, plot.nu=0.2,
-                            plot.guarantee="marginal", plot.contamination="uniform",
-                            plot.estimate="none", plot.imb=1,
-                            plot.optimistic=TRUE, save_plots=FALSE, reload=TRUE){
-  if(reload) {
-    summary <- load_data(exp.num)
-  }
-  
-  init_settings(plot.optimistic=plot.optimistic)
-  
-  df <- summary %>%
-    filter(data==plot.data, num_var==20, n_train==10000, K==plot.K, estimate==plot.estimate, Guarantee==plot.guarantee,
-           model_name=="RFC", Alpha==plot.alpha, epsilon==plot.epsilon, nu==plot.nu, contamination==plot.contamination,
-           Method %in% method.values, Label %in% label.values, imb==plot.imb)
-  df.nominal <- tibble(Key="Coverage", Mean=1-plot.alpha)
-  #df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.8,1), n_cal=1000, Method="Standard")
-  df.range <- tibble(Key=c("Coverage","Coverage"), Mean=c(0.88,0.95), n_cal=1000, Method="Standard")
-  df.range2 <- tibble(Key=c("Size","Size"), Mean=c(1,2), n_cal=1000, Method="Standard")
-  
-  pp <- df %>%
-    mutate(Method = factor(Method, method.values, method.labels)) %>%
-    mutate(Label = factor(Label, label.values, label.labels)) %>%
-    ggplot(aes(x=n_cal, y=Mean, color=Method, shape=Method, linetype=Method)) +
-    geom_point() +
-    geom_line() +
-    #        geom_errorbar(aes(ymin=Mean-SE, ymax=Mean+SE)) +
-    facet_grid(Key~Label, scales="free") +
-    geom_hline(data=df.nominal, aes(yintercept=Mean), linetype="dashed") +
-    geom_point(data=df.range, aes(x=n_cal, y=Mean), alpha=0) +
-    geom_point(data=df.range2, aes(x=n_cal, y=Mean), alpha=0) +
-    scale_color_manual(values=color.scale) +
-    scale_shape_manual(values=shape.scale) +
-    scale_linetype_manual(values=linetype.scale) +
-    #        scale_x_continuous(trans='log10', breaks=c(1000,2000,5000,10000,20000)) +
-    scale_x_continuous(trans='log10') +
-    xlab("Number of calibration samples") +
-    ylab("") +
-    theme_bw() +
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-          legend.position = "bottom",
-          legend.direction = "horizontal",
-          legend.text = element_text(size = 11),
-          legend.title = element_text(size = 11))
-  
-  
-  if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_eps%s_nu%s_mu%s_%s_%s_optimistic%s_labelwise.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.epsilon, plot.nu, plot.imb, plot.guarantee, plot.contamination, plot.optimistic)
-    ggsave(file=plot.file, height=4, width=9, units="in")
-    return(NULL)
-  } else{
-    return(pp)
-  }
-}
-
-
-exp.num <- 301
-plot.alpha <- 0.1
-plot.epsilon <- 0.1
-plot.contamination <- "RRB"
-plot.nu <- 0.2
-plot.K <- 4
-plot.data <- "synthetic4"
-plot.imb=2
-
-label.values <<- 0:3
-label.labels <<- paste("Label", 1:4, sep=" ")
-
-make_figure_302(exp.num=exp.num, plot.data=plot.data, plot.alpha=plot.alpha,
-                plot.K=plot.K, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-                plot.guarantee="marginal", plot.contamination=plot.contamination,
-                plot.estimate="none", plot.imb=plot.imb,
-                plot.optimistic=TRUE, save_plots=FALSE, reload=TRUE)
-
-## COMPARISON WITH CLARKSON ---------------------------------------------------
+### Experiment 302: Comparison with Clarkson 1 -------------------
+#' Class imbalance 
 init_settings <- function() {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
@@ -1453,7 +1375,7 @@ init_settings <- function() {
   linetype.scale <<- c(1,1,1,1)
 }
 
-### Experiment 302: Class imbalance -------------------
+
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -1488,7 +1410,8 @@ make_figure_301(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guar
 
 
 
-### Experiment 303: Increasing number of classes ------------------------------------
+### Experiment 303: Comparison with Clarkson 2 ------------------------------------
+#' Increasing number of classes 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
     idir <- sprintf("results_hpc/exp%d", exp.num)
@@ -1567,13 +1490,13 @@ label.labels <<- c("4 classes", "8 classes", "16 classes")
 exp.num <- 303
 plot.alpha <- 0.1
 plot.epsilon <- 0.1
-plot.contamination <- "uniform"
-plot.nu <- 0
+plot.contamination <- "block"
+plot.nu <- 0.2
 make_figure_303(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, reload=TRUE)
 
-
-### Experiment 304: Comparison changing epsilon -----------------------
+### Experiment 304: Comparison with Clarkson 3 ----------------------------------
+#' Increasing epsilon
 make_figure_304 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=4, plot.guarantee="marginal", save_plots=FALSE, reload=FALSE,
                           plot.contamination="uniform",
                           plot.epsilon, plot.nu=0,
@@ -1622,8 +1545,8 @@ make_figure_304 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
   
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimistic%s.pdf",
-                         exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination, plot.optimistic)
+    plot.file <- sprintf("figures/exp%d_%s_ntrain%d_K%d_nu%s_%s_%s_optimisticTRUE.pdf",
+                         exp.num, plot.data, 10000, plot.K, plot.nu, plot.guarantee, plot.contamination)
     ggsave(file=plot.file, height=3.2, width=9, units="in")
     return(NULL)
   } else{
@@ -6586,7 +6509,7 @@ make_figure_1103b <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot
            Label=="marginal", Alpha==plot.alpha,
            Method %in% method.values,
            contamination==plot.contamination,
-           epsilon==plot.epsilon, n_clean %in% plot.n_clean, n_cal<20000)
+           epsilon==plot.epsilon, n_clean %in% plot.n_clean)
   
   df.clean.values <- df %>%
     filter(Method=="Standard using clean") %>%
@@ -6614,10 +6537,6 @@ make_figure_1103b <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot
     filter(Method != "Standard using clean") %>%
     bind_rows(df.clean.legend) %>%
     bind_rows(df.spacer.legend) %>%
-    # IMPORTANT: without this, ggplot falls back to alphabetical/locale
-    # ordering for Method, which does NOT match the order that
-    # color.scale/shape.scale/linetype.scale were written for - that's what
-    # was causing "Standard" and "__spacer__" to swap styling.
     mutate(Method = factor(Method, levels = method.values, labels = method.labels))
   
   df.coverage <- df.plot %>% filter(Key == "Coverage")
@@ -6655,31 +6574,14 @@ make_figure_1103b <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot
     scale_linetype_manual(values=linetype.scale) +
     labs(x="Number of noisy calibration samples", y="Size") +
     base_theme
-  
-  # facet_zoom() turns p.size into a single object containing BOTH the
-  # zoomed panel and the full-range panel, and automatically draws:
-  #   1. a rectangle on the full-range panel highlighting ylim = zoom.ylim
-  #   2. connector lines from that rectangle's corners to the zoomed
-  #      panel's corners (precisely computed, not manually placed)
-  #   3. a grey polygon filling the area between the two
-  # For a y-only zoom (no x given/xlim), the zoom panel is placed to the
-  # LEFT and the full-range panel to the RIGHT, i.e. exactly the
-  # Coverage | Zoom | Size order we want. zoom.size controls the width of
-  # the zoom panel relative to the full panel (default 2 = zoom is *wider*
-  # than the full panel; we want the opposite here, so use a fraction < 1).
+
   p.size.zoom <- p.size +
     facet_zoom(ylim = zoom.ylim, zoom.size = 2, horizontal = TRUE, show.area = TRUE)
   
   # Build the legend from a throwaway copy of p.size with the legend turned on
   legend_src <- p.size + theme(legend.position = "right", legend.title = element_text(size=12))
   legend <- get_legend2(legend_src)
-  
-  # Order: Coverage | (Zoom | Size, via facet_zoom) | Legend
-  # wrap_elements(full = ...) is required for the facet_zoom plot: passing
-  # it to patchwork directly can render blank panels (patchwork issue #149)
-  # because patchwork tries to align facet_zoom's nonstandard internal
-  # gtable. wrap_elements(full=...) freezes it as a single opaque grob so
-  # patchwork just places it, without trying to align its sub-panels.
+
   figure <-
     (p.coverage | wrap_elements(full = p.size.zoom) | wrap_elements(legend)) +
     plot_layout(widths = c(0.8, 1.05, 0.5))
@@ -6687,7 +6589,7 @@ make_figure_1103b <- function(exp.num, plot.alpha, plot.data="bigearthnet", plot
   g <- figure
   
   if(save_plots) {
-    plot.file <- sprintf("figures/exp%d_%s_nt%d_ncl%d_eps%s_nu%s_%s_optimistic%s_zoom_clarkson.pdf",
+    plot.file <- sprintf("figures/exp%d_%s_nt%d_ncl%d_eps%s_nu%s_%s_optimistic%s_zoom.pdf",
                          exp.num, plot.data, plot.n_train, plot.n_clean, plot.epsilon, plot.nu, plot.contamination, plot.optimistic)
     ggsave(plot.file, plot=g, height=2.5, width=9, units="in")
     return(NULL)
