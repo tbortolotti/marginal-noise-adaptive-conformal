@@ -1369,7 +1369,7 @@ init_settings <- function() {
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
   cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#B22222")
   method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Clarkson")
-  method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Clarkson")
+  method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Clarkson et al.")
   color.scale <<- cbPalette[c(1,3,4,11)]
   shape.scale <<- c(1,2,4,8)
   linetype.scale <<- c(1,1,1,1)
@@ -2206,7 +2206,7 @@ make_figure_621(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.randflag=FALSE,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 #### Experiment 622: Impact of fraction of clean data -----------------
@@ -2533,7 +2533,7 @@ make_figure_624(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+                save_plots=FALSE, reload=TRUE)
 
 
 
