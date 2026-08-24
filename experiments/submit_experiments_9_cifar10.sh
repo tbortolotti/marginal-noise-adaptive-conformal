@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=914
+CONF=913
 
 if [[ $CONF == 910 ]]; then
   EPSILON_LIST=(0.1)
@@ -35,16 +35,6 @@ elif [[ $CONF == 912 ]]; then
   SEED_LIST=$(seq 1 10)
 
 elif [[ $CONF == 913 ]]; then
-  EPSILON_LIST=(0.051)
-  NU_LIST=(0.2)
-  CONTAMINATION_LIST=("real")
-  N_TRAIN_LIST=(2000)
-  N_CLEAN_LIST=(500)
-  N_CAL_LIST=(500 1000 2000 5000 7000)
-  CONTAMINATION_EXP_FLAG="true"
-  SEED_LIST=$(seq 1 7)
-
-elif [[ $CONF == 914 ]]; then
   EPSILON_LIST=(0.051)
   NU_LIST=(0.2)
   CONTAMINATION_LIST=("real")

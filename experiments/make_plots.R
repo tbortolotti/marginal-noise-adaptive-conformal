@@ -4958,5 +4958,5 @@ make_figure_1103b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, p
                   plot.epsilon=plot.epsilon,
                   plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
                   zoom.ylim=c(1.30,1.4),
-                  save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+                  save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
 dev.off()
