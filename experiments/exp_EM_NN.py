@@ -274,6 +274,7 @@ def run_experiment(random_state):
 
 
     if not contamination_exp_flag:
+        """
         # EM method for T estimation
         print("Estimating T using EM algorithm...", end=' ')
         sys.stdout.flush()
@@ -283,14 +284,15 @@ def run_experiment(random_state):
         T_hat_EM = result_EM.T
         print("Done.")
         sys.stdout.flush()
+        """
 
         #____________________________________________________________________
         ## Estimate T using the NN algorithm with SLL
         print("Estimating T using the NN with SLL...", end=' ')
         sys.stdout.flush()
         model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
         T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
@@ -302,8 +304,8 @@ def run_experiment(random_state):
         print("Estimating T using the NN...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
@@ -311,6 +313,7 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
     if contamination_exp_flag:
+        """
         # EM method for T estimation
         print("Estimating T using EM algorithm with general contamination...", end=' ')
         sys.stdout.flush()
@@ -320,14 +323,15 @@ def run_experiment(random_state):
         T_hat_EM = result_EM.T
         print("Done.")
         sys.stdout.flush()
+        """
 
         #____________________________________________________________________
         ## Estimate T using the NN algorithm with SLL
         print("Estimating T using the NN with SLL and general contamination...", end=' ')
         sys.stdout.flush()
         model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=100, batch_size=128, lr=5e-2, verbose=False)
-        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=100, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Yt_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
         T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
@@ -339,8 +343,8 @@ def run_experiment(random_state):
         print("Estimating T using the NN and general contamination...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=100, batch_size=128, lr=5e-2, verbose=False)
-        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=100, n_grad_steps=100, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN, X_torch, Yt_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
@@ -375,12 +379,6 @@ def run_experiment(random_state):
                                                                     optimized=True, optimistic=True, verbose=False,
                                                                     pre_trained=True, random_state=random_state),
 
-        "Adaptive optimized+ EM": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
-                                                                    epsilon=epsilon, T=T_hat_EM, rho_tilde=rho_tilde_hat,
-                                                                    allow_empty=allow_empty, method="improved",
-                                                                    optimized=True, optimistic=True, verbose=False,
-                                                                    pre_trained=True, random_state=random_state),
-
         "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
                                                                     epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
                                                                     allow_empty=allow_empty, method="improved",
@@ -394,6 +392,14 @@ def run_experiment(random_state):
                                                                     pre_trained=True, random_state=random_state),
 
     }
+
+    """
+            "Adaptive optimized+ EM": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box_pt, K, alpha, n_cal=-1,
+                                                                    epsilon=epsilon, T=T_hat_EM, rho_tilde=rho_tilde_hat,
+                                                                    allow_empty=allow_empty, method="improved",
+                                                                    optimized=True, optimistic=True, verbose=False,
+                                                                    pre_trained=True, random_state=random_state),
+    """
     
     # Initialize an empty list to store the evaluation results
     res_list = []

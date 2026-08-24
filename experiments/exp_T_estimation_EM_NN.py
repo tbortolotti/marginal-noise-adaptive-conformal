@@ -200,6 +200,7 @@ def run_experiment(random_state):
     #res = pd.DataFrame({})
     res_list = []
 
+    """
     #____________________________________________________________________
     ## Estimate T using the EM algorithm
     print("Estimating T using EM algorithm...", end=' ')
@@ -219,6 +220,7 @@ def run_experiment(random_state):
     res_list.append(res_update)
     print("Done.")
     sys.stdout.flush()
+    """
 
     """
     #____________________________________________________________________
@@ -294,8 +296,8 @@ def run_experiment(random_state):
     print("Estimating T using the NN with SLL and alt train...", end=' ')
     sys.stdout.flush()
     model_NN_sll_alt = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
-    history_sll_alt = train_alternate(model_NN_sll_alt, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-    history_sll_alt = train_alternate(model_NN_sll_alt, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+    history_sll_alt = train_alternate(model_NN_sll_alt, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+    history_sll_alt = train_alternate(model_NN_sll_alt, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
     T_hat_NN_sll_alt = model_NN_sll_alt.contamination.contamination_matrix()
     T_hat_NN_sll_alt = T_hat_NN_sll_alt.detach().numpy()
@@ -323,8 +325,8 @@ def run_experiment(random_state):
     print("Estimating T using the NN and alt train...", end=' ')
     sys.stdout.flush()
     model_NN_alt = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
-    history_alt = train_alternate(model_NN_alt, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-    history_alt = train_alternate(model_NN_alt, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+    history_alt = train_alternate(model_NN_alt, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+    history_alt = train_alternate(model_NN_alt, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
     T_hat_NN_alt = model_NN_alt.contamination.contamination_matrix()
     T_hat_NN_alt = T_hat_NN_alt.detach().numpy()
@@ -346,6 +348,7 @@ def run_experiment(random_state):
     print("Done.")
     sys.stdout.flush()
 
+    """
     if not contamination_exp_flag:
         #____________________________________________________________________
         ## Estimate T using the NN algorithm with single linear layer
@@ -470,6 +473,7 @@ def run_experiment(random_state):
         res_list.append(res_update)
         print("Done.")
         sys.stdout.flush()
+    """    
 
     """
     #____________________________________________________________________
@@ -539,6 +543,7 @@ def run_experiment(random_state):
     """
 
     if contamination_exp_flag:
+        """
         #____________________________________________________________________
         ## Estimate T using the EM algorithm with general contamination model
         print("Estimating T using EM algorithm with general contamination...", end=' ')
@@ -612,6 +617,7 @@ def run_experiment(random_state):
         res_list.append(res_update)
         print("Done.")
         sys.stdout.flush()
+        """
 
         #____________________________________________________________________
         ## Estimate T using the NN algorithm with alt training and general contamination
@@ -619,8 +625,8 @@ def run_experiment(random_state):
         sys.stdout.flush()
 
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16, 8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-        train_alternate(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
 
@@ -645,8 +651,8 @@ def run_experiment(random_state):
         print("Estimating T using the NN with SLL and general contamination...", end=' ')
         sys.stdout.flush()
         model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
-        train_alternate(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN_sll, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
 
@@ -666,6 +672,7 @@ def run_experiment(random_state):
         print("Done.")
         sys.stdout.flush()
 
+        """
         #____________________________________________________________________
         ## Estimate T using the NN and EM-style training with general contamination
         print("Estimating T using the NN and EM-style train with general contamination...", end=' ')
@@ -691,6 +698,7 @@ def run_experiment(random_state):
         res_list.append(res_update)
         print("Done.")
         sys.stdout.flush()
+        """
 
 
     """

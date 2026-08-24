@@ -1468,8 +1468,8 @@ make_figure_303 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal"
     theme_bw() +
     theme(text = element_text(size = 12),
           axis.text.x = element_text(angle = 45, vjust = 1, hjust=1),
-          legend.position = "bottom",
-          legend.direction = "horizontal",
+          #legend.position = "bottom",
+          #legend.direction = "horizontal",
           legend.text = element_text(size = 12),
           legend.title = element_text(size = 12),
           plot.margin = margin(5, 5, 1, -10))
@@ -1478,7 +1478,7 @@ make_figure_303 <- function(exp.num=1, plot.alpha=0.1, plot.guarantee="marginal"
     plot.file <- sprintf("figures/exp%d_synthetic1_ntrain%d_eps%f_nu%s_%s_%s_optimisticTRUE.pdf",
                          exp.num,
                          10000, plot.epsilon, plot.nu, plot.guarantee, plot.contamination)
-    ggsave(file=plot.file, height=4, width=7, units="in")
+    ggsave(file=plot.file, height=3.2, width=8, units="in")
     return(NULL)
   } else{
     return(pp)
@@ -1490,10 +1490,19 @@ label.labels <<- c("4 classes", "8 classes", "16 classes")
 exp.num <- 303
 plot.alpha <- 0.1
 plot.epsilon <- 0.1
-plot.contamination <- "block"
 plot.nu <- 0.2
+
+plot.contamination <- "uniform"
 make_figure_303(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
-              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=FALSE, reload=TRUE)
+              plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=TRUE)
+
+plot.contamination <- "block"
+make_figure_303(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=TRUE)
+
+plot.contamination <- "RRB"
+make_figure_303(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
+                plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=TRUE)
 
 ### Experiment 304: Comparison with Clarkson 3 ----------------------------------
 #' Increasing epsilon
@@ -1557,16 +1566,28 @@ make_figure_304 <- function(exp.num, plot.alpha, plot.data="synthetic1", plot.K=
 
 exp.num <- 304
 plot.alpha <- 0.1
-plot.nu <- 0
+plot.nu <- 0.2
 plot.epsilon <- c(0.05,0.1,0.2,0.4)
 plot.K <- 4
 plot.data <- "synthetic1"
-plot.contamination <- "uniform"
 
+plot.contamination <- "uniform"
 make_figure_304(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
               plot.guarantee="marginal",
               plot.contamination=plot.contamination, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
-              save_plots=FALSE, reload=TRUE, slides=FALSE)
+              save_plots=TRUE, reload=TRUE, slides=FALSE)
+
+plot.contamination <- "block"
+make_figure_304(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.guarantee="marginal",
+                plot.contamination=plot.contamination, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
+                save_plots=TRUE, reload=TRUE, slides=FALSE)
+
+plot.contamination <- "RRB"
+make_figure_304(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+                plot.guarantee="marginal",
+                plot.contamination=plot.contamination, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
+                save_plots=TRUE, reload=TRUE, slides=FALSE)
 
 
 ### Experiment 101: CIFAR-10H data ------------------------
