@@ -296,8 +296,8 @@ def run_experiment(random_state):
     print("Estimating T using the NN with SLL and alt train...", end=' ')
     sys.stdout.flush()
     model_NN_sll_alt = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
-    history_sll_alt = train_alternate(model_NN_sll_alt, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=100, batch_size=128, lr=5e-2, verbose=False)
-    history_sll_alt = train_alternate(model_NN_sll_alt, X_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=100, batch_size=128, lr=1e-3, verbose=False)
+    history_sll_alt = train_alternate(model_NN_sll_alt, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+    history_sll_alt = train_alternate(model_NN_sll_alt, X_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
 
     T_hat_NN_sll_alt = model_NN_sll_alt.contamination.contamination_matrix()
     T_hat_NN_sll_alt = T_hat_NN_sll_alt.detach().numpy()

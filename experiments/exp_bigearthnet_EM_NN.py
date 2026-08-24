@@ -198,30 +198,19 @@ def run_experiment(random_state):
     X, X_test, Y, Y_test, Yt, _ = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
     del X_all, Y_all, Yt_all
 
-    #if contamination_model == "real":
-    #    rho_tilde_hat = np.array([0.113, 0.031, 0.025, 0.137, 0.016, 0.678])
-    #else:
-
     # Separate data into training and calibration
     X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
     del X, Y, Yt
 
-    # Estimate the label proportions from the calibration data set
-    print("Estimating label proportions...", end=' ')
-    sys.stdout.flush()
-    rho_tilde_hat = estimate_rho(Yt_cal, K)
-    print("Done.")
-    sys.stdout.flush()
-
-    # Separate data into training + validation and calibration
-    #X_tv, X_cal, Y_tv, Y_cal, Yt_tv, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+2)
-    #del X, Y, Yt
-    # Separate data into training and validation
-    #X_train, X_val, Y_train, _, Yt_train, Yt_val = train_test_split(X_tv, Y_tv, Yt_tv, test_size=n_val, random_state=random_state+3)
-    #del X_tv, Y_tv, Yt_tv
-    #
-    #if contamination_model != "real":
-    #    del X_val, Yt_val
+    if contamination_model == "real":
+        rho_tilde_hat = np.array([0.113, 0.031, 0.025, 0.137, 0.016, 0.678])
+    else:
+        # Estimate the label proportions from the calibration data set
+        print("Estimating label proportions...", end=' ')
+        sys.stdout.flush()
+        rho_tilde_hat = estimate_rho(Yt_cal, K)
+        print("Done.")
+        sys.stdout.flush()
 
     print("Generating clean dataset...", end=' ')
     sys.stdout.flush()
@@ -263,8 +252,8 @@ def run_experiment(random_state):
         print("Estimating T using the NN with features...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
         print("Done.")
@@ -275,8 +264,8 @@ def run_experiment(random_state):
         print("Estimating T using the NN with features and SLL...", end=' ')
         sys.stdout.flush()
         model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
         print("Done.")
@@ -316,8 +305,8 @@ def run_experiment(random_state):
         print("Estimating T using the MLP with regularization...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0.1, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, lambda_reg=0.1, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0.1, verbose=False)
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
 
@@ -341,8 +330,8 @@ def run_experiment(random_state):
         print("Estimating T using the NN with features...", end=' ')
         sys.stdout.flush()
         model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN = model_NN.contamination.contamination_matrix()
         T_hat_NN = T_hat_NN.detach().numpy()
         print("Done.")
@@ -353,8 +342,8 @@ def run_experiment(random_state):
         print("Estimating T using the NN with features and SLL...", end=' ')
         sys.stdout.flush()
         model_NN_sll = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
-        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=5e-2, verbose=False)
+        train_alternate(model_NN_sll, X_feat_torch, Y_obs_torch, I_torch, n_epochs=100, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
         T_hat_NN_sll = model_NN_sll.contamination.contamination_matrix()
         T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
         print("Done.")
@@ -414,12 +403,7 @@ def run_experiment(random_state):
             "Label conditional+": lambda: LabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                   rho_tilde=rho_tilde_hat, M=M_hat,
                                                                   calibration_conditional=False, gamma=None,
-                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
-
-            "Clarkson": lambda: ClarksonConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
-                                        M=M_hat, rho_tilde=rho_tilde_hat,
-                                        allow_empty=allow_empty, pre_trained=True,
-                                        random_state=random_state)
+                                                                  optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
 
         }
 
