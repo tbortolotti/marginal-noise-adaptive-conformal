@@ -68,6 +68,7 @@ n_test = 2000
 batch_size = 20
 allow_empty = True
 asymptotic_h_start = 1/400
+#asymptotic_h_start = 1/200
 asymptotic_MC_samples = 10000
 
 # Initialize the data distribution

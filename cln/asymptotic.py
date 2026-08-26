@@ -106,7 +106,7 @@ def richardson_recursive(h, func, j, k):
     else:
         R1 = richardson_recursive(h, func, j, k-1)
         R2 = richardson_recursive(h, func, j-1, k-1)
-        return (np.power(2.0,k) * R1 - R2) / (np.power(2.0,k) - 1.0)
+        return (np.power(2.0,k*0.5) * R1 - R2) / (np.power(2.0,k*0.5) - 1.0)
 
 def richardson_extrapolation(h, func, max_j):
     """Perform Richardson extrapolation using recursion and memoization."""
