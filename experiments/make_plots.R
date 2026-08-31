@@ -905,6 +905,7 @@ plot.K <- 10
 plot.data <- "synthetic4"
 imb.values <- c(0, 0.5, 1)
 
+# Not shown in paper
 make_figure_201(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=TRUE, reload=TRUE)
 
@@ -1325,6 +1326,7 @@ plot.contamination <- "uniform"
 plot.pi_clean <- c(0.1,0.3,0.5)
 plot.data <- "synthetic6"
 
+# Not shown in paper
 make_figure_302(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.pi_clean=plot.pi_clean,
                 plot.rand_flag=FALSE,
@@ -1424,6 +1426,7 @@ plot.contamination <- "uniform"
 plot.n_clean <- 100
 plot.data <- "synthetic6"
 
+# Not shown in paper
 make_figure_303(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
@@ -1886,6 +1889,8 @@ plot.K <- 4
 plot.contamination <- "uniform"
 exp.num <- 402
 plot.data <- "synthetic6"
+
+# Not shown in paper
 make_figure_402(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
@@ -2116,6 +2121,8 @@ plot.K <- 4
 plot.contamination <- "uniform"
 exp.num <- 404
 plot.data <- "synthetic6"
+
+# Not shown in paper
 make_figure_404(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
@@ -2228,6 +2235,7 @@ plot.contamination <- "uniform"
 exp.num <- 405
 plot.data <- c("synthetic1","synthetic2","synthetic3")
 
+# Not shown in paper
 make_figure_405(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
                 plot.contamination=plot.contamination,
@@ -2383,7 +2391,7 @@ load_data <- function(exp.num, from_cluster=TRUE) {
 init_settings <- function(plot.optimistic = FALSE) {
   df.dummy <<- tibble(key="Coverage", value=0.95)
   df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767","#B22222")
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767")
   
   method.values <<- c("Standard",
                       "Standard using clean",
@@ -2538,16 +2546,16 @@ init_settings <- function(plot.optimistic = FALSE) {
   
   method.values <<- c("Standard",
                       "Standard using clean",
-                      "Adaptive+ clean",
                       "Adaptive+ NN",
+                      "Asymptotic+ NN",
                       "Label conditional+",
                       "__spacer__",
                       "Standard (clean) line")
   
   method.labels <<- c("Standard",
                       "Standard (clean)",
-                      "Adaptive+ (clean)",
-                      "Adaptive+ (NN)",
+                      "Adaptive+",
+                      "Adaptive+ (asymptotic)",
                       "Adaptive+ (label-cond)",
                       "",
                       "Standard (clean, simple)")
@@ -2656,41 +2664,18 @@ plot.contamination <- "real"
 plot.n_train <- 5000
 plot.n_clean <- c(500)
 plot.guarantee="marginal"
+
+# Not shown in paper
 make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
                  plot.contamination=plot.contamination,
                  plot.epsilon=plot.epsilon,
                  plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                 save_plots=FALSE, plot.optimistic=TRUE, reload=TRUE)
+                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
-#### Figure with zoom for the paper - with three Adaptive methods -----------------------------------------
+#### Figure with zoom for the paper -----------------------------------------
 library(cowplot)
 library(patchwork)
 library(ggforce)
-
-init_settings <- function(plot.optimistic = FALSE) {
-  df.dummy <<- tibble(key="Coverage", value=0.95)
-  df.dummy2 <<- tibble(key="Coverage", value=0.5)
-  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2","#648767","#B22222")
-  
-  method.values <<- c("Standard",
-                      "Standard using clean",
-                      "Adaptive+ NN",
-                      "Asymptotic+ NN",
-                      "Label conditional+",
-                      "__spacer__",
-                      "Standard (clean) line")
-  
-  method.labels <<- c("Standard",
-                      "Standard (clean)",
-                      "Adaptive+",
-                      "Adaptive+ (asymptotic)",
-                      "Adaptive+ (label-cond)",
-                      "",
-                      "Standard (clean, simple)")
-  color.scale <<- cbPalette[c(1,3,4,7,NA,10)]
-  shape.scale <<- c(1,2,3,5,NA,NA)
-  linetype.scale <<- c(1,1,1,1,0,4)
-}
 
 
 get_legend2 <- function(pl) {
