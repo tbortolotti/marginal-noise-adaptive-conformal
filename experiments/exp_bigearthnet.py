@@ -21,14 +21,13 @@ sys.path.append("..")
 sys.path.append("../third_party")
 
 from cln import contamination
-from cln.T_estimation_NN import NoisyLabelNet, train_alternate, compute_ll_cont
+from cln.T_estimation_NN import NoisyLabelNet, train_alternate
 from cln.T_estimation import TMatrixEstimation
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
 from cln.classification_label_conditional import LabelNoiseConformal
 
 from third_party import arc
-from third_party.clarkson.clarkson import ClarksonConformal
 from third_party.bigearthnet.datamodules.bigearthnet_datamodule import BigEarthNetDataModule
 from third_party.bigearthnet.models.bigearthnet_module import BigEarthNetModule, TorchGeoFeatureExtractor
 import gc

@@ -20,7 +20,6 @@ sys.path.append("../third_party")
 from cln import data
 from cln import contamination
 from cln.T_estimation import TMatrixEstimation
-from cln.T_estimation_EM import Dataset, run_em
 from cln.T_estimation_NN import NoisyLabelNet, train_alternate
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
