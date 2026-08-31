@@ -1,97 +1,117 @@
 #!/bin/bash
 
 # Parameters
-CONF=625
+CONF=401
 
-if [[ $CONF == 620 ]]; then
-  DATA_LIST=("synthetic1")
+if [[ $CONF == 400 ]]; then
+  MODEL_LIST=('RFC')
+  DATA_LIST=("synthetic6")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  N_LIST=(1000)
+  EPSILON_LIST=(0.2)
+  CONTAMINATION_LIST=("RRB")
+  CONTAMINATION_EXP_FLAG="true"
+  N_TRAIN_LIST=(1000)
   N_CLEAN_LIST=(100)
   PI_CLEAN_LIST=(0)
-  RANDOM_FLAG_LIST=("false")
-  EPSILON_LIST=(0.2)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("asymmetric")
-  CONTAMINATION_EXP_FLAG="true"
+  N_CAL_LIST=(2000)
   SEED_LIST=(1)
 
-elif [[ $CONF == 621 ]]; then
+elif [[ $CONF == 401 ]]; then
+  # Figure 5
+  MODEL_LIST=('RFC')
   DATA_LIST=("synthetic6")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  N_LIST=(500 1000 2000 5000 10000 20000)
+  EPSILON_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_EXP_FLAG="false"
+  N_TRAIN_LIST=(5000 10000)
   N_CLEAN_LIST=(100 500 1000)
   PI_CLEAN_LIST=(0)
-  RANDOM_FLAG_LIST=("false")
-  EPSILON_LIST=(0.2)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform")
-  CONTAMINATION_EXP_FLAG="false"
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 622 ]]; then
+elif [[ $CONF == 402 ]]; then
+  # not shown in paper
+  MODEL_LIST=('RFC')
   DATA_LIST=("synthetic6")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  N_LIST=(500 1000 2000 5000 10000 20000)
+  EPSILON_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_EXP_FLAG="false"
+  N_TRAIN_LIST=(5000)
   N_CLEAN_LIST=(0)
-  PI_CLEAN_LIST=(0.1 0.2 0.3 0.5 0.8)
-  RANDOM_FLAG_LIST=("false")
-  EPSILON_LIST=(0.2)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform")
-  CONTAMINATION_EXP_FLAG="false"
+  PI_CLEAN_LIST=(0.05 0.1 0.2)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 623 ]]; then
+elif [[ $CONF == 403 ]]; then
+  # Figure A25 and A26
+  MODEL_LIST=('RFC')
   DATA_LIST=("synthetic6")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  N_LIST=(500 1000 2000 5000 10000 20000)
-  N_CLEAN_LIST=(500)
-  PI_CLEAN_LIST=(0)
-  RANDOM_FLAG_LIST=("false")
-  EPSILON_LIST=(0 0.05 0.1 0.2)
-  NU_LIST=(0)
+  EPSILON_LIST=(0.2)
   CONTAMINATION_LIST=("uniform")
   CONTAMINATION_EXP_FLAG="false"
+  N_TRAIN_LIST=(1000 2000 5000 10000)
+  N_CLEAN_LIST=(100 500)
+  PI_CLEAN_LIST=(0)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 624 ]]; then
+elif [[ $CONF == 404 ]]; then
+  # not shown in paper
+  MODEL_LIST=('RFC')
+  DATA_LIST=("synthetic6")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  EPSILON_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_EXP_FLAG="false"
+  N_TRAIN_LIST=(1000 2000 5000)
+  N_CLEAN_LIST=(0)
+  PI_CLEAN_LIST=(0.1)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
+  SEED_LIST=$(seq 1 5)
+
+elif [[ $CONF == 405 ]]; then
+  # not shown in paper
+  MODEL_LIST=('RFC')
   DATA_LIST=("synthetic1" "synthetic2" "synthetic3")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
-  N_LIST=(500 1000 2000 5000 10000 20000)
-  N_CLEAN_LIST=(100)
-  PI_CLEAN_LIST=(0)
-  RANDOM_FLAG_LIST=("false")
   EPSILON_LIST=(0.2)
-  NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
   CONTAMINATION_EXP_FLAG="false"
-  SEED_LIST=$(seq 1 5)
-
-elif [[ $CONF == 625 ]]; then
-  DATA_LIST=("synthetic6")
-  NUM_VAR_LIST=(20)
-  K_LIST=(4)
-  N_LIST=(500 1000 2000 5000 10000 20000)
+  N_TRAIN_LIST=(10000)
   N_CLEAN_LIST=(500)
   PI_CLEAN_LIST=(0)
-  RANDOM_FLAG_LIST=("false")
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
+  SEED_LIST=$(seq 1 5)
+
+elif [[ $CONF == 406 ]]; then
+  # Figure A27
+  MODEL_LIST=('RFC')
+  DATA_LIST=("synthetic6" "synthetic3")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
   EPSILON_LIST=(0.2)
-  NU_LIST=(0.2)
-  CONTAMINATION_LIST=("uniform")
+  CONTAMINATION_LIST=("mild" "block" "RRB")
   CONTAMINATION_EXP_FLAG="true"
+  N_TRAIN_LIST=(10000)
+  N_CLEAN_LIST=(500)
+  PI_CLEAN_LIST=(0)
+  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000)
   SEED_LIST=$(seq 1 5)
 
 fi
 
 
 # Slurm parameters
-MEMO=5G                             # Memory required (1 GB)
+MEMO=4G                             # Memory required (1 GB)
 TIME=00-04:00:00                    # Time required (4 h)
 CORE=1                              # Cores required (1)
 
@@ -108,19 +128,20 @@ OUT_DIR="results"
 mkdir -p $OUT_DIR
 mkdir -p $OUT_DIR"/exp"$CONF
 
+
 # Loop over configurations
 for SEED in $SEED_LIST; do
-  for DATA in "${DATA_LIST[@]}"; do
-    for NUM_VAR in "${NUM_VAR_LIST[@]}"; do
-      for K in "${K_LIST[@]}"; do
-        for N in "${N_LIST[@]}"; do
-          for N_CLEAN in "${N_CLEAN_LIST[@]}"; do
-            for PI_CLEAN in "${PI_CLEAN_LIST[@]}"; do
-              for RANDOM_FLAG in "${RANDOM_FLAG_LIST[@]}"; do
-                for EPSILON in "${EPSILON_LIST[@]}"; do
-                  for NU in "${NU_LIST[@]}"; do
-                    for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
-                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_n"$N"_ncl"$N_CLEAN"_pic"$PI_CLEAN"_rf"$RANDOM_FLAG"_eps"$EPSILON"_nu"$NU"_"$CONTAMINATION"_seed"$SEED
+  for MODEL in "${MODEL_LIST[@]}"; do
+    for DATA in "${DATA_LIST[@]}"; do
+      for NUM_VAR in "${NUM_VAR_LIST[@]}"; do
+        for K in "${K_LIST[@]}"; do
+          for EPSILON in "${EPSILON_LIST[@]}"; do
+            for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
+              for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
+                for N_CLEAN in "${N_CLEAN_LIST[@]}"; do
+                  for PI_CLEAN in "${PI_CLEAN_LIST[@]}"; do
+                    for N_CAL in "${N_CAL_LIST[@]}"; do
+                      JOBN="exp"$CONF"/"$DATA"_p"$NUM_VAR"_K"$K"_"$MODEL"_eps"$EPSILON"_"$CONTAMINATION"_nt_"$N_TRAIN"_ncl_"$N_CLEAN"_picl_"$PI_CLEAN"_nc"$N_CAL"_seed"$SEED
                       OUT_FILE=$OUT_DIR"/"$JOBN".txt"
                       COMPLETE=0
                       #  ls $OUT_FILE
@@ -130,7 +151,7 @@ for SEED in $SEED_LIST; do
 
                       if [[ $COMPLETE -eq 0 ]]; then
                         # Script to be run
-                        SCRIPT="exp_T_estimation_EM_NN.sh $CONF $DATA $NUM_VAR $K $N $N_CLEAN $PI_CLEAN $RANDOM_FLAG $EPSILON $NU $CONTAMINATION $CONTAMINATION_EXP_FLAG $SEED"
+                        SCRIPT="exp_with_estimated_T.sh $CONF $MODEL $DATA $NUM_VAR $K $EPSILON $CONTAMINATION $CONTAMINATION_EXP_FLAG $N_TRAIN $N_CLEAN $PI_CLEAN $N_CAL $SEED"
                         # Define job name
                         OUTF=$LOGS"/"$JOBN".out"
                         ERRF=$LOGS"/"$JOBN".err"

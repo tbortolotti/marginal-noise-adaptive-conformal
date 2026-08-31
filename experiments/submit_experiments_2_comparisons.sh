@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # Parameters
-CONF=303
+CONF=201
 
 # COMPARISON WITH NOISE-ADAPTIVE LABEL CONDITIONAL
-if [[ $CONF == 301 ]]; then
+if [[ $CONF == 201 ]]; then
+  # Figure A24
   DATA_LIST=("synthetic4")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
@@ -20,7 +21,8 @@ if [[ $CONF == 301 ]]; then
   SEED_LIST=$(seq 1 5)
 
 # COMPARISON WITH CLARKSON
-elif [[ $CONF == 302 ]]; then
+elif [[ $CONF == 202 ]]; then
+  # Not shown in paper
   DATA_LIST=("synthetic4")
   NUM_VAR_LIST=(20)
   K_LIST=(10)
@@ -35,7 +37,8 @@ elif [[ $CONF == 302 ]]; then
   IMB_LIST=(0 0.5 1 2)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 303 ]]; then
+elif [[ $CONF == 203 ]]; then
+  # Figures A9, A11, A13
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4 8 16)
@@ -50,7 +53,8 @@ elif [[ $CONF == 303 ]]; then
   IMB_LIST=(0)
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 304 ]]; then
+elif [[ $CONF == 204 ]]; then
+  # Figures A10, A12, A14
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)

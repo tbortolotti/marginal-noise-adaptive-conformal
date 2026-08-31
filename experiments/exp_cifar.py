@@ -4,8 +4,6 @@ import torch
 import torch.nn.functional as F
 #from torchvision import transforms
 
-from sklearn.metrics import accuracy_score, confusion_matrix
-
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -19,293 +17,405 @@ sys.path.append("..")
 sys.path.append("../third_party")
 
 from cln import contamination
-from cln import estimation
+from cln.T_estimation_NN import NoisyLabelNet, train_alternate
+from cln.T_estimation import TMatrixEstimation
 from cln.utils import evaluate_predictions, estimate_rho
 from cln.classification import MarginalLabelNoiseConformal
 from cln.classification_label_conditional import LabelNoiseConformal
 
-from data_torch import Cifar10DataSet, draw_images, ResNet18
-
 from third_party import arc
+
+from data_torch import Cifar10DataSet, CifarResNet18Features, ResNet18
+from torch.utils.data import DataLoader
+import gc
+import copy
 
 
 # Define default parameters
-batch_size = 2000
-epsilon_n_clean = 0.1
-epsilon_n_corr = 0.1
-estimate = "none"
+exp_num = 503
+epsilon = 0.1
+nu = 0
+contamination_model = "uniform"
+n_train = 2000
+n_clean = 500
+n_cal = 1000
 seed = 1
-
 
 # Parse input parameters
 if True:
     print ('Number of arguments:', len(sys.argv), 'arguments.')
     print ('Argument List:', str(sys.argv))
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 10:
         print("Error: incorrect number of parameters.")
         quit()
     sys.stdout.flush()
-
-    batch_size = int(sys.argv[1])
-    epsilon_n_clean = float(sys.argv[2])
-    epsilon_n_corr = float(sys.argv[3])
-    estimate = sys.argv[4]
-    seed = int(sys.argv[5])
-
+    exp_num = int(sys.argv[1])
+    epsilon = float(sys.argv[2])
+    contamination_model = sys.argv[4]
+    n_train = int(sys.argv[5])
+    n_clean = int(sys.argv[6])
+    n_cal = int(sys.argv[7])
+    contamination_exp_flag = sys.argv[8].lower() == "true"
+    seed = int(sys.argv[9])
 
 # Define other constant parameters
-exp_num=101
 data_name = "cifar10"
-epsilon = 0.051
 K = 10
-epsilon_n = epsilon_n_clean + epsilon_n_corr
-n_test = 500
 num_exp = 5
 allow_empty = True
-epsilon_max = 0.1
 asymptotic_h_start = 1/400
 asymptotic_MC_samples = 10000
-
-# Pre-process parameters
-n_cal = batch_size - n_test
+nu = 0.2
+n_test = 500
+batch_size = n_train + n_clean + n_cal + n_test
+epsilon_init = 0
 
 # Set default directories
-data_dir = "/project/sesia_1123/cifar-10/cifar-10h/cifar-10-python"
-noisy_data_dir = "/project/sesia_1123/cifar-10/cifar-10h/data"
-
-# Check if the directories exist, if not, ask for alternate paths
-if not os.path.exists(data_dir):
-    data_dir = "/media/msesia/Samsung1/data/cifar-10h/cifar-10-python"
-
-if not os.path.exists(noisy_data_dir):
-    noisy_data_dir = "/media/msesia/Samsung1/data/cifar-10h/data"
+data_dir = "/home1/tb_214/data/cifar10"
+noisy_data_dir = "/home1/tb_214/data/cifar10h"
 
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")
 
-dataset = Cifar10DataSet(data_dir, noisy_data_dir, normalize=True, random_state=2023)
+device = "cuda" if torch.cuda.is_available() else "cpu"
 
-from torch.utils.data import DataLoader
-loader = DataLoader(dataset,
-                    batch_size=batch_size,
-                    shuffle=True,
-                    num_workers=1)
+dataset = Cifar10DataSet(data_dir=data_dir, noisy_data_dir=noisy_data_dir, random_state=2026)
 
-if False:
-    # Note: should not use normalization before drawing
-    draw_images(X_batch, Y_lab_batch, rows=5, columns=5)
+#print(f"\nOverall numerosity of dataset {len(dataset)}")
+#sys.stdout.flush()
 
+loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=1)
+feature_extractor = CifarResNet18Features()
 
-# Initialize the black-box model
+# Initialize noise contamination process
+if contamination_model == "uniform":
+    T = contamination.construct_T_matrix_simple(K, epsilon)
+elif contamination_model == "block":
+    T = contamination.construct_T_matrix_block(K, epsilon)
+elif contamination_model == "RRB":
+    T = contamination.construct_T_matrix_block_RR(K, epsilon, nu)
+
+# Initialize black-box model
 black_box = ResNet18()
-
-# Test
-if False:
-    X_batch, Y_batch, Y_lab_batch, Yt_batch, Yt_lab_batch, idx_batch = next(iter(loader))
-    Y_hat_batch = black_box.predict(X_batch)
-
-    print("\nClean data:")
-    print("Predictive accuracy: {:.2f}".format(accuracy_score(Y_batch, Y_hat_batch)))
-    print("Confusion matrix:")
-    print(confusion_matrix(Y_batch, Y_hat_batch))
-
-    print("\nNoisy data:")
-    print("Predictive accuracy: {:.2f}".format(accuracy_score(Yt_batch, Y_hat_batch)))
-    print("Confusion matrix:")
-    print(confusion_matrix(Yt_batch, Y_hat_batch))
-
-    prop_diff = np.mean(Y_batch.detach().numpy()!=Yt_batch.detach().numpy())
-    print("Proportion of mismatched labels: {:.3f}".format(prop_diff))
-    epsilon = prop_diff * K / (K-1)
-    print("True epsilon: {:.3f}".format(epsilon))
-
-    pdb.set_trace()
-
 
 # Add important parameters to table of results
 header = pd.DataFrame({'data':[data_name], 'K':[K],
-                       'n_cal':[n_cal], 'n_test':[n_test],
-                       'epsilon_n_clean':[epsilon_n_clean], 'epsilon_n_corr':[epsilon_n_corr],
-                       'estimate':[estimate], 'seed':[seed]})
+                       'n_train':[n_train], 'n_clean':[n_clean], 'n_cal':[n_cal],
+                       'epsilon':[epsilon], 'contamination':[contamination_model],
+                       'seed':[seed]})
 
 # Output file
 outfile_prefix = "exp"+str(exp_num) + "/" + data_name + "_n" + str(batch_size)
-outfile_prefix += "_encl" + str(epsilon_n_clean) + "_enco" + str(epsilon_n_corr)
-outfile_prefix += "_est" + estimate + "_" + str(seed)
+outfile_prefix += "_eps" + str(epsilon) + "_" + contamination_model
+outfile_prefix += "_nt" + str(n_train) + "_ncl" + str(n_clean) +"_nc" + str(n_cal) + "_seed" + str(seed)
 print("Output file: {:s}.".format("results/"+outfile_prefix), end="\n")
 sys.stdout.flush()
-
-
 
 # Describe the experiment
 def run_experiment(random_state):
     print("\nRunning experiment in batch {:d}...".format(random_state))
     sys.stdout.flush()
 
+    # Generate dataset for calibration and test
     # Generate a large data set
-    print("\nGenerating data...", end=' ')
+    if contamination_model == "real":
+        print("\nGenerating data...", end=' ')
+        sys.stdout.flush()
+        X_all, _, Y_all, _, Yt_all, _, _ = next(iter(loader))
+        Y_all = Y_all.detach().numpy()
+        Yt_all = Yt_all.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+        # Separate the test set
+        X, X_test, Y, Y_test, Yt, Yt_test = train_test_split(X_all, Y_all, Yt_all, test_size=n_test, random_state=random_state+1)
+        del X_all, Y_all, Yt_all, Yt_test
+    else:
+        print("\nGenerating data...", end=' ')
+        sys.stdout.flush()
+        X_all, _, Y_all, _, _, _, _ = next(iter(loader))
+        Y_all = Y_all.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+        # Separate the test set
+        X, X_test, Y, Y_test = train_test_split(X_all, Y_all, test_size=n_test, random_state=random_state+1)
+        del X_all, Y_all
+
+        # Generate the contaminated labels
+        print("Generating contaminated labels...", end=' ')
+        sys.stdout.flush()
+        contamination_process = contamination.LinearContaminationModel(T, random_state=random_state+2)
+        Yt = contamination_process.sample_labels(Y)
+        print("Done.")
+        sys.stdout.flush()
+
+
+    # Estimate the label proportions from the whole data set
+    print("Estimating label proportions...", end=' ')
     sys.stdout.flush()
-    X_batch, Y_batch, Y_lab_batch, Yt_batch, Yt_lab_batch, idx_batch = next(iter(loader))
-    
-    Y_batch = Y_batch.detach().numpy()
-    Yt_batch = Yt_batch.detach().numpy()
+    rho_tilde_hat = estimate_rho(Yt, K)
+    #print(rho_tilde_hat)
     print("Done.")
     sys.stdout.flush()
 
-    # Estimate the label proportions from the whole data set
-    rho = estimate_rho(Y_batch, K)
-    rho_tilde = estimate_rho(Yt_batch, K)
+    # Separate data into training and calibration
+    X_train, X_cal, Y_train, Y_cal, Yt_train, Yt_cal = train_test_split(X, Y, Yt, test_size=n_cal, random_state=random_state+3)
+    del X, Y, Yt
 
-    # Separate the test set
-    X, X_test, Y, Y_test, Yt, _ = train_test_split(X_batch, Y_batch, Yt_batch, test_size=n_test, random_state=random_state+2)
+    print("Generating clean dataset...", end=' ')
+    sys.stdout.flush()
+    # Identify the central observations in the training set to build the clean dataset
+    conf_scores = black_box.predict_proba(X_train).max(axis=1)
+    top_indices = np.argsort(conf_scores)[-n_clean:]
 
-    # Estimate (if applicable) the label contamination model
-    if estimate=="none":
-        rho_hat = rho
-        rho_tilde_hat = rho_tilde
-        T_hat = contamination.construct_T_matrix_simple(K, epsilon)
-        M_hat = contamination.convert_T_to_M(T_hat, rho_hat)
-        epsilon_ci = None
-        epsilon_hat = np.nan
-    elif estimate=="rho":
-        rho_tilde_hat = estimate_rho(Yt, K)
-        T_hat = contamination.construct_T_matrix_simple(K, epsilon)  
-        M_hat = contamination.convert_T_to_M(T_hat,rho)
-        rho_hat = np.dot(M_hat.T, rho_tilde_hat)
-        epsilon_ci = None
-        epsilon_hat = np.nan
-    elif estimate=="rho-epsilon-point":
-        # Hold-out some data to estimate the contamination model
-        X, X_estim, Y, Y_estim, Yt, Yt_estim = train_test_split(X, Y, Yt, test_size=epsilon_n, random_state=random_state+3)
+    X_clean = X_train[top_indices]
+    Y_clean = Y_train[top_indices]
+    Yt_clean = Yt_train[top_indices]
+    I = np.zeros(len(Y_train))
+    I[top_indices] = 1
+    Y_obs = np.where(I == 1, Y_train, Yt_train)
+    print("Done.")
+    sys.stdout.flush()
 
-        # Keep some hold-out data clean
-        X_estim_clean, X_estim_corr, Y_estim_clean, _, _, Yt_estim_corr = train_test_split(X_estim, Y_estim, Yt_estim,
-                                                                                           test_size=epsilon_n_corr/epsilon_n, random_state=random_state+4)
+    # Extract features
+    print("Extract features for T estimation...", end=' ')
+    sys.stdout.flush()
 
-        rho_tilde_hat = estimate_rho(Yt, K)
-        epsilon_hat, _, _, _, _ = estimation.fit_contamination_model_RR(X_estim_clean, X_estim_corr,
-                                                                        Y_estim_clean, Yt_estim_corr, black_box,
-                                                                        K, 0.01, pre_trained=True,
-                                                                        random_state=random_state+6)
-        T_hat = contamination.construct_T_matrix_simple(K, epsilon_hat)
-        rho_hat = np.dot(np.linalg.inv(T_hat), rho_tilde_hat)
-        M_hat = contamination.convert_T_to_M(T_hat,rho_hat)
-        epsilon_ci = None
+    X_feat = feature_extractor.transform(X_train)
+    num_var = X_feat.shape[1]
+    X_feat_torch = X_feat.to(device)
+    Y_obs_torch = torch.tensor(Y_obs, dtype=torch.long)
+    I_torch = torch.tensor(I, dtype=torch.long)
+    del X_train, X_feat
+    print("Done.")
+    sys.stdout.flush()
+    
+    # Use extracted features to estimate the contamination
+    if not contamination_exp_flag:
+        #____________________________________________________________________
+        ## Estimate T using the clean/noisy correspondence
+        T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical_parametricRR")
+        T_hat_clean = T_method.get_estimate()
+
+        #____________________________________________________________________
+        ## Estimate T using the NN with features and MLP
+        print("Estimating T using the NN with features...", end=' ')
+        sys.stdout.flush()
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        T_hat_NN = model_NN.contamination.contamination_matrix()
+        T_hat_NN = T_hat_NN.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+        #____________________________________________________________________
+        ## Estimate T using the NN with features and MLP
+        print("Estimating T using the NN with features and SLL...", end=' ')
+        sys.stdout.flush()
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="uniform", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        T_hat_NN_sll = model_NN.contamination.contamination_matrix()
+        T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+    elif contamination_model == "real":
+        #____________________________________________________________________
+        ## Estimate T using the clean/noisy correspondence
+        T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical")
+        T_hat_clean = T_method.get_estimate()
+
+        with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_clean:\n{T_hat_clean}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_clean) == K}")
+            print(f"Determinant: {np.linalg.det(T_hat_clean)}")
+        print("Done.")
+        sys.stdout.flush()
+
+
+        #____________________________________________________________________
+        ## Estimate T using the MLP with regularization
+        print("Estimating T using the MLP with regularization...", end=' ')
+        sys.stdout.flush()
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, lambda_reg=0, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, lambda_reg=0, verbose=False)
+        T_hat_NN = model_NN.contamination.contamination_matrix()
+        T_hat_NN = T_hat_NN.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+        with np.printoptions(precision=3, suppress=True):
+            print(f"Selected T_hat_NN:\n{T_hat_NN}")
+            print(f"Invertible: {np.linalg.matrix_rank(T_hat_NN) == K}")
+            print(f"Determinant: {np.linalg.det(T_hat_NN)}")
+        print("Done.")
+        sys.stdout.flush()
+
+        M_hat = contamination.convert_T_to_M(T_hat_NN, rho_tilde_hat)
 
     else:
-        print("Unknown estimation option!")
-        sys.stdout.flush()
-        exit(-1)
+        #____________________________________________________________________
+        ## Estimate T using the clean/noisy correspondence
+        T_method = TMatrixEstimation(Y_clean, Yt_clean, K, estimation_method="empirical")
+        T_hat_clean = T_method.get_estimate()
 
+        #____________________________________________________________________
+        ## Estimate T using the NN with features and MLP
+        print("Estimating T using the NN with features...", end=' ')
+        sys.stdout.flush()
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[16,8], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        T_hat_NN = model_NN.contamination.contamination_matrix()
+        T_hat_NN = T_hat_NN.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+        #____________________________________________________________________
+        ## Estimate T using the NN with features and MLP
+        print("Estimating T using the NN with features and SLL...", end=' ')
+        sys.stdout.flush()
+        model_NN = NoisyLabelNet(input_dim=num_var, K=K, hidden_dims=[], contamination_model_="general", epsilon_init=epsilon_init)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-2, verbose=False)
+        train_alternate(model_NN, X_feat_torch, Y_obs_torch, I_torch, n_epochs=50, n_grad_steps=50, batch_size=128, lr=1e-3, verbose=False)
+        T_hat_NN_sll = model_NN.contamination.contamination_matrix()
+        T_hat_NN_sll = T_hat_NN_sll.detach().numpy()
+        print("Done.")
+        sys.stdout.flush()
+
+    # Force garbage collection
+    gc.collect()
+    torch.cuda.empty_cache()
+
+    """
+    # Print memory state
+    print(f"RAM used: {torch.cuda.memory_allocated()/1e9:.2f} GB")
+    print(f"RAM reserved: {torch.cuda.memory_reserved()/1e9:.2f} GB")
+
+    # Print all live tensors
+    for obj in gc.get_objects():
+        try:
+            if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+                print(f"Tensor: {type(obj).__name__}, size={obj.size()}, device={obj.device}")
+        except:
+            pass
+    """
+
+    alpha = 0.1
+    guarantee = 'marginal'
 
     res = pd.DataFrame({})
-    for alpha in [0.1]:
-        for guarantee in ['marginal']:
 
-            print("\nSeeking {:s} coverage at level {:.2f}.".format(guarantee, 1-alpha))
+    print("\nSeeking {:s} coverage at level {:.2f}.".format(guarantee, 1-alpha))
 
-            label_conditional = False
-            alpha_theory = alpha * (1 - epsilon * (1-1/K))
+    # Define a dictionary of methods with their names and corresponding initialization parameters
+    if contamination_model=="real":
+        methods = {
+            "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                        pre_trained=True, random_state=random_state),
 
-            # Define a dictionary of methods with their names and corresponding initialization parameters
-            methods = {
-                "Standard": lambda: arc.methods.SplitConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                               label_conditional=label_conditional, allow_empty=allow_empty,
-                                                               pre_trained=True, random_state=random_state),
-                
-                "Standard (theory)": lambda: arc.methods.SplitConformal(X, Yt, black_box, K, alpha_theory, n_cal=-1,
-                                                               label_conditional=label_conditional, allow_empty=allow_empty,
-                                                               pre_trained=True, random_state=random_state),
+            "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
+                                                                    pre_trained=True, random_state=random_state),
 
-                "Adaptive": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                epsilon=epsilon, T=T_hat, M=M_hat, rho_tilde=rho_tilde_hat,
-                                                                allow_empty=allow_empty, method="old", optimistic=False,
-                                                                verbose=False, pre_trained=True, random_state=random_state),
+            "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
 
-                "Adaptive+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                epsilon=epsilon, T=T_hat, M=M_hat, rho_tilde=rho_tilde_hat,
-                                                                allow_empty=allow_empty, method="old", optimistic=True,
-                                                                verbose=False, pre_trained=True, random_state=random_state),
+            "Asymptotic+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="asymptotic",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
 
-                "Adaptive optimized": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                          epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
-                                                                          allow_empty=allow_empty, method="improved",
-                                                                          optimized=True, optimistic=False, verbose=False,
-                                                                          pre_trained=True, random_state=random_state),
+            "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
 
-                "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                          epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
-                                                                          allow_empty=allow_empty, method="improved",
-                                                                          optimized=True, optimistic=True, verbose=False,
-                                                                          pre_trained=True, random_state=random_state),
+            "Asymptotic+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="asymptotic",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
 
-                "Adaptive simplified": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                           epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
-                                                                           allow_empty=allow_empty, method="improved",
-                                                                           optimized=False, optimistic=False, verbose=False,
-                                                                           pre_trained=True, random_state=random_state),
-
-                "Adaptive simplified+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                           epsilon=epsilon, T=T_hat, rho_tilde=rho_tilde_hat,
-                                                                           allow_empty=allow_empty, method="improved",
-                                                                           optimized=False, optimistic=True, verbose=False,
-                                                                           pre_trained=True, random_state=random_state),
-
-                "Asymptotic": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                  epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
-                                                                  asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
-                                                                  rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
-                                                                  method="asymptotic", optimistic=False, verbose=False,
-                                                                  pre_trained=True, random_state=random_state),
-
-                "Asymptotic+": lambda: MarginalLabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                   epsilon=epsilon, asymptotic_h_start=asymptotic_h_start,
-                                                                   asymptotic_MC_samples=asymptotic_MC_samples, T=T_hat,
-                                                                   rho_tilde=rho_tilde_hat, allow_empty=allow_empty,
-                                                                   method="asymptotic", optimistic=True, verbose=False,
-                                                                   pre_trained=True, random_state=random_state),
-
-                "Label conditional": lambda: LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
-                                                                 rho_tilde=rho_tilde_hat, M=M_hat,
-                                                                 calibration_conditional=False, gamma=None,
-                                                                 optimistic=False, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state),
-                
-                "Label conditional+": lambda: LabelNoiseConformal(X, Yt, black_box, K, alpha, n_cal=-1,
+            "Label conditional+": lambda: LabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
                                                                   rho_tilde=rho_tilde_hat, M=M_hat,
                                                                   calibration_conditional=False, gamma=None,
                                                                   optimistic=True, allow_empty=allow_empty, verbose=False, pre_trained=True, random_state=random_state)
 
-            }
-
-            # Initialize an empty list to store the evaluation results
-            res_list = []
-
-            # Loop through the methods, apply them, and evaluate the results
-            for method_name, method_func in methods.items():
-                print(f"Applying {method_name} method...", end=' ')
-                sys.stdout.flush()
-
-                # Initialize and apply the method
-                method = method_func()
-                predictions = method.predict(X_test)
-
-                print("Done.")
-                sys.stdout.flush()
-
-                # Evaluate the method
-                res_new = evaluate_predictions(predictions, X_test, Y_test, K, verbose=False)
-                res_new['Method'] = method_name
-                res_new['Guarantee'] = guarantee
-                res_new['Alpha'] = alpha
-                res_new['random_state'] = random_state
-
-                # Append the result to the results list
-                res_list.append(res_new)
 
 
-            # Combine all results into a single DataFrame
-            res = pd.concat(res_list)
-                
+        }
+
+    else:
+        methods = {
+            "Standard": lambda: arc.methods.SplitConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                        pre_trained=True, random_state=random_state),
+
+            "Standard using clean": lambda: arc.methods.SplitConformal(X_clean, Y_clean, black_box, K, alpha, n_cal=-1,
+                                                                    pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+ clean": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_clean, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+ NN": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state),
+
+            "Adaptive optimized+ NN SLL": lambda: MarginalLabelNoiseConformal(X_cal, Yt_cal, black_box, K, alpha, n_cal=-1,
+                                                                        epsilon=epsilon, T=T_hat_NN_sll, rho_tilde=rho_tilde_hat,
+                                                                        allow_empty=allow_empty, method="improved",
+                                                                        optimized=True, optimistic=True, verbose=False,
+                                                                        pre_trained=True, random_state=random_state)
+
+        }
+    
+    # Initialize an empty list to store the evaluation results
+    res_list = []
+
+    # Loop through the methods, apply them, and evaluate the results
+    for method_name, method_func in methods.items():
+        print(f"Applying {method_name} method...", end=' ')
+        sys.stdout.flush()
+
+        # Initialize and apply the method
+        method = method_func()
+        predictions = method.predict(X_test)
+
+        print("Done.")
+        sys.stdout.flush()
+
+        # Evaluate the method
+        res_new = evaluate_predictions(predictions, X_test, Y_test, K, verbose=False)
+        res_new['Method'] = method_name
+        res_new['Guarantee'] = guarantee
+        res_new['Alpha'] = alpha
+        res_new['random_state'] = random_state
+
+        # Append the result to the results list
+        res_list.append(res_new)
+
+    # Combine all results into a single DataFrame
+    res = pd.concat(res_list)
+
     print(res)
 
     return res

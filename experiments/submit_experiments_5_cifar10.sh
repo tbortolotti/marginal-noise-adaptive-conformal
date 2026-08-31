@@ -1,52 +1,67 @@
 #!/bin/bash
 
 # Parameters
-CONF=822
+CONF=501
 
-if [[ $CONF == 820 ]]; then
+if [[ $CONF == 500 ]]; then
+  EPSILON_LIST=(0.1)
+  NU_LIST=(0)
+  CONTAMINATION_LIST=("real")
+  N_TRAIN_LIST=(2000)
+  N_CLEAN_LIST=(500)
+  N_CAL_LIST=(5000)
+  CONTAMINATION_EXP_FLAG="true"
+  SEED_LIST=(1)
+
+elif [[ $CONF == 501 ]]; then
+  # not shown in paper
   EPSILON_LIST=(0.1)
   NU_LIST=(0)
   CONTAMINATION_LIST=("uniform")
-  N_LIST=(5000)
+  N_TRAIN_LIST=(2000)
   N_CLEAN_LIST=(500)
-  PI_CLEAN_LIST=(0)
-  CONTAMINATION_EXP_FLAG="false"
-  SEED_LIST=(1)
-
-elif [[ $CONF == 821 ]]; then
-  EPSILON_LIST=(0.2)
-  NU_LIST=(0)
-  CONTAMINATION_LIST=("uniform")
-  N_LIST=(500 1000 2000 5000 9000)
-  N_CLEAN_LIST=(100 500 1000)
-  PI_CLEAN_LIST=(0)
+  N_CAL_LIST=(500 1000 2000 5000 7000)
   CONTAMINATION_EXP_FLAG="false"
   SEED_LIST=$(seq 1 10)
 
-elif [[ $CONF == 822 ]]; then
-  EPSILON_LIST=(0.2)
+elif [[ $CONF == 502 ]]; then
+  # not shown in paper
+  EPSILON_LIST=(0.1)
   NU_LIST=(0.2)
   CONTAMINATION_LIST=("uniform" "block" "RRB")
-  N_LIST=(500 1000 2000 5000 9000)
+  N_TRAIN_LIST=(2000)
   N_CLEAN_LIST=(500)
-  PI_CLEAN_LIST=(0)
+  N_CAL_LIST=(500 1000 2000 5000 7000)
   CONTAMINATION_EXP_FLAG="true"
   SEED_LIST=$(seq 1 10)
+
+elif [[ $CONF == 503 ]]; then
+  # Figure A31
+  EPSILON_LIST=(0.051)
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("real")
+  N_TRAIN_LIST=(2000)
+  N_CLEAN_LIST=(500)
+  N_CAL_LIST=(500 1000 2000 5000 7000)
+  CONTAMINATION_EXP_FLAG="true"
+  SEED_LIST=$(seq 1 20)
+
 fi
 
 
 # Slurm parameters
-MEMO=64G
-TIME=00-03:00:00
-CORE=1
-
-# Assemble order prefix
-ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
-
-#MEMO=32G 
+#MEMO=64G
 #TIME=00-04:00:00
 #CORE=1
-#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=gpu --gres=gpu:p100:1"
+
+# Assemble order prefix
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=main"
+
+MEMO=32G 
+TIME=00-04:00:00
+CORE=1
+ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=gpu --gres=gpu:p100:1"
 
 # Create directory for log files
 LOGS="logs"
@@ -63,21 +78,21 @@ for SEED in $SEED_LIST; do
   for EPSILON in "${EPSILON_LIST[@]}"; do
     for NU in "${NU_LIST[@]}"; do
       for CONTAMINATION in "${CONTAMINATION_LIST[@]}"; do
-        for N in "${N_LIST[@]}"; do
+        for N_TRAIN in "${N_TRAIN_LIST[@]}"; do
           for N_CLEAN in "${N_CLEAN_LIST[@]}"; do
-            for PI_CLEAN in "${PI_CLEAN_LIST[@]}"; do
+            for N_CAL in "${N_CAL_LIST[@]}"; do
               JOBN="exp"$CONF"/cifar10_eps"$EPSILON
-              JOBN=$JOBN"_nu"$NU"_"$CONTAMINATION
-              JOBN=$JOBN"_n"$N"_ncl"$N_CLEAN"_picl"$PI_CLEAN"_"$SEED
+              JOBN=$JOBN"_nu"$NU"_"$CONTAMINATION"_nt"$N_TRAIN"_ncl"$N_CLEAN"_nc"$N_CAL"_seed"$SEED
               OUT_FILE=$OUT_DIR"/"$JOBN".txt"
               COMPLETE=0
+              #  ls $OUT_FILE
               if [[ -f $OUT_FILE ]]; then
-                COMPLETE=1
+                    COMPLETE=1
               fi
 
               if [[ $COMPLETE -eq 0 ]]; then
                 # Script to be run
-                SCRIPT="exp_cifar_Test_EM_NN.sh $CONF $EPSILON $NU $CONTAMINATION $N $N_CLEAN $PI_CLEAN $CONTAMINATION_EXP_FLAG $SEED"
+                SCRIPT="exp_cifar.sh $CONF $EPSILON $NU $CONTAMINATION $N_TRAIN $N_CLEAN $N_CAL $CONTAMINATION_EXP_FLAG $SEED"
                 # Define job name
                 OUTF=$LOGS"/"$JOBN".out"
                 ERRF=$LOGS"/"$JOBN".err"

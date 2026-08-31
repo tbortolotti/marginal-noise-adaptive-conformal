@@ -27,7 +27,7 @@ from third_party.clarkson.clarkson import ClarksonConformal
 
 
 # Define default parameters
-exp_num = 1
+exp_num = 201
 data_name = 'synthetic4'
 num_var = 20
 K = 4

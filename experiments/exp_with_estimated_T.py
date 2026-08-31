@@ -28,7 +28,7 @@ from third_party import arc
 
 
 # Define default parameters
-exp_num = 711
+exp_num = 401
 data_name = 'synthetic6'
 model_name = 'RFC'
 num_var = 20

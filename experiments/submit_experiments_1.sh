@@ -4,7 +4,7 @@
 CONF=1
 
 if [[ $CONF == 1 ]]; then
-  # Figure 1, Figure A9 and Figure A10
+  # Figure 1 and Figures A16 and A17
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
@@ -19,7 +19,7 @@ if [[ $CONF == 1 ]]; then
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 2 ]]; then
-  # Figure 2 and Figure A11
+  # Figure 2 and Figure A18
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)
@@ -32,54 +32,9 @@ elif [[ $CONF == 2 ]]; then
   N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
   ESTIMATE_LIST=("none")
   SEED_LIST=$(seq 1 5)
-
-elif [[ $CONF == 3 ]]; then
-  # Figure 3, Figure 4 and Figure A14
-  DATA_LIST=("synthetic1")
-  NUM_VAR_LIST=(20)
-  K_LIST=(4 8 16)
-  SIGNAL_LIST=(1.0)
-  MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.1)
-  NU_LIST=(0.2 0.8)
-  CONTAMINATION_LIST=("RRB")
-  N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 5)
-
-elif [[ $CONF == 4 ]]; then
-  # Figures A12 and A13
-  DATA_LIST=("synthetic1")
-  NUM_VAR_LIST=(20)
-  K_LIST=(4 8 16)
-  SIGNAL_LIST=(1.0)
-  MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.1)
-  NU_LIST=(0.)
-  CONTAMINATION_LIST=("uniform" "block")
-  N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 5)
-
-elif [[ $CONF == 5 ]]; then
-  # Impact of an increase in the number of classes
-  DATA_LIST=("synthetic1")
-  NUM_VAR_LIST=(20)
-  K_LIST=(10 20 50)
-  SIGNAL_LIST=(1.0)
-  MODEL_LIST=('RFC')
-  EPSILON_LIST=(0.1)
-  NU_LIST=(0.2)
-  CONTAMINATION_LIST=("RRB")
-  N_TRAIN_LIST=(10000)
-  N_CAL_LIST=(500 1000 2000 5000 10000 20000 50000 100000)
-  ESTIMATE_LIST=("none")
-  SEED_LIST=$(seq 1 5)
   
-elif [[ $CONF == 6 ]]; then
-  # Figure 3
+elif [[ $CONF == 3 ]]; then
+  # Figure 3 and Figures A19--A23
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(10 20 50)
@@ -93,7 +48,7 @@ elif [[ $CONF == 6 ]]; then
   ESTIMATE_LIST=("none")
   SEED_LIST=$(seq 1 5)
 
-elif [[ $CONF == 7 ]]; then
+elif [[ $CONF == 4 ]]; then
   # Figure 4
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)

@@ -27,7 +27,7 @@ from cln.T_estimation import evaluate_estimate
 
 
 # Define default parameters
-exp_num = 621
+exp_num = 301
 data_name = 'synthetic6'
 num_var = 20
 K = 4
