@@ -1,9 +1,23 @@
 #!/bin/bash
 
 # Parameters
-CONF=1
+CONF=0
 
-if [[ $CONF == 1 ]]; then
+if [[ $CONF == 0 ]]; then
+  DATA_LIST=("synthetic1")
+  NUM_VAR_LIST=(20)
+  K_LIST=(4)
+  SIGNAL_LIST=(1.0)
+  MODEL_LIST=('RFC')
+  EPSILON_LIST=(0.1)
+  NU_LIST=(0.2)
+  CONTAMINATION_LIST=("uniform")
+  N_TRAIN_LIST=(10000)
+  N_CAL_LIST=(1000)
+  ESTIMATE_LIST=("none")
+  SEED_LIST=(1)
+
+elif [[ $CONF == 1 ]]; then
   # Figure 1 and Figures A16 and A17
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
