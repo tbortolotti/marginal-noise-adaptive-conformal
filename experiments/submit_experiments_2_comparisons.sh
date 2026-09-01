@@ -53,7 +53,7 @@ elif [[ $CONF == 202 ]]; then
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 203 ]]; then
-  # Figures A9, A11, A13
+  # Figures A7, A9, A11
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4 8 16)
@@ -69,7 +69,7 @@ elif [[ $CONF == 203 ]]; then
   SEED_LIST=$(seq 1 5)
 
 elif [[ $CONF == 204 ]]; then
-  # Figures A10, A12, A14
+  # Figures A8, A10, A12
   DATA_LIST=("synthetic1")
   NUM_VAR_LIST=(20)
   K_LIST=(4)

@@ -12,7 +12,7 @@ library(RColorBrewer)
 #' 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -638,7 +638,7 @@ make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num, plot.signal)
   }        
@@ -755,7 +755,7 @@ make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }
@@ -879,7 +879,7 @@ init_settings <- function() {
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }
@@ -915,7 +915,7 @@ make_figure_201(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guar
 #' Increasing number of classes 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -993,17 +993,17 @@ plot.alpha <- 0.1
 plot.epsilon <- 0.1
 plot.nu <- 0.2
 
-# Figure A9
+# Figure A7
 plot.contamination <- "uniform"
 make_figure_203(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
               plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=TRUE)
 
-# Figure A11
+# Figure A9
 plot.contamination <- "RRB"
 make_figure_203(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=TRUE)
 
-# Figure A13
+# Figure A11
 plot.contamination <- "block"
 make_figure_203(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal", plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon, plot.nu=plot.nu, save_plots=TRUE, reload=TRUE)
@@ -1077,21 +1077,21 @@ plot.epsilon <- c(0.05,0.1,0.2,0.4)
 plot.K <- 4
 plot.data <- "synthetic1"
 
-# Figure A10
+# Figure A8
 plot.contamination <- "uniform"
 make_figure_204(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
               plot.guarantee="marginal",
               plot.contamination=plot.contamination, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
               save_plots=TRUE, reload=TRUE, slides=FALSE)
 
-# Figure A12
+# Figure A10
 plot.contamination <- "RRB"
 make_figure_204(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
                 plot.contamination=plot.contamination, plot.epsilon=plot.epsilon, plot.nu=plot.nu,
                 save_plots=TRUE, reload=TRUE, slides=FALSE)
 
-# Figure A14
+# Figure A12
 plot.contamination <- "block"
 make_figure_204(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
                 plot.guarantee="marginal",
@@ -1122,7 +1122,7 @@ init_settings <- function(sll_flag=FALSE) {
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -1233,7 +1233,7 @@ make_figure_301(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -1340,7 +1340,7 @@ make_figure_302(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -1441,7 +1441,7 @@ make_figure_303(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -1554,7 +1554,7 @@ init_settings <- function(sll_flag=FALSE) {
 
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -1653,7 +1653,7 @@ make_figure_305(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 ### Experiments 400: Using the estimated T in the adaptive algorithm ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -2371,7 +2371,7 @@ make_figure_406(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 ### Experiment 503: Noise-adaptive conformal in CIFAR-10 dataset ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -2522,7 +2522,7 @@ make_figure_503(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 ### Experiment 601: Noise-adaptive conformal in BigEarthNet dataset ------------------------
 load_data <- function(exp.num, from_cluster=TRUE) {
   if(from_cluster) {
-    idir <- sprintf("results_hpc/exp%d", exp.num)
+    idir <- sprintf("results/exp%d", exp.num)
   } else {
     idir <- sprintf("results/exp%d", exp.num)
   }        
@@ -2814,3 +2814,270 @@ make_figure_601b(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, pl
                   zoom.ylim=c(1.30,1.4),
                   save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 dev.off()
+
+
+
+
+
+
+# IMAGES APPENDIX B5: Simplified Methods for Special Contamination Models ------
+
+method.values = c("RR", "CVX")
+method.labels = c("RR", "Opt")
+cbPalette <- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+color.scale <- cbPalette[c(3,7)]
+shape.scale <- c(2,0)
+linetype.scale <- c(1,1)
+
+load_data <- function() {
+  idir <- "results/simplified_methods"
+  ifile.list <- list.files(idir, recursive=FALSE)
+  ifile.list <- ifile.list[!grepl("comparison", ifile.list)]
+  
+  results <- do.call("rbind", lapply(ifile.list, function(ifile) {
+    df <- read_delim(sprintf("%s/%s", idir, ifile), delim=",", col_types=cols(), guess_max=2)
+  }))
+  
+  summary <- results %>%
+    pivot_longer("n_cal", names_to = "Key", values_to = "Value")
+  
+  return(results)
+}
+
+### Block randomized response model  -------------------------------------------
+# Plot of the finite sample correction for the optimized betas and the rr betas
+
+#' Figure A1: Finite sample correction as a function of the calibration set size,
+#'         for different number of classes
+make_figure_A1 <- function(save_plots=FALSE, plot.epsilon=0.1, plot.model_name="B",
+                           method.values, method.labels, label.values, label.labels) {
+
+  summary <- load_data()
+  
+  df <- summary %>%
+    filter(plot=="Klab", epsilon==plot.epsilon, model_name==plot.model_name, K %in% label.values) %>%
+    mutate(Method = factor(Method, levels = method.values, labels = method.labels)) %>%
+    mutate(K = factor(K, levels = label.values, labels = label.labels))
+  
+  pp <- ggplot(df, aes(x = n_cal, y = values, color = Method, shape = Method, linetype = Method)) +
+    geom_point() +
+    geom_line() +
+    facet_wrap(~ K, scales = "fixed") +
+    #scale_x_log10(breaks = unique(df$n_cal), labels = unique(df$n_cal)) +
+    scale_x_continuous(trans = 'log10', breaks = unique(df$n_cal), labels = unique(df$n_cal)) +
+    scale_color_manual(values = color.scale) +
+    scale_shape_manual(values = shape.scale) +
+    scale_linetype_manual(values = linetype.scale) +
+    xlab("Number of calibration samples") +
+    ylab(expression(delta^"marg" * "(n)")) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/delta_marg_const_%s_Klab_eps%f.pdf", plot.model_name, plot.epsilon)
+    ggsave(file=plot.file, height=3, width=7, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+label.values = c(4, 8, 16)
+label.labels = c("K=4", "K=8", "K=16")
+plot.model_name = "B"
+plot.epsilon = 0.1
+
+# Figure A1
+make_figure_A1(plot.epsilon=plot.epsilon, plot.model_name=plot.model_name, method.values=method.values, method.labels=method.labels,
+               label.values=label.values, label.labels=label.labels, save_plots=TRUE)
+
+#' Figure A2: Finite sample correction as a function of the number of classes, for different
+#'         values of the calibration set size
+make_figure_A2 <- function(save_plots=FALSE, plot.epsilon=0.1, plot.model_name="B") {
+
+  summary <- load_data()
+  
+  df <- summary %>%
+    filter(plot=="nlab", epsilon==plot.epsilon, model_name==plot.model_name, n_cal %in% label.values) %>%
+    mutate(Method = factor(Method, levels = method.values, labels = method.labels)) %>%
+    mutate(n_lab = factor(n_cal, levels = label.values, labels = label.labels))
+  
+  pp <- ggplot(df, aes(x = K, y = values, color = Method, shape = Method, linetype = Method)) +
+    geom_point() +
+    geom_line() +
+    facet_wrap(~ n_lab, scales = "fixed") +
+    scale_color_manual(values = color.scale) +
+    scale_shape_manual(values = shape.scale) +
+    scale_linetype_manual(values = linetype.scale) +
+    xlab("Number of classes") +
+    ylab(expression(delta^"marg" * "(n)")) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/delta_marg_const_%s_nlab_eps%f.pdf", plot.model_name, plot.epsilon)
+    ggsave(file=plot.file, height=3, width=7, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+label.values = c(100, 500, 1000)
+label.labels = c("n=100", "n=500", "n=1000")
+plot.epsilon = 0.1
+plot.model_name = "B"
+
+# Figure A2
+make_figure_A2(plot.epsilon=plot.epsilon, plot.model_name=plot.model_name, save_plots=TRUE)
+
+### Two-level randomized response model ----------------------------------------
+### Plot of the finite sample correction for the optimized betas and the rr betas
+
+#' Figure A3: Finite sample correction as a function of the calibration set size,
+#'         for different number of classes and for different combinations of epsilon and nu
+#'
+
+make_figure_A3 <- function(save_plots=FALSE, plot.epsilon=0.1, plot.nu.vals=c(0.2,0.8)) {
+  
+  summary <- load_data()
+  
+  df <- summary %>%
+    filter(plot=="Klab", epsilon == plot.epsilon, nu %in% plot.nu.vals, model_name=="BRR") %>%
+    filter(K %in% label.values) %>%
+    mutate(Method = factor(Method, levels = method.values, labels = method.labels)) %>%
+    mutate(K = factor(K, levels = label.values, labels = label.labels)) %>%
+    mutate(nu = factor(nu, labels = paste0("nu=", plot.nu.vals)))
+  
+  y_min <- min(df$values, na.rm = TRUE)
+  y_max <- max(df$values, na.rm = TRUE)
+  
+  pp <- ggplot(df, aes(x = n_cal, y = values, color = Method, shape = Method, linetype = Method)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(nu ~ K, scales = "fixed") +
+    #scale_x_log10(breaks = unique(df$n_cal), labels = unique(df$n_cal)) +
+    scale_x_continuous(trans = 'log10', breaks = unique(df$n_cal), labels = unique(df$n_cal)) +
+    scale_color_manual(values = color.scale) +
+    scale_shape_manual(values = shape.scale) +
+    scale_linetype_manual(values = linetype.scale) +
+    xlab("Number of calibration samples") +
+    ylab(expression(delta^"marg" * "(n)")) +
+    ylim(y_min, y_max) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/delta_marg_const_BRR_Klab_eps%f.pdf", plot.epsilon)
+    ggsave(file=plot.file, height=3, width=7, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+label.values = c(4, 8, 16)
+label.labels = c("K=4", "K=8", "K=16")
+
+# Figure A3
+make_figure_A3(plot.epsilon=0.1, plot.nu.vals=c(0.2,0.8), save_plots=TRUE)
+
+
+
+#' Figure A4 : Finite sample correction as a function of the number of classes, for different
+#'         values of the calibration set size and for different combinations of epsilon and nu
+#'         
+make_figure_A4 <- function(save_plots=FALSE, plot.epsilon=0.1, plot.nu.vals=c(0.2,0.8)) {
+  
+  summary <- load_data()
+  
+  df <- summary %>%
+    filter(plot=="nlab", epsilon == plot.epsilon, nu %in% plot.nu.vals, model_name=="BRR",
+           n_cal %in% label.values) %>%
+    mutate(Method = factor(Method, levels = method.values, labels = method.labels)) %>%
+    mutate(n_lab = factor(n_cal, levels = label.values, labels = label.labels)) %>%
+    mutate(nu = factor(nu, labels = paste0("nu=", plot.nu.vals)))
+  
+  y_min <- min(df$values, na.rm = TRUE)
+  y_max <- max(df$values, na.rm = TRUE)
+  
+  pp <- ggplot(df, aes(x = K, y = values, color = Method, shape = Method, linetype = Method)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(nu ~ n_lab, scales = "fixed") +
+    scale_color_manual(values = color.scale) +
+    scale_shape_manual(values = shape.scale) +
+    scale_linetype_manual(values = linetype.scale) +
+    xlab("Number of classes") +
+    ylab(expression(delta^"marg" * "(n)")) +
+    ylim(y_min, y_max) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/delta_marg_const_BRR_nlab_eps%f.pdf", plot.epsilon)
+    ggsave(file=plot.file, height=3, width=7, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+label.values = c(100, 500, 1000)
+label.labels = c("n=100", "n=500", "n=1000")
+
+make_figure_A4(plot.epsilon=0.1, plot.nu.vals=c(0.2, 0.8), save_plots=TRUE)
+
+#' Figure A5: Finite sample correction as a function of nu, for different
+#'         values of the calibration set size and for different number of classes
+#'         
+make_figure_A5 <- function(save_plots=FALSE, plot.epsilon=0.1, plot.K.vals=c(4,16), model_name) {
+
+  summary <- load_data()
+  
+  df <- summary %>%
+    filter(plot=="nu_var", epsilon == plot.epsilon, K %in% plot.K.vals, model_name==model_name,
+           n_cal %in% label.values) %>%
+    mutate(Method = factor(Method, levels = method.values, labels = method.labels)) %>%
+    mutate(n_lab = factor(n_cal, levels = label.values, labels = label.labels)) %>%
+    mutate(K = factor(K, levels=plot.K.vals, labels = c("K=4","K=16")))
+  
+  y_min <- min(df$values, na.rm = TRUE)
+  y_max <- max(df$values, na.rm = TRUE)
+  
+  pp <- ggplot(df, aes(x = nu, y = values, color = Method, shape = Method, linetype = Method)) +
+    geom_point() +
+    geom_line() +
+    facet_grid(K ~ n_lab, scales = "fixed") +
+    scale_color_manual(values = color.scale) +
+    scale_shape_manual(values = shape.scale) +
+    scale_linetype_manual(values = linetype.scale) +
+    xlab(expression(nu)) +
+    ylab(expression(delta^"marg" * "(n)")) +
+    ylim(y_min, y_max) +
+    theme_bw() +
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))
+  
+  if(save_plots) {
+    plot.file <- sprintf("figures/delta_marg_const_BRR_nu_var_eps%f.pdf", plot.epsilon)
+    ggsave(file=plot.file, height=3, width=7, units="in")
+    return(NULL)
+  } else{
+    return(pp)
+  }
+}
+
+label.values = c(100, 500, 1000)
+label.labels = c("n=100", "n=500", "n=1000")
+plot.K.vals = c(4,16)
+model_name = "BRR"
+
+# Figure A5
+plot.epsilon = 0.1
+make_figure_A5(plot.epsilon=plot.epsilon, plot.K.vals=plot.K.vals, model_name=model_name,
+               save_plots=TRUE)
+
+# Figure A6
+plot.epsilon = 0.5
+make_figure_A5(plot.epsilon=plot.epsilon, plot.K.vals=plot.K.vals, model_name=model_name,
+               save_plots=TRUE)
