@@ -19,7 +19,7 @@ if [[ $CONF == 200 ]]; then
   IMB_LIST=(0)
   SEED_LIST=(1)
 
-if [[ $CONF == 201 ]]; then
+elif [[ $CONF == 201 ]]; then
   # Figure A24
   DATA_LIST=("synthetic4")
   NUM_VAR_LIST=(20)
