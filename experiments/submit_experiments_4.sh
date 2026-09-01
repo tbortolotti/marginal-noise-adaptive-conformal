@@ -117,7 +117,6 @@ CORE=1                              # Cores required (1)
 
 # Assemble order prefix
 ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
-#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=sesia_1124 --partition=main"
 
 # Create directory for log files
 LOGS="logs"
