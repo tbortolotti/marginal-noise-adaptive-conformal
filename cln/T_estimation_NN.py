@@ -5,9 +5,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
-import sys
-sys.path.append("/home1/tb_214/code/PyTorch_CIFAR10")
-from cifar10_models.resnet import resnet18 as cifar_resnet18
 
 def compute_ll_cont(model, X_feat_torch, Yt_torch):
     """Marginal log-likelihood on contaminated observations."""
@@ -176,19 +173,6 @@ class ClassifierBackbone(nn.Module):
         """Returns logits of shape [batch, K]."""
         return self.net(X)
 
-class ResNetBackbone(nn.Module):
-    def __init__(self, K: int, freeze_features: bool = False):
-        super().__init__()
-        self.net = cifar_resnet18(pretrained=True)
-        
-        if freeze_features:
-            for name, param in self.net.named_parameters():
-                if "linear" not in name:
-                    param.requires_grad_(False)
-
-    def forward(self, X: torch.Tensor) -> torch.Tensor:
-        return self.net(X)
-
 # ---------------------------------------------------------------------------
 # Full model
 # ---------------------------------------------------------------------------
@@ -202,18 +186,13 @@ class NoisyLabelNet(nn.Module):
 
     def __init__(self, input_dim: int = None,
                  K: int = 2,
-                 backbone_model_: str = "MLP",
                  hidden_dims: list[int] = [128, 64],
-                 freeze_features: bool = False,
                  contamination_model_: str = "uniform",
                  epsilon_init: float = 0):
         super().__init__()
         self.K = K
 
-        if backbone_model_=="resnet":
-            self.backbone = ResNetBackbone(K, freeze_features=freeze_features)
-        else:
-            self.backbone = ClassifierBackbone(input_dim, K, hidden_dims)
+        self.backbone = ClassifierBackbone(input_dim, K, hidden_dims)
 
         if contamination_model_=="uniform":
             self.contamination = RandomizedResponseLayer(K, epsilon_init)
