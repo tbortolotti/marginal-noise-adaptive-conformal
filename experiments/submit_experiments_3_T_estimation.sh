@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=300
+CONF="${CONF:-300}"  # override with a leading CONF=<n> (see submit_paper_experiments.sh)
 
 if [[ $CONF == 300 ]]; then
   DATA_LIST=("synthetic1")
@@ -102,6 +102,7 @@ CORE=1                              # Cores required (1)
 
 # Assemble order prefix
 ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=<slurm-account> --partition=main"
 
 # Create directory for log files
 LOGS="logs"

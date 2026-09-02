@@ -8,7 +8,13 @@ from torchvision.datasets import CIFAR10
 import torch.nn as nn
 from torchvision.models import resnet18 as imagenet_resnet18, ResNet18_Weights
 import sys, os
-import_path = "/home1/tb_214/code/PyTorch_CIFAR10"
+# cifar10_models is vendored under third_party/pytorch-cifar10/
+# (huyvnphan/PyTorch_CIFAR10, MIT); see that folder's PROVENANCE.md.
+# Override the location with the PYTORCH_CIFAR10_PATH environment variable.
+import_path = os.environ.get(
+    "PYTORCH_CIFAR10_PATH",
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "third_party", "pytorch-cifar10"),
+)
 sys.path.append(import_path)
 from cifar10_models.resnet import resnet18 as cifar_resnet18
 import pickle
@@ -255,7 +261,7 @@ class Cifar10DataSet:
                     std=[0.2471, 0.2435, 0.2616]),
                     ])
 
-        self.cifar10 = CIFAR10(root=data_dir, train=False, transform=self.transform)
+        self.cifar10 = CIFAR10(root=data_dir, train=False, transform=self.transform, download=True)
 
         meta_file = data_dir + "/cifar-10-batches-py/batches.meta"
         meta_data = unpickle(meta_file)

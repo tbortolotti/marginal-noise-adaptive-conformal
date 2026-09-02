@@ -1,8 +1,11 @@
 #!/bin/bash
 
-module purge
-eval "$(conda shell.bash hook)"
-conda activate default
+# On a Slurm cluster this selects the right environment; a no-op elsewhere.
+module purge 2>/dev/null || true
+if command -v conda >/dev/null 2>&1; then
+  eval "$(conda shell.bash hook)"
+  conda activate default 2>/dev/null || true   # edit if your env name differs
+fi
 
 export OPENBLAS_NUM_THREADS=1
 

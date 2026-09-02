@@ -70,9 +70,14 @@ n_test = 500
 batch_size = n_train + n_clean + n_cal + n_test
 epsilon_init = 0
 
-# Set default directories
-data_dir = "/home1/tb_214/data/cifar10"
-noisy_data_dir = "/home1/tb_214/data/cifar10h"
+# Data directories. Defaults live under the top-level data/ folder (populated by
+# data/download_all.sh); override with the CIFAR10_DIR / CIFAR10H_DIR env vars.
+#   CIFAR10_DIR  contains cifar-10-batches-py/  (torchvision layout)
+#   CIFAR10H_DIR contains cifar10h-counts.npy
+_here = os.path.dirname(os.path.abspath(__file__))
+_data_root = os.path.join(_here, os.pardir, "data")
+data_dir = os.environ.get("CIFAR10_DIR", os.path.join(_data_root, "cifar10"))
+noisy_data_dir = os.environ.get("CIFAR10H_DIR", os.path.join(_data_root, "cifar10h"))
 
 print(f"Data Directory: {data_dir}")
 print(f"Noisy Data Directory: {noisy_data_dir}")

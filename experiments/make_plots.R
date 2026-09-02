@@ -10,12 +10,8 @@ library(RColorBrewer)
 #' Plot marginal coverage as function of the number of calibration samples, increasing the strength
 #' of the label contamination
 #' 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -636,12 +632,8 @@ make_figure_3(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 #' The separability of the classes increases as K increases, so that the average size of the
 #' prediction sets remains stable across experiments with different K
 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num, plot.signal)
-  }        
+load_data <- function(exp.num, plot.signal) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -753,12 +745,8 @@ make_figure_4(exp.num=exp.num, plot.alpha=plot.alpha, plot.guarantee="marginal",
 ### Experiment 201:The advantage of targeting marginal coverage 2 ------------------
 #' RBB, Increase in the class-imbalance
 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE)
 
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -877,12 +865,8 @@ init_settings <- function() {
 }
 
 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE)
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -905,20 +889,28 @@ plot.K <- 10
 plot.data <- "synthetic4"
 imb.values <- c(0, 0.5, 1)
 
-# Not shown in paper
-make_figure_201(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
-                plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=TRUE, reload=TRUE)
+## Not shown in paper
+#make_figure_201(exp.num=exp.num, plot.alpha=plot.alpha, plot.K=plot.K, plot.guarantee="marginal", plot.contamination="RRB",
+#                plot.epsilon=plot.epsilon, plot.nu=plot.nu, imb.values=imb.values, plot.data=plot.data, save_plots=TRUE, reload=TRUE)
 
 
 
 ### Experiment 203: Comparison with Clarkson ------------------------------------
 #' Increasing number of classes 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+
+init_settings <- function() {
+  df.dummy <<- tibble(key="Coverage", value=0.95)
+  df.dummy2 <<- tibble(key="Coverage", value=0.5)
+  cbPalette <<- c("grey50", "#E69F00", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#20B2AA", "#8A2BE2", "#B22222")
+  method.values <<- c("Standard", "Adaptive optimized+", "Asymptotic+", "Clarkson")
+  method.labels <<- c("Standard", "Adaptive+", "Adaptive+ (asymptotic)", "Clarkson et al.")
+  color.scale <<- cbPalette[c(1,3,4,11)]
+  shape.scale <<- c(1,2,4,8)
+  linetype.scale <<- c(1,1,1,1)
+}
+
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -1120,12 +1112,8 @@ init_settings <- function(sll_flag=FALSE) {
 #' The clean observations are "easy observations"
 #' 
 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -1230,13 +1218,8 @@ make_figure_301(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #' The clean observations are "easy observations"
 #' 
 
-
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -1326,24 +1309,20 @@ plot.contamination <- "uniform"
 plot.pi_clean <- c(0.1,0.3,0.5)
 plot.data <- "synthetic6"
 
-# Not shown in paper
-make_figure_302(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.pi_clean=plot.pi_clean,
-                plot.rand_flag=FALSE,
-                plot.contamination=plot.contamination,
-                plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+## Not shown in paper
+#make_figure_302(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
+#                plot.pi_clean=plot.pi_clean,
+#                plot.rand_flag=FALSE,
+#                plot.contamination=plot.contamination,
+#                plot.epsilon=plot.epsilon,
+#                save_plots=TRUE, reload=TRUE)
 
 #### Experiment 303: Impact of contamination strength -----------------
 #' Plot performance as function of the number of training samples,
 #' increasing the contamination strength
 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -1426,12 +1405,12 @@ plot.contamination <- "uniform"
 plot.n_clean <- 100
 plot.data <- "synthetic6"
 
-# Not shown in paper
-make_figure_303(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
-                plot.n_clean=plot.n_clean,
-                plot.contamination=plot.contamination,
-                plot.epsilon=plot.epsilon,
-                save_plots=TRUE, reload=TRUE)
+## Not shown in paper
+#make_figure_303(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
+#                plot.n_clean=plot.n_clean,
+#                plot.contamination=plot.contamination,
+#                plot.epsilon=plot.epsilon,
+#                save_plots=TRUE, reload=TRUE)
 
 
 #### Experiment 304: Different data design -----------------
@@ -1439,12 +1418,8 @@ make_figure_303(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
 #' changing the data design
 #' 
 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -1526,7 +1501,6 @@ plot.epsilon <- 0.2
 plot.K <- 4
 plot.contamination <- "uniform"
 plot.n_clean <- 500
-#plot.n_clean <- 100
 plot.data <- c("synthetic1", "synthetic2", "synthetic3")
 
 # Figure A29
@@ -1534,7 +1508,7 @@ make_figure_304(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                 plot.n_clean=plot.n_clean,
                 plot.contamination=plot.contamination,
                 plot.epsilon=plot.epsilon,
-                save_plots=FALSE, reload=TRUE)
+                save_plots=TRUE, reload=TRUE)
 
 
 
@@ -1552,12 +1526,8 @@ init_settings <- function(sll_flag=FALSE) {
   
 }
 
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -1651,12 +1621,8 @@ make_figure_305(exp.num=exp.num, plot.data=plot.data, plot.K=plot.K,
                  save_plots=TRUE, reload=TRUE)
 
 ### Experiments 400: Using the estimated T in the adaptive algorithm ------------------------
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -1890,12 +1856,12 @@ plot.contamination <- "uniform"
 exp.num <- 402
 plot.data <- "synthetic6"
 
-# Not shown in paper
-make_figure_402(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.guarantee="marginal",
-                plot.contamination=plot.contamination,
-                plot.n_train=plot.n_train, plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
+## Not shown in paper
+#make_figure_402(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+#                plot.guarantee="marginal",
+#                plot.contamination=plot.contamination,
+#                plot.n_train=plot.n_train, plot.pi_clean=plot.pi_clean,
+#                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
 
 #### Experiment 403: Impact of the number of training samples ------------------------
 #' Plot marginal coverage as function of the number of calibration samples,
@@ -2122,13 +2088,13 @@ plot.contamination <- "uniform"
 exp.num <- 404
 plot.data <- "synthetic6"
 
-# Not shown in paper
-make_figure_404(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.guarantee="marginal",
-                plot.contamination=plot.contamination,
-                plot.n_train=plot.n_train, plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
-
+## Not shown in paper
+#make_figure_404(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+#                plot.guarantee="marginal",
+#                plot.contamination=plot.contamination,
+#                plot.n_train=plot.n_train, plot.pi_clean=plot.pi_clean,
+#                plot.epsilon=plot.epsilon, save_plots=FALSE, reload=TRUE)
+#
 
 #' ---------------------------------------------------------------------------------------------------------------------
 #### Experiment 405: Impact of different data distribution ------------------------
@@ -2235,13 +2201,13 @@ plot.contamination <- "uniform"
 exp.num <- 405
 plot.data <- c("synthetic1","synthetic2","synthetic3")
 
-# Not shown in paper
-make_figure_405(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
-                plot.guarantee="marginal",
-                plot.contamination=plot.contamination,
-                plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                plot.pi_clean=plot.pi_clean,
-                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
+## Not shown in paper
+#make_figure_405(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.K=plot.K,
+#                plot.guarantee="marginal",
+#                plot.contamination=plot.contamination,
+#                plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
+#                plot.pi_clean=plot.pi_clean,
+#                plot.epsilon=plot.epsilon, save_plots=TRUE, reload=TRUE)
 
 #' ---------------------------------------------------------------------------------------------------------------------
 #### Experiment 406: Impact of the contamination process ------------------------
@@ -2369,12 +2335,8 @@ make_figure_406(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 
 #' ---------------------------------------------------------------------------------------------------------------------
 ### Experiment 503: Noise-adaptive conformal in CIFAR-10 dataset ------------------------
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -2520,12 +2482,8 @@ make_figure_503(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plo
 
 #' ---------------------------------------------------------------------------------------------------------------------
 ### Experiment 601: Noise-adaptive conformal in BigEarthNet dataset ------------------------
-load_data <- function(exp.num, from_cluster=TRUE) {
-  if(from_cluster) {
-    idir <- sprintf("results/exp%d", exp.num)
-  } else {
-    idir <- sprintf("results/exp%d", exp.num)
-  }        
+load_data <- function(exp.num) {
+  idir <- sprintf("results_hpc/exp%d", exp.num)
   ifile.list <- list.files(idir, recursive = FALSE) 
   
   results <- do.call("rbind", lapply(ifile.list, function(ifile) {
@@ -2665,12 +2623,12 @@ plot.n_train <- 5000
 plot.n_clean <- c(500)
 plot.guarantee="marginal"
 
-# Not shown in paper
-make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
-                 plot.contamination=plot.contamination,
-                 plot.epsilon=plot.epsilon,
-                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
-                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
+## Not shown in paper
+#make_figure_601(exp.num=exp.num, plot.alpha=plot.alpha, plot.data=plot.data, plot.guarantee="marginal",
+#                 plot.contamination=plot.contamination,
+#                 plot.epsilon=plot.epsilon,
+#                 plot.n_train=plot.n_train, plot.n_clean=plot.n_clean,
+#                 save_plots=TRUE, plot.optimistic=TRUE, reload=TRUE)
 
 #### Figure with zoom for the paper -----------------------------------------
 library(cowplot)

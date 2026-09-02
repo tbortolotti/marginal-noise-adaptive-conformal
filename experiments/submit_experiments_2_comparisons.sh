@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=200
+CONF="${CONF:-200}"  # override with a leading CONF=<n> (see submit_paper_experiments.sh)
 
 # COMPARISON WITH NOISE-ADAPTIVE LABEL CONDITIONAL AND CLARKSON ET AL. (2024)
 if [[ $CONF == 200 ]]; then
@@ -94,6 +94,7 @@ CORE=1                              # Cores required (1)
 
 # Assemble order prefix
 ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=<slurm-account> --partition=main"
 
 # Create directory for log files
 LOGS="logs"

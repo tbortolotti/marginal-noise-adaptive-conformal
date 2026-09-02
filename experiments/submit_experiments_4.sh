@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=400
+CONF="${CONF:-400}"  # override with a leading CONF=<n> (see submit_paper_experiments.sh)
 
 if [[ $CONF == 400 ]]; then
   MODEL_LIST=('RFC')
@@ -117,6 +117,7 @@ CORE=1                              # Cores required (1)
 
 # Assemble order prefix
 ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=<slurm-account> --partition=main"
 
 # Create directory for log files
 LOGS="logs"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Parameters
-CONF=600
+CONF="${CONF:-600}"  # override with a leading CONF=<n> (see submit_paper_experiments.sh)
 
 if [[ $CONF == 600 ]]; then
   EPSILON_LIST=(0.016)
@@ -28,9 +28,18 @@ fi
 
 
 # Slurm parameters
+#MEMO=64G
+#TIME=00-04:00:00
+#CORE=1
+
+# Assemble order prefix
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=<slurm-account> --partition=main"
+
 MEMO=64G 
 TIME=00-10:00:00
 CORE=1
+#ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME" --account=<slurm-account> --partition=gpu --gres=gpu:p100:1"
 ORDP="sbatch --mem="$MEMO" --nodes=1 --ntasks=1 --cpus-per-task=1 --time="$TIME
 
 # Create directory for log files
