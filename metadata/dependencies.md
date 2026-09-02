@@ -6,23 +6,23 @@
   and all method implementations. 3.8 for the BigEarthNet experiment (`third_party/bigearthnet`
   requires an older stack). Two conda environments are used, referenced by the
   `experiments/exp_*.sh` wrappers as `default` and `bigearth`.
-- **R**: 4.4.2 for `experiments/make_plots.R` (all figures) and for compiling this form.
+- **R**: 4.4.2 for `experiments/make_plots.R` (all figures).
 
 ### Python -- synthetic + CIFAR-10 (`default` environment)
 
 Used by `cln/`, `experiments/exp_1.py`, `exp_2_comparisons.py`, `exp_T_estimation.py`,
 `exp_with_estimated_T.py`, `exp_cifar.py`, and the two notebooks.
 
-| Package | Version tested | Paper minimum |
+| Package | Version | Paper minimum (from the manuscript) |
 |---|---|---|
 | numpy | 1.26.4 | >= 1.25.0 |
-| scipy | 1.16.0 | >= 1.11.1 |
-| scikit-learn | 1.2.2 | >= 1.3.0 |
-| pandas | 2.1.4 | >= 2.0.3 |
-| statsmodels | 0.14.0 | >= 0.14.0 |
+| scipy | 1.14.0 | >= 1.11.1 |
+| scikit-learn | 1.5.1 | >= 1.3.0 |
+| pandas | 2.2.2 | >= 2.0.3 |
+| statsmodels | 0.14.2 | >= 0.14.0 |
 | cvxpy | 1.5.2 | >= 1.5.2 |
-| tqdm | 4.65.0 | >= 4.65.0 |
-| matplotlib | 3.8.0 | -- |
+| tqdm | 4.66.5 | >= 4.65.0 |
+| matplotlib | 3.9.1 | -- |
 | torch | 2.4.0 | >= 1.10.2 |
 | torchvision | 0.19.0 | (matched to torch) |
 
@@ -41,31 +41,31 @@ Install with `pip install -r requirements.txt` (repo root). `seaborn` is used on
 
 Used by `experiments/exp_bigearthnet.py` and `third_party/bigearthnet/`.
 
-| Package | Version tested |
+Versions are those of the conda environment that produced the paper's BigEarthNet results.
+
+| Package | Version |
 |---|---|
 | python | 3.8 |
 | numpy | 1.24.4 |
 | scipy | 1.10.1 |
 | scikit-learn | 1.3.2 |
 | pandas | 2.0.3 |
-| torch | 2.4.1 |
-| torchvision | 0.19.1 |
-| pytorch-lightning | 2.4.0 |
-| timm | 1.0.11 |
+| torch | 2.0.1 |
+| torchvision | 0.15.2 |
+| pytorch-lightning | 2.0.0 |
+| timm | 0.6.12 |
+| torchgeo | 0.4.1 (imported by `third_party/bigearthnet/models/bigearthnet_module.py`) |
+| kornia | 0.6.12 (imported by the same module) |
 | hydra-core | 1.3.2 |
 | omegaconf | 2.3.0 |
 | gdown | 5.2.0 |
 | hub | 3.0.1 (activeloop "hub"; reads the pre-processed BigEarthNet dataset) |
-| torchgeo | imported by `third_party/bigearthnet/models/bigearthnet_module.py`; version unpinned |
-| kornia | imported by the same module; version unpinned |
 
-Install with `pip install -r requirements-bigearthnet.txt` (repo root). The exact `torchgeo`
-and `kornia` versions used for the paper are not recorded; install versions compatible with
-`torch 2.4`.
+Install with `pip install -r requirements-bigearthnet.txt` (repo root).
 
-### R (figures + this form)
+### R (figures)
 
-| Package | Version tested |
+| Package | Version |
 |---|---|
 | tidyverse | 2.0.0 (ggplot2 4.0.1, dplyr 1.1.4, tidyr 1.3.2, readr 2.1.5) |
 | latex2exp | 0.9.8 |

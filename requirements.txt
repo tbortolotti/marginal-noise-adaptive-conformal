@@ -4,18 +4,18 @@
 #   conda create -n default python=3.11 && conda activate default
 #   pip install -r requirements.txt
 #
-# See metadata/dependencies.md for details and the paper's stated minimums.
+# Versions below are those of the conda environment used for the paper (synthetic + CIFAR).
 # torch / torchvision are only needed for the CIFAR-10 experiment and the neural
 # noise-matrix estimator; the pure synthetic-data experiments run without them.
 
 numpy==1.26.4
-scipy==1.16.0
-scikit-learn==1.2.2
-pandas==2.1.4
-statsmodels==0.14.0
+scipy==1.14.0
+scikit-learn==1.5.1
+pandas==2.2.2
+statsmodels==0.14.2
 cvxpy==1.5.2
-tqdm==4.65.0
-matplotlib==3.8.0
+tqdm==4.66.5
+matplotlib==3.9.1
 seaborn==0.13.2
 torch==2.4.0
 torchvision==0.19.0
