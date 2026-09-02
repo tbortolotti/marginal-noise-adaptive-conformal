@@ -103,7 +103,8 @@ BigEarthNet in particular is **> 30 GB** and should be fetched on a cluster.
 
 `experiments/make_plots.R` reads from `experiments/results_hpc/`. On the cluster the jobs
 write to `experiments/results/`; gather those into one `experiments/results_hpc/` tree.
-`experiments/download.sh` is an `rsync` helper for this (edit `REMOTE` for your setup).
+For an `rsync` helper, copy `experiments/download.sh.example` to `experiments/download.sh`
+and edit `REMOTE` (your `download.sh` is git-ignored).
 
 ## Step 2 -- Build the figures
 

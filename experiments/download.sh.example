@@ -2,8 +2,9 @@
 # Collect the per-repetition experiment outputs produced on a remote cluster into
 # the local experiments/results_hpc/ tree, which experiments/make_plots.R reads.
 #
-# Edit REMOTE below for your setup (host + path to experiments/results/ on the
-# machine where the jobs ran).
+# Copy this file to  download.sh  and edit REMOTE for your setup (host + path to
+# experiments/results/ on the machine where the jobs ran). download.sh itself is
+# git-ignored so your personal paths stay local.
 
 set -eu
 

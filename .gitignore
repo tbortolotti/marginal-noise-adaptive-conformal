@@ -33,3 +33,6 @@ Rplots.pdf
 
 # Legacy download location (superseded by /data/)
 third_party/datasets/
+
+# Personal rsync helper (copy from download.sh.example, edit REMOTE)
+experiments/download.sh
